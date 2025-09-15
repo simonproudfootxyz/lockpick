@@ -1,0 +1,71 @@
+.player-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+
+.card-container {
+  position: relative;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  cursor: grab;
+}
+
+.card-container:active {
+  cursor: grabbing;
+}
+
+.card-container.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg) scale(1.05);
+  z-index: 1000;
+}
+
+.card-container.drag-over {
+  transform: translateY(-10px);
+  z-index: 999;
+}
+
+.card-container.drag-over::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px dashed #4299e1;
+  border-radius: 8px;
+  background: rgba(66, 153, 225, 0.1);
+  pointer-events: none;
+}
+
+.hand-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.selection-info {
+  color: #f6ad55;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.reorder-hint {
+  color: #a0aec0;
+  font-size: 10px;
+  font-weight: normal;
+  margin-top: 2px;
+  font-style: italic;
+}

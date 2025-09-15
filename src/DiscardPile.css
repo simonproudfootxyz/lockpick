@@ -1,0 +1,131 @@
+.discard-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  min-height: 120px;
+  background: #f7fafc;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 5px;
+  position: relative;
+  gap: 1rem;
+}
+
+.pile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pile-label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #4a5568;
+  text-align: center;
+  flex: 1;
+}
+
+.view-pile-btn {
+  background: #38a169;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.view-pile-btn:hover {
+  background: #2f855a;
+  transform: translateY(-1px);
+}
+
+.pile-cards {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.empty-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  font-size: 12px;
+}
+
+.no-cards-card {
+  background: #e2e8f0;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  width: 60px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.no-cards-text {
+  font-size: 10px;
+  font-weight: bold;
+  color: #718096;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.pile-stack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stacked-card {
+  position: absolute;
+  transition: all 0.2s ease;
+}
+
+.pile-count {
+  font-size: 10px;
+  color: #718096;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.select-pile-btn {
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.select-pile-btn:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+}
+
+.select-pile-btn.selected {
+  background: #38a169;
+  box-shadow: 0 0 10px rgba(56, 161, 105, 0.5);
+}
+
+.select-pile-btn.selected:hover {
+  background: #2f855a;
+}

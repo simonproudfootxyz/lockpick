@@ -1,0 +1,49 @@
+.card {
+  width: 60px;
+  height: 90px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid #4a5568;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card.selected {
+  border-color: #f6ad55;
+  background: linear-gradient(135deg, #f6ad55 0%, #fc8181 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card.playable {
+  border-color: #68d391;
+  box-shadow: 0 0 0 2px rgba(104, 211, 145, 0.3);
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-value {
+  font-size: 18px;
+  font-weight: bold;
+}

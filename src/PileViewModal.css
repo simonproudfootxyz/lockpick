@@ -1,0 +1,158 @@
+.pile-view-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.pile-view-modal {
+  background: #2d3748;
+  border-radius: 15px;
+  padding: 20px;
+  max-width: 80vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border: 2px solid #4299e1;
+}
+
+.pile-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #4a5568;
+}
+
+.pile-view-header h3 {
+  margin: 0;
+  color: #4299e1;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #c53030;
+  transform: scale(1.1);
+}
+
+.pile-view-content {
+  display: flex;
+  gap: 20px;
+}
+
+.pile-cards-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.pile-card-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-position {
+  font-weight: bold;
+  color: #a0aec0;
+  min-width: 30px;
+  font-size: 14px;
+}
+
+.pile-summary {
+  background: rgba(66, 153, 225, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(66, 153, 225, 0.3);
+  min-width: 200px;
+  height: fit-content;
+}
+
+.pile-summary p {
+  margin: 0 0 10px 0;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.pile-summary p:last-child {
+  margin-bottom: 0;
+}
+
+.pile-summary p:first-child {
+  font-weight: bold;
+  color: #4299e1;
+}
+
+/* Scrollbar styling */
+.pile-cards-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pile-cards-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.pile-cards-list::-webkit-scrollbar-thumb {
+  background: #4299e1;
+  border-radius: 4px;
+}
+
+.pile-cards-list::-webkit-scrollbar-thumb:hover {
+  background: #3182ce;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .pile-view-modal {
+    max-width: 95vw;
+    max-height: 90vh;
+    padding: 15px;
+  }
+
+  .pile-view-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .pile-cards-list {
+    max-height: 50vh;
+  }
+
+  .pile-summary {
+    min-width: auto;
+  }
+}
