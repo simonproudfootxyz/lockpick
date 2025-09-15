@@ -267,20 +267,13 @@ const Game = () => {
         </div>
       </div>
 
-      {selectedCard && (
-        <div className="pile-assignment">
-          <h3>Select Pile for Card {selectedCard}</h3>
-          <div className="card-display">{selectedCard}</div>
-        </div>
-      )}
-
       <div className="play-card-section">
         <button
           onClick={playSelectedCard}
           disabled={!selectedCard || selectedPile === null}
           className="play-card-btn"
         >
-          Play Card {selectedCard || ""}
+          {selectedCard ? `Play card ${selectedCard}` : "Play a card"}
         </button>
       </div>
 

@@ -23,49 +23,44 @@ const DiscardPile = ({
     <div className="discard-pile">
       <div className="pile-header">
         <div className="pile-label">{getPileLabel()}</div>
-        {pile.length > 0 && (
-          <button
-            className="view-pile-btn"
-            onClick={() => onViewPile(pile, pileType, pileNumber)}
-            title="View all cards in this pile"
-          >
-            View
-          </button>
-        )}
       </div>
       <div className="pile-cards">
-        {pile.length === 0 ? (
-          <div className="empty-pile">
-            <div className="no-cards-card">
-              <div className="no-cards-text">No Cards</div>
+        <div className="pile-display">
+          {/* Show starting card for empty piles */}
+          {pile.length === 0 && (
+            <div className="starting-card">
+              <Card
+                value={pileType === "ascending" ? 1 : 100}
+                isClickable={false}
+              />
             </div>
-          </div>
-        ) : (
-          <div className="pile-stack">
-            {pile.slice(-3).map((card, index) => (
-              <div
-                key={`${card}-${index}`}
-                className="stacked-card"
-                style={{
-                  zIndex: index + 1,
-                  transform: `translate(${index * 2}px, ${index * -2}px)`,
-                }}
-              >
-                <Card value={card} isClickable={false} />
-              </div>
-            ))}
-          </div>
-        )}
+          )}
+          {/* Show only the last played card */}
+          {pile.length > 0 && (
+            <div className="last-card">
+              <Card value={pile[pile.length - 1]} isClickable={false} />
+            </div>
+          )}
+        </div>
       </div>
       <div className="pile-count">{pile.length} cards</div>
-      {isSelectable && (
-        <button
-          className={`select-pile-btn ${isSelected ? "selected" : ""}`}
-          onClick={() => onSelectPile(pileNumber - 1)}
-        >
-          {isSelected ? "Selected" : "Select"}
-        </button>
-      )}
+      <button
+        className={`view-pile-btn ${pile.length === 0 && "disabled"}`}
+        onClick={() => onViewPile(pile, pileType, pileNumber)}
+        title="View all cards in this pile"
+        disabled={pile.length === 0}
+      >
+        View
+      </button>
+      <button
+        className={`select-pile-btn ${isSelected ? "selected" : ""} ${
+          !isSelectable ? "disabled" : ""
+        }`}
+        onClick={() => onSelectPile(pileNumber - 1)}
+        disabled={!isSelectable}
+      >
+        {isSelected ? "Selected" : "Select"}
+      </button>
     </div>
   );
 };
