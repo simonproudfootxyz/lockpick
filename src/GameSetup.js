@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./GameSetup.css";
 
-const GameSetup = ({ numPlayers, setNumPlayers, onStartGame }) => {
+const GameSetup = () => {
+  const [numPlayers, setNumPlayers] = useState(1);
+  const navigate = useNavigate();
+
+  const generateGameId = () => {
+    return Math.random().toString(36).substr(2, 9);
+  };
+
   const handleStartGame = () => {
-    onStartGame(numPlayers);
+    const gameId = generateGameId();
+    navigate(`/game/${gameId}?players=${numPlayers}`);
   };
 
   return (

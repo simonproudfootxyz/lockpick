@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   createDeck,
   getHandSize,
-  canPlayCards,
   canPlayCard,
   isGameWon,
-  isValidTurn,
   getGameStatus,
 } from "./gameLogic";
-import Card from "./Card";
 import DiscardPile from "./DiscardPile";
 import PlayerHand from "./PlayerHand";
-import GameSetup from "./GameSetup";
 import PileViewModal from "./PileViewModal";
+import GameOverModal from "./GameOverModal";
+import RulesModal from "./RulesModal";
 import "./Game.css";
 
 const Game = () => {
+  const { gameId } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedPile, setSelectedPile] = useState(null);
-  const [showSetup, setShowSetup] = useState(true);
-  const [numPlayers, setNumPlayers] = useState(1);
   const [viewingPile, setViewingPile] = useState(null);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
+
+  const numPlayers = parseInt(searchParams.get("players")) || 1;
 
   const initializeGame = (players) => {
     const deck = createDeck();
@@ -42,8 +46,14 @@ const Game = () => {
       cardsPlayedThisTurn: 0,
       turnComplete: false,
     });
-    setShowSetup(false);
   };
+
+  // Initialize game when component mounts
+  useEffect(() => {
+    if (!gameState && gameId) {
+      initializeGame(numPlayers);
+    }
+  }, [gameId, numPlayers, gameState]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -179,25 +189,37 @@ const Game = () => {
     setViewingPile(null);
   };
 
-  const resetGame = () => {
-    setGameState(null);
-    setSelectedCard(null);
-    setSelectedPile(null);
-    setViewingPile(null);
-    setShowSetup(true);
+  const handleCantPlayCard = () => {
+    setShowGameOverModal(true);
   };
 
-  if (showSetup) {
+  const closeGameOverModal = () => {
+    setShowGameOverModal(false);
+  };
+
+  const startNewGame = () => {
+    const newGameId = Math.random().toString(36).substr(2, 9);
+    navigate(`/game/${newGameId}?players=${numPlayers}`);
+  };
+
+  const openRulesModal = () => {
+    setShowRulesModal(true);
+  };
+
+  const closeRulesModal = () => {
+    setShowRulesModal(false);
+  };
+
+  if (!gameState) {
     return (
-      <GameSetup
-        numPlayers={numPlayers}
-        setNumPlayers={setNumPlayers}
-        onStartGame={initializeGame}
-      />
+      <div className="game">
+        <div className="game-header">
+          <h1>Lockpick</h1>
+          <div className="game-status">Loading game...</div>
+        </div>
+      </div>
     );
   }
-
-  if (!gameState) return null;
 
   const status = getGameStatus(gameState);
 
@@ -205,7 +227,8 @@ const Game = () => {
     <div className="game">
       <div className="game-header">
         <h1>Lockpick</h1>
-        <button onClick={resetGame} className="new-game-btn">
+        <div className="game-id">Game ID: {gameId}</div>
+        <button onClick={startNewGame} className="new-game-btn">
           New Game
         </button>
         <div className="game-status">{status}</div>
@@ -275,6 +298,9 @@ const Game = () => {
         >
           {selectedCard ? `Play card ${selectedCard}` : "Play a card"}
         </button>
+        <button onClick={handleCantPlayCard} className="cant-play-btn">
+          I can't play a card
+        </button>
       </div>
 
       <div className="player-section">
@@ -332,6 +358,9 @@ const Game = () => {
             </span>
           )}
         </div>
+        <button onClick={openRulesModal} className="rules-btn-floating">
+          Rules
+        </button>
       </div>
 
       {viewingPile && (
@@ -342,6 +371,15 @@ const Game = () => {
           onClose={closePileView}
         />
       )}
+
+      <GameOverModal
+        isOpen={showGameOverModal}
+        onClose={closeGameOverModal}
+        onNewGame={startNewGame}
+        currentPlayer={gameState?.currentPlayer || 0}
+      />
+
+      <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
     </div>
   );
 };
