@@ -60,7 +60,7 @@
 .setup-options {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
 }
 
@@ -119,6 +119,32 @@
 .start-game-btn:active {
   transform: translateY(0);
   box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
+}
+
+.join-game-btn {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(72, 187, 120, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.join-game-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(72, 187, 120, 0.4);
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.join-game-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
 }
 
 @media (max-width: 768px) {

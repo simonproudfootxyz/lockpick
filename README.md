@@ -1,70 +1,128 @@
-# Getting Started with Create React App
+# Lockpick Card Game
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A multiplayer card game built with React and WebSockets.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- Real-time multiplayer gameplay
+- Game state persistence
+- Invite system with shareable codes
+- Responsive design
+- Cross-browser compatibility
 
-### `npm start`
+## Development Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerequisites
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js (v14 or higher)
+- npm
 
-### `npm test`
+### Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### `npm run build`
+### Running the Application
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The application requires two servers to run:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **React Development Server** (port 3000)
+2. **WebSocket Server** (port 3001)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#### Option 1: Run Both Servers Simultaneously (Recommended)
 
-### `npm run eject`
+```bash
+npm run dev
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+This will start both the React app and WebSocket server concurrently.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### Option 2: Run Servers Separately
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Terminal 1 - WebSocket Server:**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run server
+```
 
-## Learn More
+**Terminal 2 - React App:**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Accessing the Game
 
-### Code Splitting
+- **React App**: http://localhost:3000
+- **WebSocket Server**: http://localhost:3001
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## How to Play
 
-### Analyzing the Bundle Size
+1. **Start a Game**: Click "Start Game" on the home screen
+2. **Invite Players**: Click "Invite Players" and share the invite code
+3. **Join a Game**: Click "Join Game" and enter an invite code
+4. **Play**: Follow the game rules displayed in the Rules modal
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Game Rules
 
-### Making a Progressive Web App
+- Try to discard all 98 cards onto four discard piles
+- Two piles go in ascending order (1 ↑)
+- Two piles go in descending order (100 ↓)
+- Special reverse rule: Play a card exactly 10 less on ascending piles
+- Special reverse rule: Play a card exactly 10 more on descending piles
+- Play all 98 cards to win!
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Multiplayer Features
 
-### Advanced Configuration
+- **Real-time synchronization**: All players see moves instantly
+- **Invite system**: Share invite codes to let others join
+- **Connection status**: Visual indicators for connection state
+- **Offline fallback**: Game works even when WebSocket server is unavailable
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Troubleshooting
 
-### Deployment
+### WebSocket Connection Issues
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+If you see connection errors:
 
-### `npm run build` fails to minify
+1. **Make sure the WebSocket server is running**:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+   ```bash
+   npm run server
+   ```
+
+2. **Check that port 3001 is available**
+
+3. **Try refreshing the browser page**
+
+4. **Check the browser console for detailed error messages**
+
+### Game State Not Syncing
+
+- Ensure all players are using the same invite code
+- Check that the WebSocket server is running
+- Verify network connectivity between players
+
+## Production Deployment
+
+For production deployment:
+
+1. Build the React app:
+
+   ```bash
+   npm run build
+   ```
+
+2. Deploy the WebSocket server to a hosting service
+3. Update the WebSocket server URL in `src/services/websocketService.js`
+
+## Technology Stack
+
+- **Frontend**: React, React Router, Socket.IO Client
+- **Backend**: Node.js, Express, Socket.IO
+- **Styling**: CSS3 with modern features
+- **State Management**: React Hooks, localStorage
+- **Real-time Communication**: WebSockets via Socket.IO

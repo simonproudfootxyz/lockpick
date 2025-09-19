@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSetup.css";
 
 const GameSetup = () => {
-  const [numPlayers, setNumPlayers] = useState(1);
   const navigate = useNavigate();
 
   const generateGameId = () => {
@@ -12,7 +11,7 @@ const GameSetup = () => {
 
   const handleStartGame = () => {
     const gameId = generateGameId();
-    navigate(`/game/${gameId}?players=${numPlayers}`);
+    navigate(`/game/${gameId}?players=1`);
   };
 
   return (
@@ -47,23 +46,11 @@ const GameSetup = () => {
         </div>
 
         <div className="setup-options">
-          <div className="player-selection">
-            <label htmlFor="numPlayers">Number of Players:</label>
-            <select
-              id="numPlayers"
-              value={numPlayers}
-              onChange={(e) => setNumPlayers(parseInt(e.target.value))}
-            >
-              <option value={1}>1 Player (8 cards)</option>
-              <option value={2}>2 Players (7 cards each)</option>
-              <option value={3}>3 Players (6 cards each)</option>
-              <option value={4}>4 Players (6 cards each)</option>
-              <option value={5}>5 Players (6 cards each)</option>
-            </select>
-          </div>
-
           <button className="start-game-btn" onClick={handleStartGame}>
             Start Game
+          </button>
+          <button className="join-game-btn" onClick={() => navigate("/join")}>
+            Join Game
           </button>
         </div>
       </div>

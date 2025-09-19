@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   createDeck,
@@ -12,6 +12,8 @@ import PlayerHand from "./PlayerHand";
 import PileViewModal from "./PileViewModal";
 import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
+import InviteModal from "./InviteModal";
+import websocketService from "./services/websocketService";
 import "./Game.css";
 
 const Game = () => {
@@ -25,6 +27,10 @@ const Game = () => {
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [playerCount, setPlayerCount] = useState(1);
+  const [connectionError, setConnectionError] = useState(null);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
 
@@ -42,7 +48,7 @@ const Game = () => {
     }
   };
 
-  const loadGameState = () => {
+  const loadGameState = useCallback(() => {
     if (gameId) {
       try {
         const savedData = localStorage.getItem(`lockpick_game_${gameId}`);
@@ -61,7 +67,7 @@ const Game = () => {
       }
     }
     return null;
-  };
+  }, [gameId, numPlayers]);
 
   const clearGameState = () => {
     if (gameId) {
@@ -69,43 +75,141 @@ const Game = () => {
     }
   };
 
-  const initializeGame = (players) => {
-    const deck = createDeck();
-    const handSize = getHandSize(players);
+  const initializeGame = useCallback(
+    (players) => {
+      const deck = createDeck();
+      const handSize = getHandSize(players);
 
-    // Deal hands for all players
-    const playerHands = [];
-    for (let i = 0; i < players; i++) {
-      playerHands.push(deck.splice(0, handSize));
-    }
-
-    const newGameState = {
-      playerHands,
-      currentPlayer: 0,
-      discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
-      deck,
-      gameWon: false,
-      cardsPlayedThisTurn: 0,
-      turnComplete: false,
-    };
-
-    setGameState(newGameState);
-    saveGameState(newGameState);
-  };
-
-  // Initialize game when component mounts
-  useEffect(() => {
-    if (!gameState && gameId) {
-      // Try to load saved game state first
-      const savedState = loadGameState();
-      if (savedState) {
-        setGameState(savedState);
-      } else {
-        // No saved state found, initialize new game
-        initializeGame(numPlayers);
+      // Deal hands for all players
+      const playerHands = [];
+      for (let i = 0; i < players; i++) {
+        playerHands.push(deck.splice(0, handSize));
       }
+
+      const newGameState = {
+        playerHands,
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
+        deck,
+        gameWon: false,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+      };
+
+      setGameState(newGameState);
+      saveGameState(newGameState);
+      // Broadcast initial game state to other players
+      websocketService.updateGameState(newGameState);
+    },
+    [saveGameState]
+  );
+
+  // WebSocket event handlers
+  const handleGameStateUpdate = useCallback((newGameState) => {
+    console.log("Received game state update:", newGameState);
+    setGameState(newGameState);
+    // Also save to localStorage for persistence
+    saveGameState(newGameState);
+  }, []);
+
+  const handlePlayerJoined = useCallback((playerInfo) => {
+    console.log("Player joined:", playerInfo);
+    setPlayerCount((prev) => prev + 1);
+  }, []);
+
+  const handlePlayerLeft = useCallback((playerInfo) => {
+    console.log("Player left:", playerInfo);
+    setPlayerCount((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleWebSocketError = useCallback((error) => {
+    console.error("WebSocket error:", error);
+    setIsConnected(false);
+  }, []);
+
+  const handleConnected = useCallback(() => {
+    console.log("WebSocket connected");
+    setIsConnected(true);
+    setConnectionError(null);
+  }, []);
+
+  const handleDisconnected = useCallback((reason) => {
+    console.log("WebSocket disconnected:", reason);
+    setIsConnected(false);
+  }, []);
+
+  const handleConnectionError = useCallback((error) => {
+    console.error("WebSocket connection error:", error);
+    setIsConnected(false);
+    setConnectionError(
+      "Failed to connect to multiplayer server. Playing in offline mode."
+    );
+  }, []);
+
+  const handleReconnected = useCallback((attemptNumber) => {
+    console.log("WebSocket reconnected after", attemptNumber, "attempts");
+    setIsConnected(true);
+    setConnectionError(null);
+  }, []);
+
+  // Initialize WebSocket connection and game when component mounts
+  useEffect(() => {
+    if (gameId) {
+      // Connect to WebSocket
+      websocketService.connect(gameId);
+
+      // Set up event listeners
+      websocketService.on("gameStateUpdate", handleGameStateUpdate);
+      websocketService.on("playerJoined", handlePlayerJoined);
+      websocketService.on("playerLeft", handlePlayerLeft);
+      websocketService.on("error", handleWebSocketError);
+      websocketService.on("connected", handleConnected);
+      websocketService.on("disconnected", handleDisconnected);
+      websocketService.on("connectionError", handleConnectionError);
+      websocketService.on("reconnected", handleReconnected);
+
+      // Initialize game if no state exists
+      if (!gameState) {
+        // Try to load saved game state first
+        const savedState = loadGameState();
+        if (savedState) {
+          setGameState(savedState);
+          // Broadcast the loaded state to other players
+          websocketService.updateGameState(savedState);
+        } else {
+          // No saved state found, initialize new game
+          initializeGame(numPlayers);
+        }
+      }
+
+      // Cleanup on unmount
+      return () => {
+        websocketService.off("gameStateUpdate", handleGameStateUpdate);
+        websocketService.off("playerJoined", handlePlayerJoined);
+        websocketService.off("playerLeft", handlePlayerLeft);
+        websocketService.off("error", handleWebSocketError);
+        websocketService.off("connected", handleConnected);
+        websocketService.off("disconnected", handleDisconnected);
+        websocketService.off("connectionError", handleConnectionError);
+        websocketService.off("reconnected", handleReconnected);
+        websocketService.disconnect();
+      };
     }
-  }, [gameId, numPlayers, gameState]);
+  }, [
+    gameId,
+    gameState,
+    numPlayers,
+    loadGameState,
+    initializeGame,
+    handleGameStateUpdate,
+    handlePlayerJoined,
+    handlePlayerLeft,
+    handleWebSocketError,
+    handleConnected,
+    handleDisconnected,
+    handleConnectionError,
+    handleReconnected,
+  ]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -139,6 +243,8 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+    // Broadcast to other players via WebSocket
+    websocketService.updateGameState(newGameState);
   };
 
   const sortHand = () => {
@@ -155,6 +261,8 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+    // Broadcast to other players via WebSocket
+    websocketService.updateGameState(newGameState);
   };
 
   const playSelectedCard = () => {
@@ -202,6 +310,8 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+    // Broadcast to other players via WebSocket
+    websocketService.updateGameState(newGameState);
   };
 
   const endTurn = () => {
@@ -239,6 +349,8 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+    // Broadcast to other players via WebSocket
+    websocketService.updateGameState(newGameState);
 
     // Clear any selected card when switching players
     setSelectedCard(null);
@@ -283,6 +395,33 @@ const Game = () => {
     setShowRulesModal(false);
   };
 
+  const openInviteModal = () => {
+    setShowInviteModal(true);
+  };
+
+  const closeInviteModal = () => {
+    setShowInviteModal(false);
+  };
+
+  const copyInviteCode = () => {
+    navigator.clipboard
+      .writeText(gameId)
+      .then(() => {
+        // Could add a toast notification here
+        alert("Invite code copied to clipboard!");
+      })
+      .catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = gameId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        alert("Invite code copied to clipboard!");
+      });
+  };
+
   if (!gameState) {
     return (
       <div className="game">
@@ -301,17 +440,31 @@ const Game = () => {
       <div className="game-header">
         <h1>Lockpick</h1>
         <div className="game-id">Game ID: {gameId}</div>
-        <button onClick={startNewGame} className="new-game-btn">
-          New Game
-        </button>
-        <div className="game-status">{status}</div>
-        <div className="game-controls">
-          {gameState.turnComplete && (
-            <button onClick={endTurn} className="end-turn-btn">
-              End Turn & Draw Cards
-            </button>
+        <div className="connection-status">
+          <span
+            className={`status-indicator ${
+              isConnected ? "connected" : "disconnected"
+            }`}
+          >
+            {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+          </span>
+          {playerCount > 1 && (
+            <span className="player-count">{playerCount} players online</span>
+          )}
+          {connectionError && (
+            <span className="connection-error">{connectionError}</span>
           )}
         </div>
+        <div className="header-buttons">
+          <button onClick={openInviteModal} className="invite-btn">
+            Invite Players
+          </button>
+          <button onClick={startNewGame} className="new-game-btn">
+            New Game
+          </button>
+        </div>
+        <div className="game-status">{status}</div>
+        <div className="game-controls"></div>
       </div>
 
       <div className="discard-piles">
@@ -364,6 +517,13 @@ const Game = () => {
       </div>
 
       <div className="play-card-section">
+        <button
+          onClick={endTurn}
+          disabled={!gameState.turnComplete}
+          className="end-turn-btn"
+        >
+          End Turn & Draw Cards
+        </button>
         <button
           onClick={playSelectedCard}
           disabled={!selectedCard || selectedPile === null}
@@ -458,6 +618,12 @@ const Game = () => {
       />
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
+
+      <InviteModal
+        isOpen={showInviteModal}
+        onClose={closeInviteModal}
+        gameId={gameId}
+      />
     </div>
   );
 };
