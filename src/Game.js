@@ -24,8 +24,50 @@ const Game = () => {
   const [viewingPile, setViewingPile] = useState(null);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
+
+  // Game state persistence functions
+  const saveGameState = (state) => {
+    if (gameId && state) {
+      const gameData = {
+        gameState: state,
+        timestamp: Date.now(),
+        gameId: gameId,
+        numPlayers: numPlayers,
+      };
+      localStorage.setItem(`lockpick_game_${gameId}`, JSON.stringify(gameData));
+      setLastSaved(new Date());
+    }
+  };
+
+  const loadGameState = () => {
+    if (gameId) {
+      try {
+        const savedData = localStorage.getItem(`lockpick_game_${gameId}`);
+        if (savedData) {
+          const gameData = JSON.parse(savedData);
+          // Check if the saved game matches current game ID and player count
+          if (
+            gameData.gameId === gameId &&
+            gameData.numPlayers === numPlayers
+          ) {
+            return gameData.gameState;
+          }
+        }
+      } catch (error) {
+        console.error("Error loading game state:", error);
+      }
+    }
+    return null;
+  };
+
+  const clearGameState = () => {
+    if (gameId) {
+      localStorage.removeItem(`lockpick_game_${gameId}`);
+    }
+  };
 
   const initializeGame = (players) => {
     const deck = createDeck();
@@ -37,7 +79,7 @@ const Game = () => {
       playerHands.push(deck.splice(0, handSize));
     }
 
-    setGameState({
+    const newGameState = {
       playerHands,
       currentPlayer: 0,
       discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
@@ -45,13 +87,23 @@ const Game = () => {
       gameWon: false,
       cardsPlayedThisTurn: 0,
       turnComplete: false,
-    });
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
   };
 
   // Initialize game when component mounts
   useEffect(() => {
     if (!gameState && gameId) {
-      initializeGame(numPlayers);
+      // Try to load saved game state first
+      const savedState = loadGameState();
+      if (savedState) {
+        setGameState(savedState);
+      } else {
+        // No saved state found, initialize new game
+        initializeGame(numPlayers);
+      }
     }
   }, [gameId, numPlayers, gameState]);
 
@@ -80,10 +132,13 @@ const Game = () => {
     const newPlayerHands = [...gameState.playerHands];
     newPlayerHands[gameState.currentPlayer] = newHand;
 
-    setGameState((prev) => ({
-      ...prev,
+    const newGameState = {
+      ...gameState,
       playerHands: newPlayerHands,
-    }));
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
   };
 
   const sortHand = () => {
@@ -93,10 +148,13 @@ const Game = () => {
     const newPlayerHands = [...gameState.playerHands];
     newPlayerHands[gameState.currentPlayer] = sortedHand;
 
-    setGameState((prev) => ({
-      ...prev,
+    const newGameState = {
+      ...gameState,
       playerHands: newPlayerHands,
-    }));
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
   };
 
   const playSelectedCard = () => {
@@ -133,14 +191,17 @@ const Game = () => {
     const minCardsRequired = deckEmpty ? 1 : 2;
     const turnComplete = newCardsPlayedThisTurn >= minCardsRequired;
 
-    setGameState((prev) => ({
-      ...prev,
+    const newGameState = {
+      ...gameState,
       playerHands: newPlayerHands,
       discardPiles: newDiscardPiles,
       cardsPlayedThisTurn: newCardsPlayedThisTurn,
       turnComplete: turnComplete,
       gameWon: isGameWon(newDiscardPiles),
-    }));
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
   };
 
   const endTurn = () => {
@@ -168,13 +229,16 @@ const Game = () => {
     const nextPlayer =
       (gameState.currentPlayer + 1) % gameState.playerHands.length;
 
-    setGameState((prev) => ({
-      ...prev,
+    const newGameState = {
+      ...gameState,
       playerHands: newPlayerHands,
       currentPlayer: nextPlayer,
       cardsPlayedThisTurn: 0,
       turnComplete: false,
-    }));
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
 
     // Clear any selected card when switching players
     setSelectedCard(null);
@@ -198,6 +262,15 @@ const Game = () => {
   };
 
   const startNewGame = () => {
+    // Clear current game state
+    clearGameState();
+    setGameState(null);
+    setSelectedCard(null);
+    setSelectedPile(null);
+    setViewingPile(null);
+    setShowGameOverModal(false);
+    setShowRulesModal(false);
+
     const newGameId = Math.random().toString(36).substr(2, 9);
     navigate(`/game/${newGameId}?players=${numPlayers}`);
   };
@@ -361,6 +434,11 @@ const Game = () => {
         <button onClick={openRulesModal} className="rules-btn-floating">
           Rules
         </button>
+        {lastSaved && (
+          <div className="save-indicator">
+            Saved: {lastSaved.toLocaleTimeString()}
+          </div>
+        )}
       </div>
 
       {viewingPile && (
