@@ -446,3 +446,51 @@
   color: #63b3ed;
   font-weight: bold;
 }
+
+/* Multiplayer specific styles */
+.game-layout {
+  display: flex;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.game-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.game-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.waiting-for-game {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin: 20px 0;
+}
+
+.waiting-for-game h2 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.waiting-for-game p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1200px) {
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .game-sidebar {
+    width: 100%;
+    order: -1;
+  }
+}

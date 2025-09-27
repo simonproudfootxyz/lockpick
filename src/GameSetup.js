@@ -63,8 +63,19 @@ const GameSetup = () => {
           </div>
 
           <button className="start-game-btn" onClick={handleStartGame}>
-            Start Game
+            Start Single Player Game
           </button>
+
+          <div className="multiplayer-section">
+            <h3>Multiplayer</h3>
+            <p>Play with friends online!</p>
+            <button
+              className="multiplayer-btn"
+              onClick={() => navigate("/lobby")}
+            >
+              Join Multiplayer Lobby
+            </button>
+          </div>
         </div>
       </div>
     </div>

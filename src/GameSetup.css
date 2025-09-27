@@ -121,6 +121,52 @@
   box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
 }
 
+.multiplayer-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(72, 187, 120, 0.1);
+  border-radius: 15px;
+  border: 2px solid rgba(72, 187, 120, 0.2);
+}
+
+.multiplayer-section h3 {
+  color: #2d3748;
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.multiplayer-section p {
+  color: #4a5568;
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+}
+
+.multiplayer-btn {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(72, 187, 120, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.multiplayer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(72, 187, 120, 0.4);
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.multiplayer-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+}
+
 @media (max-width: 768px) {
   .setup-container {
     padding: 20px;

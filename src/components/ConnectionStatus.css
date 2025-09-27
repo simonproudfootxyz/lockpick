@@ -1,0 +1,97 @@
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.connection-status.connected {
+  background: rgba(72, 187, 120, 0.2);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+  color: #48bb78;
+}
+
+.connection-status.disconnected {
+  background: rgba(229, 62, 62, 0.2);
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  color: #e53e3e;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-dot.connected {
+  background: #48bb78;
+  box-shadow: 0 0 6px rgba(72, 187, 120, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.status-dot.disconnected {
+  background: #e53e3e;
+  box-shadow: 0 0 6px rgba(229, 62, 62, 0.6);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 6px rgba(72, 187, 120, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(72, 187, 120, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 6px rgba(72, 187, 120, 0.6);
+  }
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.error-message small {
+  color: #c53030;
+  font-size: 0.8rem;
+}
+
+.reconnect-btn {
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reconnect-btn:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+}
+
+.reconnect-btn:active {
+  transform: translateY(0);
+}

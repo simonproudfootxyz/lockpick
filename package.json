@@ -11,13 +11,22 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",
+    "socket.io-client": "^4.7.2",
     "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "cd server && npm start",
+    "server:dev": "cd server && npm run dev",
+    "install:all": "npm install && cd server && npm install",
+    "dev": "concurrently \"npm start\" \"npm run server:dev\"",
+    "build:all": "npm run build && cd server && npm install --production"
   },
   "eslintConfig": {
     "extends": [
