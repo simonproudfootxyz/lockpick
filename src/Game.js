@@ -128,40 +128,11 @@ const Game = () => {
     setSelectedPile(pileIndex);
   };
 
-  const handleHandReorder = (newHand) => {
-    const newPlayerHands = [...gameState.playerHands];
-    newPlayerHands[gameState.currentPlayer] = newHand;
+  const handlePlayCard = (pileIndex) => {
+    if (!selectedCard) return;
 
-    const newGameState = {
-      ...gameState,
-      playerHands: newPlayerHands,
-    };
-
-    setGameState(newGameState);
-    saveGameState(newGameState);
-  };
-
-  const sortHand = () => {
-    const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
-      (a, b) => a - b
-    );
-    const newPlayerHands = [...gameState.playerHands];
-    newPlayerHands[gameState.currentPlayer] = sortedHand;
-
-    const newGameState = {
-      ...gameState,
-      playerHands: newPlayerHands,
-    };
-
-    setGameState(newGameState);
-    saveGameState(newGameState);
-  };
-
-  const playSelectedCard = () => {
-    if (!selectedCard || selectedPile === null) return;
-
-    const pile = gameState.discardPiles[selectedPile];
-    const pileType = selectedPile < 2 ? "ascending" : "descending";
+    const pile = gameState.discardPiles[pileIndex];
+    const pileType = pileIndex < 2 ? "ascending" : "descending";
 
     // Validate card can be played on selected pile
     if (!canPlayCard(selectedCard, pile, pileType)) {
@@ -174,7 +145,7 @@ const Game = () => {
     const newPlayerHands = [...gameState.playerHands];
 
     // Remove played card from current player's hand
-    newDiscardPiles[selectedPile].push(selectedCard);
+    newDiscardPiles[pileIndex].push(selectedCard);
     const cardIndex =
       newPlayerHands[gameState.currentPlayer].indexOf(selectedCard);
     if (cardIndex > -1) {
@@ -198,6 +169,35 @@ const Game = () => {
       cardsPlayedThisTurn: newCardsPlayedThisTurn,
       turnComplete: turnComplete,
       gameWon: isGameWon(newDiscardPiles),
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
+  };
+
+  const handleHandReorder = (newHand) => {
+    const newPlayerHands = [...gameState.playerHands];
+    newPlayerHands[gameState.currentPlayer] = newHand;
+
+    const newGameState = {
+      ...gameState,
+      playerHands: newPlayerHands,
+    };
+
+    setGameState(newGameState);
+    saveGameState(newGameState);
+  };
+
+  const sortHand = () => {
+    const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
+      (a, b) => a - b
+    );
+    const newPlayerHands = [...gameState.playerHands];
+    newPlayerHands[gameState.currentPlayer] = sortedHand;
+
+    const newGameState = {
+      ...gameState,
+      playerHands: newPlayerHands,
     };
 
     setGameState(newGameState);
@@ -305,13 +305,7 @@ const Game = () => {
           New Game
         </button>
         <div className="game-status">{status}</div>
-        <div className="game-controls">
-          {gameState.turnComplete && (
-            <button onClick={endTurn} className="end-turn-btn">
-              End Turn & Draw Cards
-            </button>
-          )}
-        </div>
+        <div className="game-controls"></div>
       </div>
 
       <div className="discard-piles">
@@ -324,6 +318,7 @@ const Game = () => {
               pileNumber={1}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
+              onPlayCard={handlePlayCard}
               isSelected={selectedPile === 0}
               isSelectable={!!selectedCard}
             />
@@ -333,6 +328,7 @@ const Game = () => {
               pileNumber={2}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
+              onPlayCard={handlePlayCard}
               isSelected={selectedPile === 1}
               isSelectable={!!selectedCard}
             />
@@ -347,6 +343,7 @@ const Game = () => {
               pileNumber={3}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
+              onPlayCard={handlePlayCard}
               isSelected={selectedPile === 2}
               isSelectable={!!selectedCard}
             />
@@ -356,6 +353,7 @@ const Game = () => {
               pileNumber={4}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
+              onPlayCard={handlePlayCard}
               isSelected={selectedPile === 3}
               isSelectable={!!selectedCard}
             />
@@ -365,11 +363,11 @@ const Game = () => {
 
       <div className="play-card-section">
         <button
-          onClick={playSelectedCard}
-          disabled={!selectedCard || selectedPile === null}
-          className="play-card-btn"
+          onClick={endTurn}
+          disabled={!gameState.turnComplete}
+          className="end-turn-btn"
         >
-          {selectedCard ? `Play card ${selectedCard}` : "Play a card"}
+          End Turn & Draw Cards
         </button>
         <button onClick={handleCantPlayCard} className="cant-play-btn">
           I can't play a card

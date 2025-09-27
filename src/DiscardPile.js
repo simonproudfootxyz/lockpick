@@ -8,6 +8,7 @@ const DiscardPile = ({
   pileNumber,
   onViewPile,
   onSelectPile,
+  onPlayCard,
   isSelected,
   isSelectable,
 }) => {
@@ -56,10 +57,10 @@ const DiscardPile = ({
         className={`select-pile-btn ${isSelected ? "selected" : ""} ${
           !isSelectable ? "disabled" : ""
         }`}
-        onClick={() => onSelectPile(pileNumber - 1)}
+        onClick={() => onPlayCard(pileNumber - 1)}
         disabled={!isSelectable}
       >
-        {isSelected ? "Selected" : "Select"}
+        Play
       </button>
     </div>
   );
