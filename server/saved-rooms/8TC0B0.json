@@ -1,0 +1,61 @@
+{
+  "code": "8TC0B0",
+  "host": "rC0lNxRW4nmXSnEoAAAC",
+  "players": [
+    [
+      "ZLtGSpj9VvJyCoVwAAAF",
+      {
+        "socketId": "ZLtGSpj9VvJyCoVwAAAF",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 0
+      }
+    ],
+    [
+      "L0KdWuHkQa-fLPApAAAB",
+      {
+        "socketId": "L0KdWuHkQa-fLPApAAAB",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 1
+      }
+    ],
+    [
+      "a63DpUX41nw58Ya7AAAB",
+      {
+        "socketId": "a63DpUX41nw58Ya7AAAB",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 2
+      }
+    ],
+    [
+      "ayFt7opbGu72nbHaAAAB",
+      {
+        "socketId": "ayFt7opbGu72nbHaAAAB",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 3
+      }
+    ],
+    [
+      "ngQzmLCmt2oKSJnpAAAB",
+      {
+        "socketId": "ngQzmLCmt2oKSJnpAAAB",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 4
+      }
+    ]
+  ],
+  "spectators": [],
+  "gameState": null,
+  "maxPlayers": 5,
+  "createdAt": 1759009801151,
+  "lastActivity": 1759009806447
+}

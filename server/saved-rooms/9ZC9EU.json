@@ -1,0 +1,61 @@
+{
+  "code": "9ZC9EU",
+  "host": "303z8uA6ILOVMJQmAAAC",
+  "players": [
+    [
+      "IATMpKSml9uFEtjGAAAF",
+      {
+        "socketId": "IATMpKSml9uFEtjGAAAF",
+        "name": "Simon",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 0
+      }
+    ],
+    [
+      "dTHGc6j1VqgNYse3AAAB",
+      {
+        "socketId": "dTHGc6j1VqgNYse3AAAB",
+        "name": "Simon",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 1
+      }
+    ],
+    [
+      "JEptA9GG6OZQIwElAAAB",
+      {
+        "socketId": "JEptA9GG6OZQIwElAAAB",
+        "name": "Simon",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 2
+      }
+    ],
+    [
+      "xv9PHAamRu4EF45CAAAB",
+      {
+        "socketId": "xv9PHAamRu4EF45CAAAB",
+        "name": "Simon",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 3
+      }
+    ],
+    [
+      "kZG1-4eNqA1I-GvkAAAB",
+      {
+        "socketId": "kZG1-4eNqA1I-GvkAAAB",
+        "name": "Simon",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 4
+      }
+    ]
+  ],
+  "spectators": [],
+  "gameState": null,
+  "maxPlayers": 5,
+  "createdAt": 1759009848023,
+  "lastActivity": 1759009852233
+}

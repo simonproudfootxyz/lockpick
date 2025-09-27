@@ -1,0 +1,21 @@
+{
+  "code": "3GK64E",
+  "host": "OBqA-CPRH774YhTMAAAC",
+  "players": [
+    [
+      "xZQlPwckhlBIc5GHAAAF",
+      {
+        "socketId": "xZQlPwckhlBIc5GHAAAF",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 0
+      }
+    ]
+  ],
+  "spectators": [],
+  "gameState": null,
+  "maxPlayers": 5,
+  "createdAt": 1759010270383,
+  "lastActivity": 1759010270455
+}

@@ -62,12 +62,22 @@ const MultiplayerGame = () => {
       console.log("Player joined:", data);
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
+      // Determine if current player is host based on player list
+      const currentPlayer = (data.players || []).find(
+        (p) => p.socketId === socket.id
+      );
+      setIsHost(currentPlayer?.isHost || false);
     };
 
     const handlePlayerLeft = (data) => {
       console.log("Player left:", data);
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
+      // Determine if current player is host based on updated player list
+      const currentPlayer = (data.players || []).find(
+        (p) => p.socketId === socket.id
+      );
+      setIsHost(currentPlayer?.isHost || false);
     };
 
     const handleGameStarted = (data) => {
@@ -223,6 +233,15 @@ const MultiplayerGame = () => {
 
   const currentPlayerIndex = gameState ? gameState.currentPlayer : 0;
 
+  // Debug logging
+  console.log("MultiplayerGame render:", {
+    isHost,
+    gameStarted,
+    players: players.length,
+    gameState: !!gameState,
+    roomData: !!roomData,
+  });
+
   return (
     <div className="game">
       <div className="game-header">
@@ -239,6 +258,23 @@ const MultiplayerGame = () => {
 
       <div className="game-layout">
         <div className="game-main">
+          {/* Start Game Button - Only visible to host when game hasn't started */}
+          {isHost && !gameStarted && (
+            <div className="start-game-section">
+              <button
+                onClick={handleStartGame}
+                disabled={players.length < 2}
+                className="start-game-main-btn"
+              >
+                {players.length < 2
+                  ? `Need ${2 - players.length} more player${
+                      2 - players.length === 1 ? "" : "s"
+                    } to start`
+                  : "Start Game"}
+              </button>
+            </div>
+          )}
+
           {gameState && (
             <>
               <div className="discard-piles">
