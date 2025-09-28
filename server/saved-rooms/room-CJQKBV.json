@@ -1,0 +1,167 @@
+{
+  "code": "CJQKBV",
+  "host": "f97mRICfPhPkVFJxAAAE",
+  "players": [
+    [
+      "CK7e7ldWrH4K1BUUAAAG",
+      {
+        "socketId": "CK7e7ldWrH4K1BUUAAAG",
+        "name": "First Player",
+        "isHost": true,
+        "isConnected": true,
+        "playerIndex": 0,
+        "lastSeen": 1759089613474
+      }
+    ],
+    [
+      "85CdFyMv3KO5UX9BAAAK",
+      {
+        "socketId": "85CdFyMv3KO5UX9BAAAK",
+        "name": "Player Two",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 1,
+        "lastSeen": 1759089631329
+      }
+    ],
+    [
+      "D4_WPVfvNsTL4wnmAAAP",
+      {
+        "socketId": "D4_WPVfvNsTL4wnmAAAP",
+        "name": "Tres",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 2,
+        "lastSeen": 1759089744021
+      }
+    ]
+  ],
+  "spectators": [],
+  "gameState": {
+    "playerHands": [
+      [
+        62,
+        75,
+        48,
+        60,
+        8,
+        90,
+        92
+      ],
+      [
+        37,
+        10,
+        7,
+        43,
+        80,
+        64,
+        34
+      ]
+    ],
+    "currentPlayer": 0,
+    "discardPiles": [
+      [
+        47,
+        50,
+        83
+      ],
+      [
+        14,
+        45,
+        57
+      ],
+      [
+        91
+      ],
+      [
+        72
+      ]
+    ],
+    "deck": [
+      65,
+      54,
+      32,
+      31,
+      3,
+      25,
+      17,
+      56,
+      77,
+      38,
+      20,
+      97,
+      46,
+      36,
+      21,
+      29,
+      67,
+      81,
+      66,
+      76,
+      55,
+      5,
+      93,
+      82,
+      94,
+      44,
+      33,
+      18,
+      73,
+      26,
+      11,
+      99,
+      96,
+      49,
+      27,
+      63,
+      95,
+      98,
+      53,
+      52,
+      61,
+      2,
+      71,
+      15,
+      74,
+      28,
+      6,
+      23,
+      51,
+      78,
+      41,
+      58,
+      24,
+      68,
+      30,
+      39,
+      13,
+      35,
+      70,
+      87,
+      4,
+      22,
+      16,
+      40,
+      12,
+      19,
+      89,
+      85,
+      84,
+      88,
+      42,
+      69,
+      59,
+      9,
+      86,
+      79
+    ],
+    "gameWon": false,
+    "cardsPlayedThisTurn": 0,
+    "turnComplete": false,
+    "gameStarted": true,
+    "createdAt": 1759089633284
+  },
+  "maxPlayers": 5,
+  "createdAt": 1759089613454,
+  "lastActivity": 1759089861426
+}

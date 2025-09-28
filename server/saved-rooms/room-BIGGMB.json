@@ -1,0 +1,21 @@
+{
+  "code": "BIGGMB",
+  "host": "le3vKCgW1UxqS2_ZAAAC",
+  "players": [
+    [
+      "JnE466jPPZk-a7KeAAAB",
+      {
+        "socketId": "JnE466jPPZk-a7KeAAAB",
+        "name": "Uno",
+        "isHost": false,
+        "isConnected": true,
+        "playerIndex": 0
+      }
+    ]
+  ],
+  "spectators": [],
+  "gameState": null,
+  "maxPlayers": 5,
+  "createdAt": 1759027339243,
+  "lastActivity": 1759027612731
+}

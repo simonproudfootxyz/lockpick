@@ -1,0 +1,5 @@
+{
+  "watch": [".", "../src"],
+  "ignore": ["saved-rooms/**/*", "saved-games/**/*"],
+  "ext": "js,json"
+}

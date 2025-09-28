@@ -22,8 +22,9 @@ const io = socketIo(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  pingTimeout: 60000,
-  pingInterval: 25000,
+  pingTimeout: 30000, // Reduce from 60000
+  pingInterval: 10000, // Reduce from 25000
+  allowEIO3: true, // Better compatibility
 });
 
 // Middleware
@@ -34,23 +35,41 @@ app.use(express.json());
 const roomManager = new RoomManager();
 const persistence = new GamePersistence();
 
+// Clean up disconnected players on startup (DISABLED - too aggressive)
+// setTimeout(async () => {
+//   await roomManager.cleanupDisconnectedPlayers();
+// }, 1000);
+
 // Clean up inactive rooms every hour
-setInterval(() => {
-  roomManager.cleanupInactiveRooms();
-  persistence.cleanupOldGames();
+setInterval(async () => {
+  await roomManager.cleanupInactiveRooms();
+  await persistence.cleanupOldGames();
 }, 60 * 60 * 1000);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
-  console.log(`Player connected: ${socket.id}`);
+  console.log(`Player connected: ${socket.id} at ${new Date().toISOString()}`);
 
   // Add connection event listeners for debugging
   socket.on("disconnect", (reason) => {
-    console.log(`Player ${socket.id} disconnected: ${reason}`);
+    console.log(
+      `Player ${
+        socket.id
+      } disconnected: ${reason} at ${new Date().toISOString()}`
+    );
+  });
+
+  // Handle ping/pong for connection health
+  socket.on("ping", () => {
+    socket.emit("pong");
+  });
+
+  socket.on("pong", () => {
+    // Client responded to ping - connection is healthy
   });
 
   // Create a new room
-  socket.on("create-room", (data) => {
+  socket.on("create-room", async (data) => {
     try {
       const { playerName } = data;
       if (!playerName || playerName.trim().length === 0) {
@@ -71,7 +90,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const room = roomManager.createRoom(socket.id, playerName.trim());
+      const room = await roomManager.createRoom(socket.id, playerName.trim());
       console.log(`Room created: ${room.code} by ${playerName}`);
 
       socket.emit("room-created", {
@@ -89,7 +108,7 @@ io.on("connection", (socket) => {
   });
 
   // Join an existing room
-  socket.on("join-room", (data) => {
+  socket.on("join-room", async (data) => {
     try {
       const { roomCode, playerName } = data;
       console.log(`Attempting to join room: ${roomCode} by ${playerName}`);
@@ -101,20 +120,31 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Check if player is already in a room
+      // Check if player is already in a room (but allow reconnections)
       const existingRoom = roomManager.getPlayerRoom(socket.id);
-      if (existingRoom) {
+      if (existingRoom && existingRoom.code === roomCode.trim().toUpperCase()) {
         console.log(
           `Player ${socket.id} already in room ${existingRoom.code}, ignoring join request`
         );
         return;
       }
 
-      const result = roomManager.joinRoom(
-        roomCode.trim().toUpperCase(),
+      // First try to handle reconnection
+      const reconnectionResult = await roomManager.handlePlayerReconnection(
         socket.id,
         playerName.trim()
       );
+
+      let result;
+      if (reconnectionResult) {
+        result = reconnectionResult;
+      } else {
+        result = await roomManager.joinRoom(
+          roomCode.trim().toUpperCase(),
+          socket.id,
+          playerName.trim()
+        );
+      }
 
       console.log(`Join room result:`, result);
 
@@ -124,21 +154,21 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const { room, isSpectator } = result;
+      const { room, isSpectator, isReconnection } = result;
       console.log(
-        `${playerName} joined room ${roomCode} as ${
-          isSpectator ? "spectator" : "player"
-        }`
+        `${playerName} ${
+          isReconnection ? "reconnected to" : "joined"
+        } room ${roomCode} as ${isSpectator ? "spectator" : "player"}`
       );
 
       socket.join(roomCode);
 
       // Load existing game if it exists
       if (room.gameState) {
-        persistence.loadGame(roomCode).then((savedGameState) => {
+        persistence.loadGame(roomCode).then(async (savedGameState) => {
           if (savedGameState) {
             room.gameState = savedGameState;
-            roomManager.updateGameState(roomCode, savedGameState);
+            await roomManager.updateGameState(roomCode, savedGameState);
           }
         });
       }
@@ -166,7 +196,7 @@ io.on("connection", (socket) => {
   });
 
   // Start a new game
-  socket.on("start-game", (data) => {
+  socket.on("start-game", async (data) => {
     try {
       const { roomCode } = data;
       const room = roomManager.getRoom(roomCode);
@@ -191,7 +221,7 @@ io.on("connection", (socket) => {
 
       const gameState = initializeGame(room.players.size);
       room.gameState = gameState;
-      roomManager.updateGameState(roomCode, gameState);
+      await roomManager.updateGameState(roomCode, gameState);
 
       // Save game state
       persistence.saveGame(roomCode, gameState);
@@ -211,7 +241,7 @@ io.on("connection", (socket) => {
   });
 
   // Play a card
-  socket.on("play-card", (data) => {
+  socket.on("play-card", async (data) => {
     try {
       const { roomCode, card, pileIndex } = data;
       const room = roomManager.getRoom(roomCode);
@@ -240,7 +270,7 @@ io.on("connection", (socket) => {
       }
 
       room.gameState = result.gameState;
-      roomManager.updateGameState(roomCode, result.gameState);
+      await roomManager.updateGameState(roomCode, result.gameState);
 
       // Save game state
       persistence.saveGame(roomCode, result.gameState);
@@ -265,7 +295,7 @@ io.on("connection", (socket) => {
   });
 
   // End turn
-  socket.on("end-turn", (data) => {
+  socket.on("end-turn", async (data) => {
     try {
       const { roomCode } = data;
       const room = roomManager.getRoom(roomCode);
@@ -294,7 +324,7 @@ io.on("connection", (socket) => {
       }
 
       room.gameState = result.gameState;
-      roomManager.updateGameState(roomCode, result.gameState);
+      await roomManager.updateGameState(roomCode, result.gameState);
 
       // Save game state
       persistence.saveGame(roomCode, result.gameState);
@@ -313,7 +343,7 @@ io.on("connection", (socket) => {
   });
 
   // Handle "can't play" scenario
-  socket.on("cant-play", (data) => {
+  socket.on("cant-play", async (data) => {
     try {
       const { roomCode } = data;
       const room = roomManager.getRoom(roomCode);
@@ -336,7 +366,7 @@ io.on("connection", (socket) => {
 
       const result = handleCantPlay(room.gameState);
       room.gameState = result.gameState;
-      roomManager.updateGameState(roomCode, result.gameState);
+      await roomManager.updateGameState(roomCode, result.gameState);
 
       // Save game state
       persistence.saveGame(roomCode, result.gameState);
@@ -361,34 +391,74 @@ io.on("connection", (socket) => {
   });
 
   // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log(`Player disconnected: ${socket.id}`);
+  socket.on("disconnect", async (reason) => {
+    console.log(`Player ${socket.id} disconnected: ${reason}`);
 
-    const result = roomManager.leaveRoom(socket.id);
-    console.log(`Leave room result:`, result);
+    // Mark as disconnected but don't remove immediately for network issues
+    await roomManager.markPlayerDisconnected(socket.id);
 
-    if (result) {
-      const { roomDeleted, wasPlayer, wasSpectator, room } = result;
+    // Only remove after delay for network issues (not intentional disconnects)
+    if (
+      reason !== "io server disconnect" &&
+      reason !== "io client disconnect"
+    ) {
+      setTimeout(async () => {
+        const result = await roomManager.leaveRoom(socket.id);
+        console.log(`Leave room result:`, result);
 
-      if (roomDeleted) {
-        console.log(`Room ${room?.code} deleted due to no players`);
-        // Clean up saved game
-        if (room?.code) {
-          persistence.deleteGame(room.code);
+        if (result) {
+          const { roomDeleted, wasPlayer, wasSpectator, room } = result;
+
+          if (roomDeleted) {
+            console.log(`Room ${room?.code} deleted due to no players`);
+            // Clean up saved game
+            if (room?.code) {
+              persistence.deleteGame(room.code);
+            }
+          } else if (room && room.code) {
+            // Notify remaining players
+            console.log(
+              `Notifying players in room ${room.code} about player leaving`
+            );
+            socket.to(room.code).emit("player-left", {
+              wasPlayer,
+              wasSpectator,
+              players: Array.from(room.players.values()),
+              spectators: Array.from(room.spectators.values()),
+            });
+          } else {
+            console.log(`No room found for disconnected player ${socket.id}`);
+          }
         }
-      } else if (room && room.code) {
-        // Notify remaining players
-        console.log(
-          `Notifying players in room ${room.code} about player leaving`
-        );
-        socket.to(room.code).emit("player-left", {
-          wasPlayer,
-          wasSpectator,
-          players: Array.from(room.players.values()),
-          spectators: Array.from(room.spectators.values()),
-        });
-      } else {
-        console.log(`No room found for disconnected player ${socket.id}`);
+      }, 10000); // 10 second delay for reconnection
+    } else {
+      // Immediate removal for intentional disconnects
+      const result = await roomManager.leaveRoom(socket.id);
+      console.log(`Leave room result:`, result);
+
+      if (result) {
+        const { roomDeleted, wasPlayer, wasSpectator, room } = result;
+
+        if (roomDeleted) {
+          console.log(`Room ${room?.code} deleted due to no players`);
+          // Clean up saved game
+          if (room?.code) {
+            persistence.deleteGame(room.code);
+          }
+        } else if (room && room.code) {
+          // Notify remaining players
+          console.log(
+            `Notifying players in room ${room.code} about player leaving`
+          );
+          socket.to(room.code).emit("player-left", {
+            wasPlayer,
+            wasSpectator,
+            players: Array.from(room.players.values()),
+            spectators: Array.from(room.spectators.values()),
+          });
+        } else {
+          console.log(`No room found for disconnected player ${socket.id}`);
+        }
       }
     }
   });
@@ -403,6 +473,20 @@ app.get("/api/rooms", (req, res) => {
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: Date.now() });
+});
+
+app.get("/api/connection-status", (req, res) => {
+  const roomCode = req.query.room;
+  if (roomCode) {
+    const status = roomManager.getRoomConnectionStatus(roomCode);
+    res.json({ roomCode, status });
+  } else {
+    res.json({
+      totalRooms: roomManager.rooms.size,
+      totalConnections: io.engine.clientsCount,
+      timestamp: Date.now(),
+    });
+  }
 });
 
 // Serve static files in production

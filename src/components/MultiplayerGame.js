@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import useSocket from "../hooks/useSocket";
 import DiscardPile from "../DiscardPile";
@@ -14,7 +14,8 @@ const MultiplayerGame = () => {
   const { gameId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { socket, isConnected, error, emit, on, off } = useSocket();
+  const { socket, isConnected, error, emit, on, off, connectionQuality } =
+    useSocket();
 
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -23,7 +24,6 @@ const MultiplayerGame = () => {
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
 
-  // Multiplayer state
   const [roomData, setRoomData] = useState(null);
   const [players, setPlayers] = useState([]);
   const [spectators, setSpectators] = useState([]);
@@ -32,89 +32,107 @@ const MultiplayerGame = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameStatus, setGameStatus] = useState("");
 
+  const joinAttemptsRef = useRef(0);
+  const hasJoinedRoom = useRef(false);
   const playerName = searchParams.get("playerName") || "Anonymous";
 
-  useEffect(() => {
-    if (!socket || !gameId) return;
+  const handleRoomJoined = useCallback((data) => {
+    console.log("Room joined:", data);
+    setRoomData(data);
+    setPlayers(data.players || []);
+    setSpectators(data.spectators || []);
+    setIsHost(data.isHost || false);
+    setIsSpectator(data.isSpectator || false);
+    hasJoinedRoom.current = true;
 
-    // Join the room
-    emit("join-room", {
-      roomCode: gameId,
-      playerName: playerName,
-    });
+    if (data.gameState) {
+      setGameState(data.gameState);
+      setGameStarted(true);
+    }
+  }, []);
 
-    // Set up event listeners
-    const handleRoomJoined = (data) => {
-      console.log("Room joined:", data);
-      setRoomData(data);
-      setPlayers(data.players || []);
-      setSpectators(data.spectators || []);
-      setIsHost(data.isHost || false);
-      setIsSpectator(data.isSpectator || false);
-
-      if (data.gameState) {
-        setGameState(data.gameState);
-        setGameStarted(true);
-      }
-    };
-
-    const handlePlayerJoined = (data) => {
+  const handlePlayerJoined = useCallback(
+    (data) => {
       console.log("Player joined:", data);
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
-      // Determine if current player is host based on player list
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socket.id
+        (p) => p.socketId === socket?.id
       );
       setIsHost(currentPlayer?.isHost || false);
-    };
+    },
+    [socket?.id]
+  );
 
-    const handlePlayerLeft = (data) => {
+  const handlePlayerLeft = useCallback(
+    (data) => {
       console.log("Player left:", data);
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
-      // Determine if current player is host based on updated player list
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socket.id
+        (p) => p.socketId === socket?.id
       );
       setIsHost(currentPlayer?.isHost || false);
-    };
+    },
+    [socket?.id]
+  );
 
-    const handleGameStarted = (data) => {
-      console.log("Game started:", data);
-      setGameState(data.gameState);
-      setGameStarted(true);
-      setGameStatus(data.status);
-    };
+  const handleGameStarted = useCallback((data) => {
+    console.log("Game started:", data);
+    setGameState(data.gameState);
+    setGameStarted(true);
+    setGameStatus(data.status);
+  }, []);
 
-    const handleCardPlayed = (data) => {
-      console.log("Card played:", data);
-      setGameState(data.gameState);
-      setGameStatus(data.status);
-      setSelectedCard(null);
-      setSelectedPile(null);
-    };
+  const handleCardPlayed = useCallback((data) => {
+    console.log("Card played:", data);
+    setGameState(data.gameState);
+    setGameStatus(data.status);
+    setSelectedCard(null);
+    setSelectedPile(null);
+  }, []);
 
-    const handleTurnEnded = (data) => {
-      console.log("Turn ended:", data);
-      setGameState(data.gameState);
-      setGameStatus(data.status);
-      setSelectedCard(null);
-      setSelectedPile(null);
-    };
+  const handleTurnEnded = useCallback((data) => {
+    console.log("Turn ended:", data);
+    setGameState(data.gameState);
+    setGameStatus(data.status);
+    setSelectedCard(null);
+    setSelectedPile(null);
+  }, []);
 
-    const handleCantPlay = (data) => {
-      console.log("Cant play:", data);
-      setGameState(data.gameState);
-      setGameStatus(data.status);
-    };
+  const handleCantPlay = useCallback((data) => {
+    console.log("Cant play:", data);
+    setGameState(data.gameState);
+    setGameStatus(data.status);
+  }, []);
 
-    const handleError = (data) => {
-      console.error("Game error:", data);
-      alert(data.message || "An error occurred");
-    };
+  const handleError = useCallback((data) => {
+    console.error("Game error:", data);
+    alert(data.message || "An error occurred");
+  }, []);
 
-    // Register event listeners
+  const attemptJoinRoom = useCallback(() => {
+    if (!socket || !isConnected || !gameId || hasJoinedRoom.current) {
+      return;
+    }
+
+    if (joinAttemptsRef.current > 0) {
+      console.log("Already attempted to join, waiting for server response...");
+      return;
+    }
+
+    joinAttemptsRef.current += 1;
+    console.log("Joining room:", gameId);
+
+    emit("join-room", {
+      roomCode: gameId,
+      playerName,
+    });
+  }, [socket, isConnected, gameId, emit, playerName]);
+
+  useEffect(() => {
+    if (!socket) return;
+
     on("room-joined", handleRoomJoined);
     on("player-joined", handlePlayerJoined);
     on("player-left", handlePlayerLeft);
@@ -124,7 +142,6 @@ const MultiplayerGame = () => {
     on("cant-play", handleCantPlay);
     on("error", handleError);
 
-    // Cleanup
     return () => {
       off("room-joined", handleRoomJoined);
       off("player-joined", handlePlayerJoined);
@@ -135,7 +152,48 @@ const MultiplayerGame = () => {
       off("cant-play", handleCantPlay);
       off("error", handleError);
     };
-  }, [socket, gameId, playerName, emit, on, off]);
+  }, [
+    socket,
+    on,
+    off,
+    handleRoomJoined,
+    handlePlayerJoined,
+    handlePlayerLeft,
+    handleGameStarted,
+    handleCardPlayed,
+    handleTurnEnded,
+    handleCantPlay,
+    handleError,
+  ]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleConnect = () => {
+      console.log("Socket connected, attempting to join room");
+      hasJoinedRoom.current = false;
+      joinAttemptsRef.current = 0;
+      attemptJoinRoom();
+    };
+
+    const handleDisconnect = () => {
+      console.log("Socket disconnected, will retry join on reconnect");
+      hasJoinedRoom.current = false;
+      joinAttemptsRef.current = 0;
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+
+    if (socket.connected) {
+      handleConnect();
+    }
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+    };
+  }, [socket, attemptJoinRoom]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (!gameState || gameState.gameWon || isSpectator) return;
@@ -156,7 +214,7 @@ const MultiplayerGame = () => {
     emit("play-card", {
       roomCode: gameId,
       card: selectedCard,
-      pileIndex: pileIndex,
+      pileIndex,
     });
   };
 
@@ -177,7 +235,27 @@ const MultiplayerGame = () => {
   };
 
   const handleStartGame = () => {
-    if (!isHost || gameStarted) return;
+    console.log("Start game clicked:", {
+      isHost,
+      gameStarted,
+      players: players.length,
+      socketId: socket?.id,
+    });
+
+    if (!isHost) {
+      alert("Only the host can start the game");
+      return;
+    }
+
+    if (gameStarted) {
+      alert("Game has already started");
+      return;
+    }
+
+    if (players.length < 2) {
+      alert("Need at least 2 players to start the game");
+      return;
+    }
 
     emit("start-game", {
       roomCode: gameId,
@@ -215,6 +293,12 @@ const MultiplayerGame = () => {
           <h1>Lockpick Multiplayer</h1>
           <ConnectionStatus isConnected={isConnected} error={error} />
         </div>
+        <div className="reconnection-overlay">
+          <div className="reconnection-message">
+            <h3>Connection Lost</h3>
+            <p>Waiting for server...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -233,13 +317,18 @@ const MultiplayerGame = () => {
 
   const currentPlayerIndex = gameState ? gameState.currentPlayer : 0;
 
-  // Debug logging
   console.log("MultiplayerGame render:", {
     isHost,
     gameStarted,
     players: players.length,
     gameState: !!gameState,
     roomData: !!roomData,
+    socketId: socket?.id,
+    playerDetails: players.map((p) => ({
+      name: p.name,
+      socketId: p.socketId,
+      isHost: p.isHost,
+    })),
   });
 
   return (
@@ -251,6 +340,15 @@ const MultiplayerGame = () => {
           Leave Room
         </button>
         <ConnectionStatus isConnected={isConnected} error={error} />
+        <div className="connection-quality">
+          Connection:{" "}
+          {connectionQuality === "good"
+            ? "🟢"
+            : connectionQuality === "fair"
+            ? "🟡"
+            : "🔴"}{" "}
+          {connectionQuality}
+        </div>
         <div className="game-status">
           {gameStatus || "Waiting for game to start..."}
         </div>
@@ -258,7 +356,6 @@ const MultiplayerGame = () => {
 
       <div className="game-layout">
         <div className="game-main">
-          {/* Start Game Button - Only visible to host when game hasn't started */}
           {isHost && !gameStarted && (
             <div className="start-game-section">
               <button

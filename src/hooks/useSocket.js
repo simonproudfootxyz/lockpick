@@ -4,54 +4,97 @@ import io from "socket.io-client";
 const useSocket = (serverUrl = "http://localhost:3001") => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
+  const [connectionQuality, setConnectionQuality] = useState("good");
   const socketRef = useRef(null);
 
   useEffect(() => {
-    // Create socket connection
-    const newSocket = io(serverUrl, {
+    const socket = io(serverUrl, {
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,
-      forceNew: true,
+      forceNew: false,
+      transports: ["websocket", "polling"],
     });
 
-    socketRef.current = newSocket;
+    socketRef.current = socket;
 
-    // Connection event handlers
-    newSocket.on("connect", () => {
+    socket.on("connect", () => {
       console.log("Connected to server");
       setIsConnected(true);
       setError(null);
+      setConnectionQuality("good");
     });
 
-    newSocket.on("disconnect", () => {
-      console.log("Disconnected from server");
+    socket.on("disconnect", (reason) => {
+      console.log("Disconnected from server:", reason);
       setIsConnected(false);
     });
 
-    newSocket.on("connect_error", (err) => {
+    socket.on("connect_error", (err) => {
       console.error("Connection error:", err);
       setError("Failed to connect to server");
       setIsConnected(false);
     });
 
-    newSocket.on("error", (data) => {
+    socket.on("error", (data) => {
       console.error("Server error:", data);
       setError(data.message || "Server error occurred");
     });
 
-    // Cleanup on unmount
+    socket.on("ping", () => {
+      socket.emit("pong");
+    });
+
+    socket.on("pong", () => {
+      setConnectionQuality("good");
+    });
+
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      socket.disconnect();
     };
   }, [serverUrl]);
 
-  // Helper function to emit events with error handling
+  useEffect(() => {
+    if (!socketRef.current || !isConnected) {
+      return;
+    }
+
+    let lastPong = Date.now();
+
+    const handlePong = () => {
+      lastPong = Date.now();
+    };
+
+    socketRef.current.on("pong", handlePong);
+
+    const pingInterval = setInterval(() => {
+      if (!socketRef.current) return;
+
+      const now = Date.now();
+      const latency = now - lastPong;
+
+      if (latency > 5000) {
+        setConnectionQuality("poor");
+      } else if (latency > 2000) {
+        setConnectionQuality("fair");
+      } else {
+        setConnectionQuality("good");
+      }
+
+      socketRef.current.emit("ping");
+    }, 5000);
+
+    return () => {
+      clearInterval(pingInterval);
+      if (socketRef.current) {
+        socketRef.current.off("pong", handlePong);
+      }
+    };
+  }, [isConnected]);
+
   const emit = (event, data, callback) => {
     if (socketRef.current && isConnected) {
       socketRef.current.emit(event, data, callback);
@@ -60,18 +103,12 @@ const useSocket = (serverUrl = "http://localhost:3001") => {
     }
   };
 
-  // Helper function to listen to events
   const on = (event, callback) => {
-    if (socketRef.current) {
-      socketRef.current.on(event, callback);
-    }
+    socketRef.current?.on(event, callback);
   };
 
-  // Helper function to remove event listeners
   const off = (event, callback) => {
-    if (socketRef.current) {
-      socketRef.current.off(event, callback);
-    }
+    socketRef.current?.off(event, callback);
   };
 
   return {
@@ -81,7 +118,8 @@ const useSocket = (serverUrl = "http://localhost:3001") => {
     emit,
     on,
     off,
-    connect: () => socketRef.current?.connect(),
+    connectionQuality,
+    reconnect: () => socketRef.current?.connect(),
     disconnect: () => socketRef.current?.disconnect(),
   };
 };
