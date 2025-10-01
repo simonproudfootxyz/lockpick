@@ -92,6 +92,12 @@ const MultiplayerGame = () => {
     setSelectedPile(null);
   }, []);
 
+  const handleHandSorted = useCallback((data) => {
+    console.log("Hand sorted:", data);
+    setGameState(data.gameState);
+    setGameStatus(data.status);
+  }, []);
+
   const handleTurnEnded = useCallback((data) => {
     console.log("Turn ended:", data);
     setGameState(data.gameState);
@@ -140,6 +146,7 @@ const MultiplayerGame = () => {
     on("card-played", handleCardPlayed);
     on("turn-ended", handleTurnEnded);
     on("cant-play", handleCantPlay);
+    on("hand-sorted", handleHandSorted);
     on("error", handleError);
 
     return () => {
@@ -150,6 +157,7 @@ const MultiplayerGame = () => {
       off("card-played", handleCardPlayed);
       off("turn-ended", handleTurnEnded);
       off("cant-play", handleCantPlay);
+      off("hand-sorted", handleHandSorted);
       off("error", handleError);
     };
   }, [
@@ -163,6 +171,7 @@ const MultiplayerGame = () => {
     handleCardPlayed,
     handleTurnEnded,
     handleCantPlay,
+    handleHandSorted,
     handleError,
   ]);
 
@@ -268,6 +277,15 @@ const MultiplayerGame = () => {
 
   const closePileView = () => {
     setViewingPile(null);
+  };
+
+  const handleSortHand = (playerIndex) => {
+    if (!gameState || isSpectator) return;
+    if (playerIndex !== gameState.currentPlayer) return;
+
+    emit("sort-hand", {
+      roomCode: gameId,
+    });
   };
 
   const closeGameOverModal = () => {
@@ -456,6 +474,15 @@ const MultiplayerGame = () => {
                       Player {index + 1}{" "}
                       {index === gameState.currentPlayer ? "(Your Turn)" : ""}
                     </h3>
+                    <button
+                      onClick={() => handleSortHand(index)}
+                      className="sort-hand-btn"
+                      disabled={
+                        index !== gameState.currentPlayer || isSpectator
+                      }
+                    >
+                      Sort Hand
+                    </button>
                     <PlayerHand
                       hand={hand}
                       selectedCard={selectedCard}

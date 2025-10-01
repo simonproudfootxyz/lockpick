@@ -204,6 +204,33 @@ const handleCantPlay = (gameState) => {
   return { success: true, gameState };
 };
 
+const sortCurrentPlayerHand = (gameState) => {
+  if (!gameState || !Array.isArray(gameState.playerHands)) {
+    return {
+      success: false,
+      error: "Invalid game state",
+    };
+  }
+
+  const currentHand = gameState.playerHands[gameState.currentPlayer];
+  if (!Array.isArray(currentHand)) {
+    return {
+      success: false,
+      error: "Current player hand not found",
+    };
+  }
+
+  const newGameState = { ...gameState };
+  const newPlayerHands = [...newGameState.playerHands];
+  newPlayerHands[newGameState.currentPlayer] = [...currentHand].sort(
+    (a, b) => a - b
+  );
+
+  newGameState.playerHands = newPlayerHands;
+
+  return { success: true, gameState: newGameState };
+};
+
 module.exports = {
   createDeck,
   shuffleDeck,
@@ -215,4 +242,5 @@ module.exports = {
   playCard,
   endTurn,
   handleCantPlay,
+  sortCurrentPlayerHand,
 };

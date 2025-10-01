@@ -172,6 +172,13 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
+.sort-hand-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .play-card-section {
   display: flex;
   flex-direction: column;

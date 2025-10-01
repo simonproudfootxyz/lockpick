@@ -12,6 +12,7 @@ const {
   endTurn,
   handleCantPlay,
   getGameStatus,
+  sortCurrentPlayerHand,
 } = require("./gameLogic");
 
 const app = express();
@@ -381,6 +382,52 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error handling cant play:", error);
       socket.emit("error", { message: "Failed to handle cant play" });
+    }
+  });
+
+  socket.on("sort-hand", async (data) => {
+    try {
+      const { roomCode } = data;
+      const room = roomManager.getRoom(roomCode);
+
+      if (!room || !room.gameState) {
+        socket.emit("error", { message: "Game not found or not started" });
+        return;
+      }
+
+      const player = room.players.get(socket.id);
+      if (!player) {
+        socket.emit("error", { message: "You are not a player in this game" });
+        return;
+      }
+
+      if (room.gameState.currentPlayer !== player.playerIndex) {
+        socket.emit("error", { message: "It is not your turn" });
+        return;
+      }
+
+      const result = sortCurrentPlayerHand(room.gameState);
+
+      if (!result.success) {
+        socket.emit("error", {
+          message: result.error || "Failed to sort hand",
+        });
+        return;
+      }
+
+      room.gameState = result.gameState;
+      await roomManager.updateGameState(roomCode, result.gameState);
+
+      persistence.saveGame(roomCode, result.gameState);
+
+      io.to(roomCode).emit("hand-sorted", {
+        gameState: result.gameState,
+        status: getGameStatus(result.gameState),
+        playerName: player.name,
+      });
+    } catch (error) {
+      console.error("Error sorting hand:", error);
+      socket.emit("error", { message: "Failed to sort hand" });
     }
   });
 
