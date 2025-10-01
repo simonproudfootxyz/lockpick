@@ -288,6 +288,14 @@ const MultiplayerGame = () => {
     });
   };
 
+  const getPlayerName = useCallback(
+    (playerIndex) => {
+      const player = players.find((p) => p.playerIndex === playerIndex);
+      return player?.name || `Player ${playerIndex + 1}`;
+    },
+    [players]
+  );
+
   const closeGameOverModal = () => {
     setShowGameOverModal(false);
   };
@@ -471,7 +479,7 @@ const MultiplayerGame = () => {
                     }`}
                   >
                     <h3>
-                      Player {index + 1}{" "}
+                      {getPlayerName(index)}{" "}
                       {index === gameState.currentPlayer ? "(Your Turn)" : ""}
                     </h3>
                     <button

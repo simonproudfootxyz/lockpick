@@ -3,25 +3,25 @@
   "host": "JVHOTHXBquDsVLKeAAAF",
   "players": [
     [
-      "3KjOKRzV0EdBN91jAAAH",
+      "nBGAHFiBx6TRFx_2AAAB",
       {
-        "socketId": "3KjOKRzV0EdBN91jAAAH",
+        "socketId": "nBGAHFiBx6TRFx_2AAAB",
         "name": "Uno",
         "isHost": true,
         "isConnected": true,
         "playerIndex": 0,
-        "lastSeen": 1759322860314
+        "lastSeen": 1759323294750
       }
     ],
     [
-      "lS-W7b_1cTcCcgE8AAAM",
+      "cV1M_El1-e22p2ULAAAD",
       {
-        "socketId": "lS-W7b_1cTcCcgE8AAAM",
+        "socketId": "cV1M_El1-e22p2ULAAAD",
         "name": "Dos",
         "isHost": false,
         "isConnected": true,
         "playerIndex": 1,
-        "lastSeen": 1759322892594
+        "lastSeen": 1759323294812
       }
     ]
   ],
@@ -29,44 +29,45 @@
   "gameState": {
     "playerHands": [
       [
-        10,
         35,
         41,
         53,
         70,
         72,
-        74
+        26,
+        32
       ],
       [
-        25,
         33,
         48,
         57,
         68,
-        24,
-        79
+        79,
+        47,
+        49
       ]
     ],
-    "currentPlayer": 0,
+    "currentPlayer": 1,
     "discardPiles": [
       [
         15,
         5,
-        17
+        17,
+        24,
+        25
+      ],
+      [
+        10
       ],
       [],
-      [],
       [
-        89
+        89,
+        74,
+        84,
+        80
       ]
     ],
     "deck": [
-      80,
-      84,
-      47,
-      49,
-      26,
-      32,
       73,
       86,
       58,
@@ -150,5 +151,5 @@
   },
   "maxPlayers": 5,
   "createdAt": 1759322860301,
-  "lastActivity": 1759322965837
+  "lastActivity": 1759323414425
 }
