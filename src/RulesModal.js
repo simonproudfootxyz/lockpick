@@ -17,8 +17,9 @@ const RulesModal = ({ isOpen, onClose }) => {
           <div className="game-objective">
             <h3>Objective</h3>
             <p>
-              Try to discard all 98 cards in the deck onto four discard piles to
-              win!
+              Discard the entire deck onto four discard piles before you run out
+              of playable cards. Deck size scales with the number of players
+              (base cards 2-99, plus 10 for every player above five).
             </p>
           </div>
 
@@ -49,7 +50,7 @@ const RulesModal = ({ isOpen, onClose }) => {
                 <strong>Descending piles:</strong> Play a card exactly 10 more
                 than the top card
                 <br />
-                <em>Example: Play 98 on 88</em>
+                <em>Example: Play 108 on 98 when the deck max card is 109</em>
               </li>
             </ul>
           </div>
@@ -66,7 +67,10 @@ const RulesModal = ({ isOpen, onClose }) => {
                 After playing your required cards, end your turn to draw new
                 cards
               </li>
-              <li>Play all 98 cards to win!</li>
+              <li>
+                Play every card in the deck to win! (Deck grows with larger
+                player counts)
+              </li>
               <li>
                 If you can't play any cards, click "I can't play a card" to end
                 the game
@@ -80,6 +84,8 @@ const RulesModal = ({ isOpen, onClose }) => {
               <li>1 Player: 8 cards</li>
               <li>2 Players: 7 cards each</li>
               <li>3-5 Players: 6 cards each</li>
+              <li>6-8 Players: 5 cards each</li>
+              <li>9-10 Players: 4 cards each</li>
             </ul>
           </div>
         </div>

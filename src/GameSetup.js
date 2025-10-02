@@ -21,8 +21,9 @@ const GameSetup = () => {
         <h1>Lockpick Card Game</h1>
         <div className="game-description">
           <p>
-            Try to discard all 98 cards in the deck onto four discard piles to
-            win!
+            Try to discard the entire deck onto four discard piles to win! Deck
+            size scales with player count (base cards 2-99, plus 10 for every
+            player above 5).
           </p>
           <ul>
             <li>
@@ -36,13 +37,15 @@ const GameSetup = () => {
             <li>Select and play cards from your hand</li>
             <li>
               Special reverse rule: Play a card exactly 10 less on ascending
-              piles (e.g., 27 on 37)
+              piles (e.g., play 27 on 37)
             </li>
             <li>
               Special reverse rule: Play a card exactly 10 more on descending
-              piles (e.g., 98 on 88)
+              piles (e.g., play 108 on 98 when max card is 109)
             </li>
-            <li>Play all 98 cards to win!</li>
+            <li>
+              Play every card in the deck to win! (Deck grows with more players)
+            </li>
           </ul>
         </div>
 
@@ -59,6 +62,11 @@ const GameSetup = () => {
               <option value={3}>3 Players (6 cards each)</option>
               <option value={4}>4 Players (6 cards each)</option>
               <option value={5}>5 Players (6 cards each)</option>
+              <option value={6}>6 Players (5 cards each)</option>
+              <option value={7}>7 Players (5 cards each)</option>
+              <option value={8}>8 Players (5 cards each)</option>
+              <option value={9}>9 Players (4 cards each)</option>
+              <option value={10}>10 Players (4 cards each)</option>
             </select>
           </div>
 

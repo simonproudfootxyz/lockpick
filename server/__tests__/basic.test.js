@@ -19,8 +19,8 @@ describe("RoomManager Basic Tests", () => {
     roomManager = new RoomManager();
   });
 
-  test("should create a room", () => {
-    const room = roomManager.createRoom("socket1", "Player1");
+  test("should create a room", async () => {
+    const room = await roomManager.createRoom("socket1", "Player1");
 
     expect(room).toBeDefined();
     expect(room.code).toBeDefined();
@@ -28,25 +28,39 @@ describe("RoomManager Basic Tests", () => {
     expect(room.players.size).toBe(1);
   });
 
-  test("should join a room", () => {
-    const room = roomManager.createRoom("socket1", "Player1");
+  test("should join a room before game starts", async () => {
+    const room = await roomManager.createRoom("socket1", "Player1");
     const roomCode = room.code;
 
-    const result = roomManager.joinRoom(roomCode, "socket2", "Player2");
+    const result = await roomManager.joinRoom(roomCode, "socket2", "Player2");
 
     expect(result.success).toBe(true);
     expect(result.isSpectator).toBe(false);
     expect(room.players.size).toBe(2);
   });
 
-  test("should handle invalid room code", () => {
-    const result = roomManager.joinRoom("INVALID", "socket1", "Player1");
+  test("should handle invalid room code", async () => {
+    const result = await roomManager.joinRoom("INVALID", "socket1", "Player1");
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Room not found");
   });
+
+  test("late joiner after game start becomes spectator", async () => {
+    const room = await roomManager.createRoom("socket1", "Host");
+    const roomCode = room.code;
+
+    await roomManager.joinRoom(roomCode, "socket2", "Player2");
+
+    room.gameState = { playerHands: [[1], [2]], currentPlayer: 0 };
+    await roomManager.updateGameState(roomCode, room.gameState);
+
+    const result = await roomManager.joinRoom(roomCode, "socket3", "Latecomer");
+
+    expect(result.success).toBe(true);
+    expect(result.isSpectator).toBe(true);
+    expect(room.players.size).toBe(2);
+    expect(room.spectators.size).toBe(1);
+    expect(room.spectators.get("socket3").name).toBe("Latecomer");
+  });
 });
-
-
-
-

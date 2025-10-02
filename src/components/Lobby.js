@@ -227,6 +227,7 @@ const Lobby = () => {
                       <span className="room-players">
                         {room.playerCount} player
                         {room.playerCount !== 1 ? "s" : ""}
+                        {room.maxPlayers ? ` / ${room.maxPlayers}` : ""}
                         {room.spectatorCount > 0 &&
                           `, ${room.spectatorCount} spectator${
                             room.spectatorCount !== 1 ? "s" : ""
@@ -261,8 +262,8 @@ const Lobby = () => {
           <ul>
             <li>Create a room and share the code with friends</li>
             <li>Or join an existing room with a room code</li>
-            <li>Up to 5 players can join a room</li>
-            <li>Players who join after the room is full become spectators</li>
+            <li>Up to 10 players can join a room</li>
+            <li>Players who join after the player limit become spectators</li>
           </ul>
         </div>
       </div>

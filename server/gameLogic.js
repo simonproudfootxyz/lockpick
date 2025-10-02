@@ -1,9 +1,24 @@
 // Server-side game logic for Lockpick card game
 
-// Create a deck of 98 cards (numbers 2-99)
-const createDeck = () => {
+const getMaxCardValue = (numPlayers = 1) => {
+  const extraPlayers = Math.max(0, numPlayers - 5);
+  return 99 + extraPlayers * 10;
+};
+
+const getTotalCardCount = (numPlayers = 1) => {
+  return getMaxCardValue(numPlayers) - 1;
+};
+
+const getDescendingStartValue = (numPlayers = 1) => {
+  const maxCard = getMaxCardValue(numPlayers);
+  return maxCard >= 100 ? maxCard + 1 : 100;
+};
+
+// Create a deck dynamically based on number of players
+const createDeck = (numPlayers = 1) => {
   const deck = [];
-  for (let i = 2; i <= 99; i++) {
+  const maxCard = getMaxCardValue(numPlayers);
+  for (let i = 2; i <= maxCard; i++) {
     deck.push(i);
   }
   return shuffleDeck(deck);
@@ -23,8 +38,15 @@ const shuffleDeck = (deck) => {
 const getHandSize = (numPlayers) => {
   if (numPlayers === 1) return 8;
   if (numPlayers === 2) return 7;
-  if (numPlayers >= 3 && numPlayers <= 5) return 6;
-  return 6; // Default for any edge cases
+  if (numPlayers === 3) return 6;
+  if (numPlayers === 4) return 6;
+  if (numPlayers === 5) return 6;
+  if (numPlayers === 6) return 5;
+  if (numPlayers === 7) return 5;
+  if (numPlayers === 8) return 5;
+  if (numPlayers === 9) return 4;
+  if (numPlayers >= 10) return 4;
+  return 6;
 };
 
 // Check if a card can be played on a discard pile
@@ -47,13 +69,17 @@ const canPlayCard = (card, pile, pileType) => {
   }
 };
 
-// Check if game is won (all 98 cards played)
-const isGameWon = (discardPiles) => {
+// Check if game is won (all cards played)
+const isGameWon = (discardPiles, totalCards, playerCount) => {
   const totalCardsPlayed = discardPiles.reduce(
     (sum, pile) => sum + pile.length,
     0
   );
-  return totalCardsPlayed === 98;
+  const target =
+    totalCards !== undefined
+      ? totalCards
+      : getTotalCardCount(playerCount || discardPiles.length);
+  return totalCardsPlayed === target;
 };
 
 // Get game status message
@@ -66,12 +92,21 @@ const getGameStatus = (gameState) => {
     gameWon,
     cardsPlayedThisTurn,
     turnComplete,
+    totalCards,
+    maxCard,
+    descendingStart,
   } = gameState;
+
+  const playerCount = playerHands.length;
+  const deckSizeTarget = totalCards || getTotalCardCount(playerCount);
+  const highestCard = maxCard || getMaxCardValue(playerCount);
+  const descendingStartValue =
+    descendingStart || getDescendingStartValue(playerCount);
 
   if (gameWon) {
     return `Congratulations! Player ${
       currentPlayer + 1
-    } won! All 98 cards have been played!`;
+    } won! All ${deckSizeTarget} cards have been played! (Max card ${highestCard}, descending starts at ${descendingStartValue})`;
   }
 
   const currentHand = playerHands[currentPlayer];
@@ -94,8 +129,11 @@ const getGameStatus = (gameState) => {
 };
 
 // Initialize a new game
-const initializeGame = (numPlayers) => {
-  const deck = createDeck();
+const initializeGame = (playersOrCount) => {
+  const numPlayers = Array.isArray(playersOrCount)
+    ? playersOrCount.length
+    : playersOrCount;
+  const deck = createDeck(numPlayers);
   const handSize = getHandSize(numPlayers);
 
   // Deal hands for all players
@@ -114,6 +152,9 @@ const initializeGame = (numPlayers) => {
     turnComplete: false,
     gameStarted: true,
     createdAt: Date.now(),
+    totalCards: getTotalCardCount(numPlayers),
+    maxCard: getMaxCardValue(numPlayers),
+    descendingStart: getDescendingStartValue(numPlayers),
   };
 };
 
@@ -156,7 +197,11 @@ const playCard = (gameState, card, pileIndex) => {
     newGameState.cardsPlayedThisTurn >= minCardsRequired;
 
   // Check if game is won
-  newGameState.gameWon = isGameWon(newDiscardPiles);
+  newGameState.gameWon = isGameWon(
+    newDiscardPiles,
+    newGameState.totalCards,
+    newGameState.playerHands.length
+  );
 
   return { success: true, gameState: newGameState };
 };
@@ -243,4 +288,7 @@ module.exports = {
   endTurn,
   handleCantPlay,
   sortCurrentPlayerHand,
+  getMaxCardValue,
+  getTotalCardCount,
+  getDescendingStartValue,
 };

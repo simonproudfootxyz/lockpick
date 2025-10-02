@@ -6,6 +6,9 @@ import {
   canPlayCard,
   isGameWon,
   getGameStatus,
+  getTotalCardCount,
+  getMaxCardValue,
+  getDescendingStartValue,
 } from "./gameLogic";
 import DiscardPile from "./DiscardPile";
 import PlayerHand from "./PlayerHand";
@@ -70,8 +73,11 @@ const Game = () => {
   };
 
   const initializeGame = (players) => {
-    const deck = createDeck();
+    const deck = createDeck(players);
     const handSize = getHandSize(players);
+    const totalCards = getTotalCardCount(players);
+    const maxCard = getMaxCardValue(players);
+    const descendingStart = getDescendingStartValue(players);
 
     // Deal hands for all players
     const playerHands = [];
@@ -87,6 +93,9 @@ const Game = () => {
       gameWon: false,
       cardsPlayedThisTurn: 0,
       turnComplete: false,
+      totalCards,
+      maxCard,
+      descendingStart,
     };
 
     setGameState(newGameState);
@@ -168,7 +177,11 @@ const Game = () => {
       discardPiles: newDiscardPiles,
       cardsPlayedThisTurn: newCardsPlayedThisTurn,
       turnComplete: turnComplete,
-      gameWon: isGameWon(newDiscardPiles),
+      gameWon: isGameWon(
+        newDiscardPiles,
+        gameState.totalCards,
+        gameState.playerHands.length
+      ),
     };
 
     setGameState(newGameState);
@@ -295,6 +308,11 @@ const Game = () => {
   }
 
   const status = getGameStatus(gameState);
+  const descendingStart =
+    gameState?.descendingStart ||
+    (gameState?.maxCard && gameState.maxCard > 100
+      ? gameState.maxCard + 1
+      : 100);
 
   return (
     <div className="game">
@@ -316,6 +334,7 @@ const Game = () => {
               pile={gameState.discardPiles[0]}
               pileType="ascending"
               pileNumber={1}
+              maxCard={descendingStart}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
               onPlayCard={handlePlayCard}
@@ -326,6 +345,7 @@ const Game = () => {
               pile={gameState.discardPiles[1]}
               pileType="ascending"
               pileNumber={2}
+              maxCard={descendingStart}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
               onPlayCard={handlePlayCard}
@@ -335,12 +355,13 @@ const Game = () => {
           </div>
         </div>
         <div className="pile-group">
-          <h3>Descending (100)</h3>
+          <h3>Descending ({descendingStart})</h3>
           <div className="piles-row">
             <DiscardPile
               pile={gameState.discardPiles[2]}
               pileType="descending"
               pileNumber={3}
+              maxCard={descendingStart}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
               onPlayCard={handlePlayCard}
@@ -351,6 +372,7 @@ const Game = () => {
               pile={gameState.discardPiles[3]}
               pileType="descending"
               pileNumber={4}
+              maxCard={descendingStart}
               onViewPile={handleViewPile}
               onSelectPile={handlePileAssignment}
               onPlayCard={handlePlayCard}
@@ -411,8 +433,9 @@ const Game = () => {
         </div>
         <div>
           Total cards played:{" "}
-          {gameState.discardPiles.reduce((sum, pile) => sum + pile.length, 0)}
-          /98
+          {gameState.discardPiles.reduce((sum, pile) => sum + pile.length, 0)}/
+          {gameState.totalCards ||
+            getTotalCardCount(gameState.playerHands.length)}
         </div>
         <div className="turn-progress">
           Cards played this turn: {gameState.cardsPlayedThisTurn}

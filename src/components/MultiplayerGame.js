@@ -8,6 +8,7 @@ import ConnectionStatus from "./ConnectionStatus";
 import PileViewModal from "../PileViewModal";
 import GameOverModal from "../GameOverModal";
 import RulesModal from "../RulesModal";
+import { getTotalCardCount, getDescendingStartValue } from "../gameLogic";
 import "../Game.css";
 
 const MultiplayerGame = () => {
@@ -59,7 +60,11 @@ const MultiplayerGame = () => {
       const currentPlayer = (data.players || []).find(
         (p) => p.socketId === socket?.id
       );
+      const spectatorEntry = (data.spectators || []).find(
+        (s) => s.socketId === socket?.id
+      );
       setIsHost(currentPlayer?.isHost || false);
+      setIsSpectator(!!spectatorEntry);
     },
     [socket?.id]
   );
@@ -82,6 +87,13 @@ const MultiplayerGame = () => {
     setGameState(data.gameState);
     setGameStarted(true);
     setGameStatus(data.status);
+    // If we joined after the game started, ensure spectator state aligns with current roster
+    const spectatorEntry = (data.players || []).find(
+      (p) => p.socketId === socket?.id && p.isSpectator
+    );
+    if (spectatorEntry) {
+      setIsSpectator(true);
+    }
   }, []);
 
   const handleCardPlayed = useCallback((data) => {
@@ -342,6 +354,15 @@ const MultiplayerGame = () => {
   }
 
   const currentPlayerIndex = gameState ? gameState.currentPlayer : 0;
+  const totalCardsTarget = gameState
+    ? gameState.totalCards || getTotalCardCount(gameState.playerHands.length)
+    : 0;
+  const descendingStart = gameState
+    ? gameState.descendingStart ||
+      (gameState.maxCard && gameState.maxCard > 100
+        ? gameState.maxCard + 1
+        : 100)
+    : 100;
 
   console.log("MultiplayerGame render:", {
     isHost,
@@ -408,6 +429,7 @@ const MultiplayerGame = () => {
                       pile={gameState.discardPiles[0]}
                       pileType="ascending"
                       pileNumber={1}
+                      maxCard={descendingStart}
                       onViewPile={handleViewPile}
                       onSelectPile={() => {}}
                       onPlayCard={handlePlayCard}
@@ -418,6 +440,7 @@ const MultiplayerGame = () => {
                       pile={gameState.discardPiles[1]}
                       pileType="ascending"
                       pileNumber={2}
+                      maxCard={descendingStart}
                       onViewPile={handleViewPile}
                       onSelectPile={() => {}}
                       onPlayCard={handlePlayCard}
@@ -427,12 +450,13 @@ const MultiplayerGame = () => {
                   </div>
                 </div>
                 <div className="pile-group">
-                  <h3>Descending (100)</h3>
+                  <h3>Descending ({descendingStart})</h3>
                   <div className="piles-row">
                     <DiscardPile
                       pile={gameState.discardPiles[2]}
                       pileType="descending"
                       pileNumber={3}
+                      maxCard={descendingStart}
                       onViewPile={handleViewPile}
                       onSelectPile={() => {}}
                       onPlayCard={handlePlayCard}
@@ -443,6 +467,7 @@ const MultiplayerGame = () => {
                       pile={gameState.discardPiles[3]}
                       pileType="descending"
                       pileNumber={4}
+                      maxCard={descendingStart}
                       onViewPile={handleViewPile}
                       onSelectPile={() => {}}
                       onPlayCard={handlePlayCard}
@@ -540,7 +565,7 @@ const MultiplayerGame = () => {
             (sum, pile) => sum + pile.length,
             0
           ) || 0}
-          /98
+          /{totalCardsTarget}
         </div>
         {gameState && (
           <div className="turn-progress">

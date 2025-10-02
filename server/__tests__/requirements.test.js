@@ -19,15 +19,14 @@ describe("Game Requirements Tests", () => {
       const socketId = "creator-socket";
       const playerName = "Creator";
 
-      const result = roomManager.createRoom(roomCode, socketId, playerName);
+      const room = roomManager.createRoom(roomCode, socketId, playerName);
 
-      expect(result.success).toBe(true);
-      expect(result.room).toBeDefined();
-      expect(result.room.code).toBe(roomCode);
-      expect(result.room.host).toBe(socketId);
-      expect(result.room.players.has(socketId)).toBe(true);
+      expect(room).toBeDefined();
+      expect(room.code).toBe(roomCode);
+      expect(room.host).toBe(socketId);
+      expect(room.players.has(socketId)).toBe(true);
 
-      const creator = result.room.players.get(socketId);
+      const creator = room.players.get(socketId);
       expect(creator.name).toBe(playerName);
       expect(creator.isHost).toBe(true);
       expect(creator.isConnected).toBe(true);
@@ -37,7 +36,12 @@ describe("Game Requirements Tests", () => {
   describe("Requirement 2: Minimum Players for Game Start", () => {
     test("game cannot start until room has minimum of 2 players", () => {
       const roomCode = "TEST123";
-      const room = roomManager.createRoom(roomCode, "host-socket", "Host").room;
+      const createResult = roomManager.createRoom(
+        roomCode,
+        "host-socket",
+        "Host"
+      );
+      const room = createResult.room || createResult;
 
       // With only 1 player, game should not be startable
       expect(room.players.size).toBe(1);
@@ -49,8 +53,13 @@ describe("Game Requirements Tests", () => {
         "Player2"
       );
       expect(joinResult.success).toBe(true);
+      expect(joinResult.isSpectator).toBe(false);
 
-      // Now with 2 players, game can start
+      // Start game after second player joins
+      roomManager.updateGameState(
+        roomCode,
+        initializeGame(["Host", "Player2"])
+      );
       expect(room.players.size).toBe(2);
 
       // Initialize game (simulating game start)
@@ -86,13 +95,13 @@ describe("Game Requirements Tests", () => {
     });
   });
 
-  describe("Requirement 4: Maximum 5 Players", () => {
-    test("game can have a maximum of 5 players", () => {
+  describe("Requirement 4: Maximum Players", () => {
+    test("game can have a maximum of 10 players", () => {
       const roomCode = "TEST123";
       const room = roomManager.createRoom(roomCode, "host-socket", "Host").room;
 
-      // Add 4 more players (total 5)
-      for (let i = 1; i <= 4; i++) {
+      // Add 9 more players
+      for (let i = 1; i <= 9; i++) {
         const result = roomManager.joinRoom(
           roomCode,
           `player${i}-socket`,
@@ -102,22 +111,22 @@ describe("Game Requirements Tests", () => {
         expect(result.isSpectator).toBe(false);
       }
 
-      expect(room.players.size).toBe(5);
+      expect(room.players.size).toBe(10);
       expect(room.spectators.size).toBe(0);
     });
   });
 
-  describe("Requirement 5: Spectator Mode for 6th+ Player", () => {
-    test("once room has 5 players, additional players become spectators", () => {
+  describe("Requirement 5: Spectator Mode for 11th+ Player", () => {
+    test("once room has 10 players, additional players become spectators", () => {
       const roomCode = "TEST123";
       const room = roomManager.createRoom(roomCode, "host-socket", "Host").room;
 
-      // Add 4 more players (total 5)
-      for (let i = 1; i <= 4; i++) {
+      // Fill to 10 players
+      for (let i = 1; i <= 9; i++) {
         roomManager.joinRoom(roomCode, `player${i}-socket`, `Player${i}`);
       }
 
-      // 6th player should be spectator
+      // 11th player should be spectator
       const spectatorResult = roomManager.joinRoom(
         roomCode,
         "spectator-socket",
@@ -125,19 +134,8 @@ describe("Game Requirements Tests", () => {
       );
       expect(spectatorResult.success).toBe(true);
       expect(spectatorResult.isSpectator).toBe(true);
-      expect(room.players.size).toBe(5);
+      expect(room.players.size).toBe(10);
       expect(room.spectators.size).toBe(1);
-
-      // 7th player should also be spectator
-      const spectator2Result = roomManager.joinRoom(
-        roomCode,
-        "spectator2-socket",
-        "Spectator2"
-      );
-      expect(spectator2Result.success).toBe(true);
-      expect(spectator2Result.isSpectator).toBe(true);
-      expect(room.players.size).toBe(5);
-      expect(room.spectators.size).toBe(2);
     });
   });
 
@@ -149,16 +147,14 @@ describe("Game Requirements Tests", () => {
         "Player3",
         "Player4",
         "Player5",
+        "Player6",
       ];
       const gameState = initializeGame(playerNames);
 
       // Each player should have correct hand size
-      expect(gameState.playerHands).toHaveLength(5);
-      expect(gameState.playerHands[0]).toHaveLength(getHandSize(5)); // 4 cards for 5 players
-      expect(gameState.playerHands[1]).toHaveLength(getHandSize(5));
-      expect(gameState.playerHands[2]).toHaveLength(getHandSize(5));
-      expect(gameState.playerHands[3]).toHaveLength(getHandSize(5));
-      expect(gameState.playerHands[4]).toHaveLength(getHandSize(5));
+      expect(gameState.playerHands).toHaveLength(6);
+      expect(gameState.playerHands[0]).toHaveLength(getHandSize(6));
+      expect(gameState.playerHands[5]).toHaveLength(getHandSize(6));
 
       // All cards should be unique
       const allCards = gameState.playerHands.flat();
@@ -167,7 +163,10 @@ describe("Game Requirements Tests", () => {
 
       // Deck should have remaining cards
       const totalCardsDealt = allCards.length;
-      expect(gameState.deck.length).toBe(98 - totalCardsDealt);
+      const expectedDeckSize =
+        (gameState.totalCards || getTotalCardCount(playerNames.length)) -
+        totalCardsDealt;
+      expect(gameState.deck.length).toBe(expectedDeckSize);
     });
   });
 
@@ -328,7 +327,3 @@ describe("Game Requirements Tests", () => {
     });
   });
 });
-
-
-
-

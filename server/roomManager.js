@@ -118,7 +118,7 @@ class RoomManager {
       players: new Map(),
       spectators: new Map(),
       gameState: null,
-      maxPlayers: 5,
+      maxPlayers: 10,
       createdAt: Date.now(),
       lastActivity: Date.now(),
     };
@@ -209,7 +209,26 @@ class RoomManager {
       return { success: true, isSpectator: true, room, isReconnection: true };
     }
 
-    // Check if room is full
+    const gameInProgress = !!room.gameState;
+
+    // If game already started, add as spectator
+    if (gameInProgress) {
+      room.spectators.set(socketId, {
+        socketId: socketId,
+        name: playerName,
+        isHost: false,
+        isConnected: true,
+        isSpectator: true,
+      });
+      this.playerRooms.set(socketId, roomCode);
+      room.lastActivity = Date.now();
+
+      await this.saveRoom(roomCode, room);
+
+      return { success: true, isSpectator: true, room };
+    }
+
+    // Check if room is full before game starts
     if (room.players.size >= room.maxPlayers) {
       // Add as spectator
       room.spectators.set(socketId, {
@@ -319,6 +338,7 @@ class RoomManager {
         spectatorCount: room.spectators.size,
         hasGame: !!room.gameState,
         createdAt: room.createdAt,
+        maxPlayers: room.maxPlayers || 10,
       });
     }
     return roomList;

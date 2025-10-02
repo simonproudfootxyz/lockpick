@@ -9,12 +9,26 @@ const PlayerList = ({
   onStartGame,
   gameStarted,
 }) => {
+  const maxPlayers = 10;
   const canStartGame = isHost && !gameStarted && players.length >= 2;
+
+  const sortedPlayers = [...players].sort((a, b) => {
+    const indexA =
+      typeof a.playerIndex === "number" ? a.playerIndex : players.indexOf(a);
+    const indexB =
+      typeof b.playerIndex === "number" ? b.playerIndex : players.indexOf(b);
+    return indexA - indexB;
+  });
+
+  const getPlayerIndex = (player, fallback) =>
+    typeof player.playerIndex === "number" ? player.playerIndex : fallback;
 
   return (
     <div className="player-list">
       <div className="player-list-header">
-        <h3>Players ({players.length}/5)</h3>
+        <h3>
+          Players ({sortedPlayers.length}/{maxPlayers})
+        </h3>
         {isHost && !gameStarted && (
           <button
             onClick={onStartGame}
@@ -31,31 +45,35 @@ const PlayerList = ({
       </div>
 
       <div className="players-container">
-        {players.map((player, index) => (
-          <div
-            key={player.socketId}
-            className={`player-item ${
-              index === currentPlayerIndex ? "current-player" : ""
-            } ${!player.isConnected ? "disconnected" : ""}`}
-          >
-            <div className="player-info">
-              <div className="player-name">
-                {player.name}
-                {player.isHost && <span className="host-badge">Host</span>}
-                {index === currentPlayerIndex && (
-                  <span className="current-badge">Current</span>
-                )}
-              </div>
-              <div className="player-status">
-                {player.isConnected ? (
-                  <span className="status-connected">● Connected</span>
-                ) : (
-                  <span className="status-disconnected">● Disconnected</span>
-                )}
+        {sortedPlayers.map((player, index) => {
+          const playerIndex = getPlayerIndex(player, index);
+
+          return (
+            <div
+              key={player.socketId}
+              className={`player-item ${
+                playerIndex === currentPlayerIndex ? "current-player" : ""
+              } ${!player.isConnected ? "disconnected" : ""}`}
+            >
+              <div className="player-info">
+                <div className="player-name">
+                  {player.name}
+                  {player.isHost && <span className="host-badge">Host</span>}
+                  {playerIndex === currentPlayerIndex && (
+                    <span className="current-badge">Current</span>
+                  )}
+                </div>
+                <div className="player-status">
+                  {player.isConnected ? (
+                    <span className="status-connected">● Connected</span>
+                  ) : (
+                    <span className="status-disconnected">● Disconnected</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {spectators.length > 0 && (

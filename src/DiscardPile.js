@@ -11,12 +11,16 @@ const DiscardPile = ({
   onPlayCard,
   isSelected,
   isSelectable,
+  maxCard,
 }) => {
   const getPileLabel = () => {
     if (pileType === "ascending") {
       return pile.length === 0 ? "1 ↑" : `${pile[pile.length - 1]} ↑`;
     } else {
-      return pile.length === 0 ? "100 ↓" : `${pile[pile.length - 1]} ↓`;
+      const startingValue = maxCard && maxCard > 100 ? maxCard : 100;
+      return pile.length === 0
+        ? `${startingValue} ↓`
+        : `${pile[pile.length - 1]} ↓`;
     }
   };
 
@@ -31,7 +35,13 @@ const DiscardPile = ({
           {pile.length === 0 && (
             <div className="starting-card">
               <Card
-                value={pileType === "ascending" ? 1 : 100}
+                value={
+                  pileType === "ascending"
+                    ? 1
+                    : maxCard && maxCard > 100
+                    ? maxCard
+                    : 100
+                }
                 isClickable={false}
               />
             </div>

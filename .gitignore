@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+# server
+/server/saved-games/
+/server/saved-rooms/
+
 # testing
 /coverage
 

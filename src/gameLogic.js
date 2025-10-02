@@ -1,9 +1,26 @@
 // Game logic for Lockpick card game
 
-// Create a deck of 98 cards (numbers 2-99)
-export const createDeck = () => {
+// Calculate maximum card value based on player count (base 99 + 10 per player above 5)
+export const getMaxCardValue = (numPlayers = 1) => {
+  const extraPlayers = Math.max(0, numPlayers - 5);
+  return 99 + extraPlayers * 10;
+};
+
+// Calculate total number of cards for a given player count
+export const getTotalCardCount = (numPlayers = 1) => {
+  return getMaxCardValue(numPlayers) - 1;
+};
+
+export const getDescendingStartValue = (numPlayers = 1) => {
+  const maxCard = getMaxCardValue(numPlayers);
+  return maxCard >= 100 ? maxCard + 1 : 100;
+};
+
+// Create a deck dynamically based on number of players
+export const createDeck = (numPlayers = 1) => {
   const deck = [];
-  for (let i = 2; i <= 99; i++) {
+  const maxCard = getMaxCardValue(numPlayers);
+  for (let i = 2; i <= maxCard; i++) {
     deck.push(i);
   }
   return shuffleDeck(deck);
@@ -23,8 +40,15 @@ export const shuffleDeck = (deck) => {
 export const getHandSize = (numPlayers) => {
   if (numPlayers === 1) return 8;
   if (numPlayers === 2) return 7;
-  if (numPlayers >= 3 && numPlayers <= 5) return 6;
-  return 6; // Default for any edge cases
+  if (numPlayers === 3) return 6;
+  if (numPlayers === 4) return 6;
+  if (numPlayers === 5) return 6;
+  if (numPlayers === 6) return 5;
+  if (numPlayers === 7) return 5;
+  if (numPlayers === 8) return 5;
+  if (numPlayers === 9) return 4;
+  if (numPlayers >= 10) return 4;
+  return 6;
 };
 
 // Check if a card can be played on a discard pile
@@ -74,13 +98,17 @@ export const canPlayCards = (cards, discardPiles) => {
   return validPlays;
 };
 
-// Check if game is won (all 98 cards played)
-export const isGameWon = (discardPiles) => {
+// Check if game is won (all cards played)
+export const isGameWon = (discardPiles, totalCards, playerCount) => {
   const totalCardsPlayed = discardPiles.reduce(
     (sum, pile) => sum + pile.length,
     0
   );
-  return totalCardsPlayed === 98;
+  const target =
+    totalCards !== undefined
+      ? totalCards
+      : getTotalCardCount(playerCount || discardPiles.length);
+  return totalCardsPlayed === target;
 };
 
 // Check if a turn is valid (minimum 2 cards, or 1 if deck is empty)
@@ -101,12 +129,21 @@ export const getGameStatus = (gameState) => {
     gameWon,
     cardsPlayedThisTurn,
     turnComplete,
+    totalCards,
+    maxCard,
+    descendingStart,
   } = gameState;
+
+  const playerCount = playerHands.length;
+  const maxCards = totalCards || getTotalCardCount(playerCount);
+  const highestCardValue = maxCard || getMaxCardValue(playerCount);
+  const descendingStartValue =
+    descendingStart || getDescendingStartValue(playerCount);
 
   if (gameWon) {
     return `Congratulations! Player ${
       currentPlayer + 1
-    } won! All 98 cards have been played!`;
+    } won! All ${maxCards} cards have been played! (Max card ${highestCardValue}, descending starts at ${descendingStartValue})`;
   }
 
   const currentHand = playerHands[currentPlayer];
