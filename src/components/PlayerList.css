@@ -54,7 +54,7 @@
   margin-bottom: 20px;
 }
 
-.player-item {
+.player-list-item {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   padding: 12px;
@@ -62,13 +62,13 @@
   transition: all 0.2s;
 }
 
-.player-item.current-player {
+.player-list-item.current {
   background: rgba(72, 187, 120, 0.3);
   border-color: #48bb78;
   box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
 }
 
-.player-item.disconnected {
+.player-list-item.disconnected {
   background: rgba(229, 62, 62, 0.2);
   border-color: #e53e3e;
   opacity: 0.7;
@@ -101,6 +101,16 @@
 
 .current-badge {
   background: #48bb78;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.you-badge {
+  background: #805ad5;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;

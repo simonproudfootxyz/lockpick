@@ -1,5 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import useSocket from "../hooks/useSocket";
 import DiscardPile from "../DiscardPile";
 import PlayerHand from "../PlayerHand";
@@ -15,6 +26,7 @@ const MultiplayerGame = () => {
   const { gameId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { socket, isConnected, error, emit, on, off, connectionQuality } =
     useSocket();
 
@@ -32,10 +44,15 @@ const MultiplayerGame = () => {
   const [isSpectator, setIsSpectator] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameStatus, setGameStatus] = useState("");
+  const [copySuccess, setCopySuccess] = useState("");
 
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
-  const playerName = searchParams.get("playerName") || "Anonymous";
+  const locationStateName = location.state?.playerName || "";
+  const playerName =
+    (locationStateName && locationStateName.trim()) ||
+    searchParams.get("playerName") ||
+    "Anonymous";
 
   const handleRoomJoined = useCallback((data) => {
     console.log("Room joined:", data);
@@ -308,12 +325,38 @@ const MultiplayerGame = () => {
     [players]
   );
 
+  const localPlayerIndex = useMemo(() => {
+    const entry = players.find((p) => p.socketId === socket?.id);
+    if (typeof entry?.playerIndex === "number") {
+      return entry.playerIndex;
+    }
+    return typeof players[0]?.playerIndex === "number"
+      ? players[0].playerIndex
+      : 0;
+  }, [players, socket?.id]);
+
   const closeGameOverModal = () => {
     setShowGameOverModal(false);
   };
 
-  const startNewGame = () => {
+  const startNewGame = useCallback(() => {
     navigate("/");
+  }, [navigate]);
+
+  const buildInviteLink = () => {
+    const origin = window.location.origin;
+    return `${origin}/join/${gameId}`;
+  };
+
+  const handleCopyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(buildInviteLink());
+      setCopySuccess("Invite link copied!");
+      setTimeout(() => setCopySuccess(""), 3000);
+    } catch (err) {
+      console.error("Failed to copy invite link", err);
+      setCopySuccess("Copy failed. Please copy manually: " + buildInviteLink());
+    }
   };
 
   const openRulesModal = () => {
@@ -353,7 +396,6 @@ const MultiplayerGame = () => {
     );
   }
 
-  const currentPlayerIndex = gameState ? gameState.currentPlayer : 0;
   const totalCardsTarget = gameState
     ? gameState.totalCards || getTotalCardCount(gameState.playerHands.length)
     : 0;
@@ -495,40 +537,54 @@ const MultiplayerGame = () => {
                 </button>
               </div>
 
-              <div className="player-section">
-                {gameState.playerHands.map((hand, index) => (
+              {!isSpectator && (
+                <div className="player-section">
                   <div
-                    key={index}
                     className={`player ${
-                      index === gameState.currentPlayer ? "current" : ""
+                      localPlayerIndex === gameState.currentPlayer
+                        ? "current"
+                        : ""
                     }`}
                   >
                     <h3>
-                      {getPlayerName(index)}{" "}
-                      {index === gameState.currentPlayer ? "(Your Turn)" : ""}
+                      {getPlayerName(localPlayerIndex)}
+                      {localPlayerIndex === gameState.currentPlayer
+                        ? " (Your Turn)"
+                        : ""}
                     </h3>
                     <button
-                      onClick={() => handleSortHand(index)}
+                      onClick={() => handleSortHand(localPlayerIndex)}
                       className="sort-hand-btn"
                       disabled={
-                        index !== gameState.currentPlayer || isSpectator
+                        localPlayerIndex !== gameState.currentPlayer ||
+                        isSpectator
                       }
                     >
                       Sort Hand
                     </button>
                     <PlayerHand
-                      hand={hand}
+                      hand={gameState.playerHands[localPlayerIndex] || []}
                       selectedCard={selectedCard}
-                      onCardSelect={(card) => handleCardSelect(card, index)}
-                      onHandReorder={() => {}} // Disabled in multiplayer
+                      onCardSelect={(card) =>
+                        handleCardSelect(card, localPlayerIndex)
+                      }
+                      onHandReorder={() => {}}
                       isCurrentPlayer={
-                        index === gameState.currentPlayer && !isSpectator
+                        localPlayerIndex === gameState.currentPlayer &&
+                        !isSpectator
                       }
                       discardPiles={gameState.discardPiles}
                     />
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {isSpectator && (
+                <div className="waiting-for-game spectator-view">
+                  <h2>Spectator Mode</h2>
+                  <p>You are watching the game as a spectator.</p>
+                </div>
+              )}
             </>
           )}
 
@@ -544,7 +600,8 @@ const MultiplayerGame = () => {
           <PlayerList
             players={players}
             spectators={spectators}
-            currentPlayerIndex={currentPlayerIndex}
+            currentPlayerIndex={gameState?.currentPlayer ?? 0}
+            localPlayerIndex={localPlayerIndex}
             isHost={isHost}
             onStartGame={handleStartGame}
             gameStarted={gameStarted}
@@ -567,6 +624,12 @@ const MultiplayerGame = () => {
           ) || 0}
           /{totalCardsTarget}
         </div>
+        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
+          Copy Invite Link
+        </button>
+        {copySuccess && (
+          <div className="copy-feedback-floating">{copySuccess}</div>
+        )}
         {gameState && (
           <div className="turn-progress">
             Cards played this turn: {gameState.cardsPlayedThisTurn}

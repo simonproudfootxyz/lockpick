@@ -425,6 +425,33 @@
   font-style: italic;
 }
 
+.copy-invite-floating {
+  background: #805ad5;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.copy-invite-floating:hover {
+  background: #6b46c1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.copy-feedback-floating {
+  margin-top: 6px;
+  color: #68d391;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .game {
     padding: 10px;
@@ -458,10 +485,23 @@
 /* Multiplayer layout */
 .player-section {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 20px;
   justify-content: center;
   margin-top: 20px;
+}
+
+.player-section .player {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.spectator-view {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin: 20px auto;
 }
 
 .player {

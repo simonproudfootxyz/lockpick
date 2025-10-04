@@ -1,0 +1,124 @@
+.name-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.name-prompt-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  width: min(90vw, 420px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 160ms ease-out;
+}
+
+.name-prompt-modal h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #2d3748;
+}
+
+.name-prompt-modal .description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #4a5568;
+}
+
+.name-prompt-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.name-prompt-modal label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.name-prompt-modal input {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.name-prompt-modal input:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+  outline: none;
+}
+
+.name-prompt-modal .error {
+  margin: 0;
+  color: #e53e3e;
+  font-size: 0.9rem;
+}
+
+.name-prompt-modal .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.name-prompt-modal button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.name-prompt-modal button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.name-prompt-modal button:disabled {
+  background: #cbd5f5;
+  color: #ffffff;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.name-prompt-modal button.secondary {
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #cbd5f5;
+}
+
+.name-prompt-modal button.secondary:hover:not(:disabled) {
+  background: #f7fafc;
+}
+
+.name-prompt-modal button[type="submit"] {
+  background: #4299e1;
+  color: #ffffff;
+}
+
+.name-prompt-modal button[type="submit"]:hover:not(:disabled) {
+  background: #3182ce;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

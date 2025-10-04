@@ -431,12 +431,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Get room list
-  socket.on("get-room-list", () => {
-    const roomList = roomManager.getRoomList();
-    socket.emit("room-list", roomList);
-  });
-
   // Handle disconnection
   socket.on("disconnect", async (reason) => {
     console.log(`Player ${socket.id} disconnected: ${reason}`);
@@ -509,6 +503,34 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  socket.on("validate-name", (data, callback) => {
+    try {
+      const { roomCode, playerName } = data;
+      if (!roomCode || !playerName) {
+        callback({ ok: false, error: "Room code and player name required" });
+        return;
+      }
+
+      const room = roomManager.getRoom(roomCode.trim().toUpperCase());
+      if (!room) {
+        callback({ ok: false, error: "Room not found" });
+        return;
+      }
+
+      const nameLower = playerName.trim().toLowerCase();
+      const players = Array.from(room.players.values());
+      const spectators = Array.from(room.spectators.values());
+      const isTaken = [...players, ...spectators].some(
+        (participant) => participant.name.trim().toLowerCase() === nameLower
+      );
+
+      callback({ ok: true, isTaken });
+    } catch (error) {
+      console.error("Error validating name:", error);
+      callback({ ok: false, error: "Failed to validate name" });
+    }
+  });
 });
 
 // API endpoints
@@ -516,6 +538,18 @@ app.get("/api/rooms", (req, res) => {
   const roomList = roomManager.getRoomList();
   console.log("Current rooms:", roomList);
   res.json(roomList);
+});
+
+app.get("/api/rooms/:roomCode/users", (req, res) => {
+  const { roomCode } = req.params;
+  const room = roomManager.getRoom(roomCode);
+
+  if (!room) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  const occupants = roomManager.getRoomOccupants(roomCode);
+  res.json(occupants);
 });
 
 app.get("/api/health", (req, res) => {

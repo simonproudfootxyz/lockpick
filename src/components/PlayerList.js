@@ -2,113 +2,65 @@ import React from "react";
 import "./PlayerList.css";
 
 const PlayerList = ({
-  players = [],
-  spectators = [],
+  players,
+  spectators,
   currentPlayerIndex,
+  localPlayerIndex,
   isHost,
   onStartGame,
   gameStarted,
 }) => {
-  const maxPlayers = 10;
-  const canStartGame = isHost && !gameStarted && players.length >= 2;
-
-  const sortedPlayers = [...players].sort((a, b) => {
-    const indexA =
-      typeof a.playerIndex === "number" ? a.playerIndex : players.indexOf(a);
-    const indexB =
-      typeof b.playerIndex === "number" ? b.playerIndex : players.indexOf(b);
-    return indexA - indexB;
-  });
-
-  const getPlayerIndex = (player, fallback) =>
-    typeof player.playerIndex === "number" ? player.playerIndex : fallback;
-
   return (
     <div className="player-list">
       <div className="player-list-header">
         <h3>
-          Players ({sortedPlayers.length}/{maxPlayers})
+          Players ({players.length}/{10})
         </h3>
         {isHost && !gameStarted && (
           <button
-            onClick={onStartGame}
-            disabled={!canStartGame}
             className="start-game-btn"
+            onClick={onStartGame}
+            disabled={players.length < 2}
+            title="Need at least 2 players"
           >
-            {players.length < 2
-              ? `Need ${2 - players.length} more player${
-                  2 - players.length === 1 ? "" : "s"
-                }`
-              : "Start Game"}
+            {players.length < 2 ? "Need 2 more players" : "Start Game"}
           </button>
         )}
       </div>
-
       <div className="players-container">
-        {sortedPlayers.map((player, index) => {
-          const playerIndex = getPlayerIndex(player, index);
-
+        {players.map((player) => {
+          const isCurrentTurn = currentPlayerIndex === player.playerIndex;
+          const isYou = localPlayerIndex === player.playerIndex;
           return (
             <div
-              key={player.socketId}
-              className={`player-item ${
-                playerIndex === currentPlayerIndex ? "current-player" : ""
-              } ${!player.isConnected ? "disconnected" : ""}`}
+              key={player.socketId || player.name}
+              className={`player-list-item ${isCurrentTurn ? "current" : ""}`}
             >
               <div className="player-info">
-                <div className="player-name">
+                <span className="player-name">
                   {player.name}
                   {player.isHost && <span className="host-badge">Host</span>}
-                  {playerIndex === currentPlayerIndex && (
-                    <span className="current-badge">Current</span>
-                  )}
-                </div>
-                <div className="player-status">
-                  {player.isConnected ? (
-                    <span className="status-connected">● Connected</span>
-                  ) : (
-                    <span className="status-disconnected">● Disconnected</span>
-                  )}
-                </div>
+                  {isYou && <span className="you-badge">You</span>}
+                  {isCurrentTurn && <span className="current-badge">Turn</span>}
+                </span>
+                <span className="player-role">
+                  {player.isHost ? "Host" : "Player"}
+                </span>
               </div>
             </div>
           );
         })}
       </div>
-
       {spectators.length > 0 && (
         <div className="spectators-section">
           <h4>Spectators ({spectators.length})</h4>
-          <div className="spectators-container">
+          <ul>
             {spectators.map((spectator) => (
-              <div
-                key={spectator.socketId}
-                className={`spectator-item ${
-                  !spectator.isConnected ? "disconnected" : ""
-                }`}
-              >
-                <div className="spectator-info">
-                  <div className="spectator-name">
-                    {spectator.name}
-                    <span className="spectator-badge">Spectator</span>
-                  </div>
-                  <div className="spectator-status">
-                    {spectator.isConnected ? (
-                      <span className="status-connected">●</span>
-                    ) : (
-                      <span className="status-disconnected">●</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <li key={spectator.socketId || spectator.name}>
+                {spectator.name}
+              </li>
             ))}
-          </div>
-        </div>
-      )}
-
-      {players.length === 0 && (
-        <div className="no-players">
-          <p>No players in room yet</p>
+          </ul>
         </div>
       )}
     </div>

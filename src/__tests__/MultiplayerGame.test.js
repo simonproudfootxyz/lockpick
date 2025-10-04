@@ -1,55 +1,103 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
+import { act, render, screen } from "@testing-library/react";
 import MultiplayerGame from "../components/MultiplayerGame";
 
-// Mock the useSocket hook
+type HandlerMap = Record<string, (...args: any[]) => void>;
+
+const mockEmit = jest.fn();
+const mockOn = jest.fn();
+const mockOff = jest.fn();
+let handlers: HandlerMap = {};
+
+const mockSocket = {
+  id: "test-socket-id",
+  emit: mockEmit,
+  on: mockOn,
+  off: mockOff,
+  connected: true,
+};
+
 jest.mock("../hooks/useSocket", () => ({
   __esModule: true,
   default: () => ({
-    socket: {
-      id: "test-socket-id",
-      emit: jest.fn(),
-      on: jest.fn(),
-      off: jest.fn(),
-    },
+    socket: mockSocket,
     isConnected: true,
     error: null,
-    emit: jest.fn(),
-    on: jest.fn(),
-    off: jest.fn(),
+    emit: mockEmit,
+    on: mockOn,
+    off: mockOff,
+    connectionQuality: "good",
   }),
 }));
 
-// Mock the router params
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useParams: () => ({ gameId: "TEST123" }),
-  useSearchParams: () => [new URLSearchParams("playerName=TestPlayer")],
+  useSearchParams: () => [new URLSearchParams("playerName=FromQuery")],
   useNavigate: () => jest.fn(),
+  useLocation: () => ({ state: { playerName: "FromState" } }),
 }));
 
-const MockedMultiplayerGame = () => (
-  <BrowserRouter>
-    <MultiplayerGame />
-  </BrowserRouter>
-);
-
-describe("MultiplayerGame Component", () => {
+describe("MultiplayerGame", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    handlers = {};
+    mockOn.mockImplementation((event, handler) => {
+      handlers[event] = handler;
+    });
   });
 
-  test("should render connection status when connected", () => {
-    render(<MockedMultiplayerGame />);
+  const trigger = (event: string, payload?: any) => {
+    const handler = handlers[event];
+    if (!handler) return;
+    act(() => {
+      handler(payload);
+    });
+  };
+
+  test("shows room header after join", () => {
+    render(<MultiplayerGame />);
+
+    trigger("room-joined", {
+      roomCode: "TEST123",
+      isHost: true,
+      isSpectator: false,
+      players: [],
+      spectators: [],
+      gameState: null,
+    });
 
     expect(screen.getByText("Lockpick Multiplayer")).toBeInTheDocument();
-    expect(screen.getByText("Room: TEST123")).toBeInTheDocument();
+    expect(screen.getByText(/Room:\s*TEST123/)).toBeInTheDocument();
   });
 
-  test("should show waiting message when game not started", () => {
-    render(<MockedMultiplayerGame />);
+  test("prioritises player name from router state", () => {
+    render(<MultiplayerGame />);
 
-    expect(screen.getByText(/Waiting for game to start/)).toBeInTheDocument();
+    trigger("room-joined", {
+      roomCode: "TEST123",
+      isHost: true,
+      isSpectator: false,
+      players: [],
+      spectators: [],
+      gameState: null,
+    });
+
+    trigger("player-joined", {
+      players: [
+        {
+          socketId: "test-socket-id",
+          name: "FromState",
+          isHost: true,
+          playerIndex: 0,
+        },
+      ],
+      spectators: [],
+    });
+
+    expect(mockEmit).toHaveBeenCalledWith(
+      "join-room",
+      expect.objectContaining({ playerName: "FromState" })
+    );
   });
 });

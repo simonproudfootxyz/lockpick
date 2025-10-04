@@ -313,6 +313,29 @@ class RoomManager {
     return this.rooms.get(roomCode);
   }
 
+  getRoomOccupants(roomCode) {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { players: [], spectators: [] };
+    }
+
+    return {
+      players: Array.from(room.players.values()).map((player) => ({
+        name: player.name,
+        socketId: player.socketId,
+        isHost: !!player.isHost,
+        isConnected: !!player.isConnected,
+      })),
+      spectators: Array.from(room.spectators.values()).map((spectator) => ({
+        name: spectator.name,
+        socketId: spectator.socketId,
+        isHost: !!spectator.isHost,
+        isConnected: !!spectator.isConnected,
+        isSpectator: true,
+      })),
+    };
+  }
+
   getPlayerRoom(socketId) {
     const roomCode = this.playerRooms.get(socketId);
     return roomCode ? this.rooms.get(roomCode) : null;
@@ -327,21 +350,6 @@ class RoomManager {
       // Save to disk
       await this.saveRoom(roomCode, room);
     }
-  }
-
-  getRoomList() {
-    const roomList = [];
-    for (const [code, room] of this.rooms) {
-      roomList.push({
-        code,
-        playerCount: room.players.size,
-        spectatorCount: room.spectators.size,
-        hasGame: !!room.gameState,
-        createdAt: room.createdAt,
-        maxPlayers: room.maxPlayers || 10,
-      });
-    }
-    return roomList;
   }
 
   // Clean up disconnected players from rooms (but don't delete rooms immediately)

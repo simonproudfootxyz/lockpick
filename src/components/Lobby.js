@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import NamePromptModal from "./NamePromptModal";
 import useSocket from "../hooks/useSocket";
 import "./Lobby.css";
 
@@ -10,8 +11,14 @@ const Lobby = () => {
   const [roomCode, setRoomCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [roomList, setRoomList] = useState([]);
-  const [showRoomList, setShowRoomList] = useState(false);
+  const [copySuccess, setCopySuccess] = useState("");
+  const [lastCreatedRoom, setLastCreatedRoom] = useState(null);
+  const [isNamePromptOpen, setIsNamePromptOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [pendingRoomCode, setPendingRoomCode] = useState("");
+  const [pendingName, setPendingName] = useState("");
+  const [isSubmittingName, setIsSubmittingName] = useState(false);
+  const [nameError, setNameError] = useState("");
 
   useEffect(() => {
     if (!socket) return;
@@ -20,10 +27,12 @@ const Lobby = () => {
     const handleRoomCreated = (data) => {
       console.log("Room created:", data);
       setIsCreating(false);
+      setLastCreatedRoom(data.roomCode);
       navigate(
         `/multiplayer/${data.roomCode}?playerName=${encodeURIComponent(
           playerName
-        )}`
+        )}`,
+        { replace: true, state: { playerName } }
       );
     };
 
@@ -34,13 +43,9 @@ const Lobby = () => {
       navigate(
         `/multiplayer/${data.roomCode}?playerName=${encodeURIComponent(
           playerName
-        )}`
+        )}`,
+        { replace: true, state: { playerName } }
       );
-    };
-
-    // Listen for room list updates
-    const handleRoomList = (rooms) => {
-      setRoomList(rooms);
     };
 
     // Listen for errors
@@ -48,43 +53,48 @@ const Lobby = () => {
       console.error("Lobby error:", data);
       setIsCreating(false);
       setIsJoining(false);
-      alert(data.message || "An error occurred");
+      setIsSubmittingName(false);
+      setNameError(data.message || "An error occurred");
     };
 
     on("room-created", handleRoomCreated);
     on("room-joined", handleRoomJoined);
-    on("room-list", handleRoomList);
     on("error", handleError);
 
     return () => {
       off("room-created", handleRoomCreated);
       off("room-joined", handleRoomJoined);
-      off("room-list", handleRoomList);
       off("error", handleError);
     };
   }, [socket, playerName, navigate, on, off]);
 
-  const handleCreateRoom = (e) => {
+  const openNamePrompt = (action, code = "") => {
+    setPendingAction(action);
+    setPendingRoomCode(code);
+    setPendingName(playerName.trim());
+    setNameError("");
+    setIsNamePromptOpen(true);
+  };
+
+  const closeNamePrompt = () => {
+    if (isSubmittingName) return;
+    setIsNamePromptOpen(false);
+    setPendingAction(null);
+    setPendingRoomCode("");
+    setNameError("");
+  };
+
+  const handleCreateRoomClick = (e) => {
     e.preventDefault();
-    if (!playerName.trim()) {
-      alert("Please enter your name");
-      return;
-    }
     if (!isConnected) {
       alert("Not connected to server");
       return;
     }
-
-    setIsCreating(true);
-    emit("create-room", { playerName: playerName.trim() });
+    openNamePrompt("create");
   };
 
-  const handleJoinRoom = (e) => {
+  const handleJoinRoomClick = (e) => {
     e.preventDefault();
-    if (!playerName.trim()) {
-      alert("Please enter your name");
-      return;
-    }
     if (!roomCode.trim()) {
       alert("Please enter a room code");
       return;
@@ -93,35 +103,70 @@ const Lobby = () => {
       alert("Not connected to server");
       return;
     }
-
-    setIsJoining(true);
-    emit("join-room", {
-      roomCode: roomCode.trim().toUpperCase(),
-      playerName: playerName.trim(),
-    });
+    openNamePrompt("join", roomCode.trim().toUpperCase());
   };
 
-  const handleJoinRoomFromList = (roomCode) => {
-    if (!playerName.trim()) {
-      alert("Please enter your name first");
+  const submitName = async (name) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setNameError("Please enter your name");
       return;
     }
+    if (!socket || !isConnected || !pendingAction) {
+      setNameError("Connection lost. Please try again.");
+      return;
+    }
+
+    setIsSubmittingName(true);
+    setNameError("");
+    setPlayerName(trimmedName);
+    setPendingName(trimmedName);
+
+    if (pendingAction === "create") {
+      setIsCreating(true);
+      emit("create-room", { playerName: trimmedName });
+    } else if (pendingAction === "join") {
+      if (!pendingRoomCode) {
+        setNameError("Missing room code");
+        setIsSubmittingName(false);
+        return;
+      }
+      setIsJoining(true);
+      emit("join-room", {
+        roomCode: pendingRoomCode,
+        playerName: trimmedName,
+      });
+    }
+
+    setIsSubmittingName(false);
+    setIsNamePromptOpen(false);
+    setPendingAction(null);
+    setPendingRoomCode("");
+  };
+
+  const handleRoomListJoin = (code) => {
     if (!isConnected) {
       alert("Not connected to server");
       return;
     }
-
-    setIsJoining(true);
-    emit("join-room", {
-      roomCode: roomCode,
-      playerName: playerName.trim(),
-    });
+    setRoomCode(code);
+    openNamePrompt("join", code);
   };
 
-  const loadRoomList = () => {
-    if (isConnected) {
-      emit("get-room-list");
-      setShowRoomList(true);
+  const buildInviteLink = (code) => {
+    const origin = window.location.origin;
+    return `${origin}/join/${code}`;
+  };
+
+  const handleCopyInviteLink = async (code) => {
+    const link = buildInviteLink(code);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopySuccess("Invite link copied!");
+      setTimeout(() => setCopySuccess(""), 3000);
+    } catch (err) {
+      console.error("Failed to copy invite link", err);
+      setCopySuccess("Copy failed. Please copy manually from the link below.");
     }
   };
 
@@ -155,26 +200,13 @@ const Lobby = () => {
           <span>Connected to server</span>
         </div>
 
-        <div className="player-name-section">
-          <label htmlFor="playerName">Your Name:</label>
-          <input
-            id="playerName"
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Enter your name"
-            maxLength={20}
-            disabled={isCreating || isJoining}
-          />
-        </div>
-
         <div className="lobby-actions">
           <div className="create-room-section">
             <h3>Create New Room</h3>
-            <form onSubmit={handleCreateRoom}>
+            <form onSubmit={handleCreateRoomClick}>
               <button
                 type="submit"
-                disabled={!playerName.trim() || isCreating || isJoining}
+                disabled={isCreating || isJoining}
                 className="create-room-btn"
               >
                 {isCreating ? "Creating..." : "Create Room"}
@@ -184,7 +216,7 @@ const Lobby = () => {
 
           <div className="join-room-section">
             <h3>Join Existing Room</h3>
-            <form onSubmit={handleJoinRoom}>
+            <form onSubmit={handleJoinRoomClick}>
               <input
                 type="text"
                 value={roomCode}
@@ -195,65 +227,12 @@ const Lobby = () => {
               />
               <button
                 type="submit"
-                disabled={
-                  !playerName.trim() ||
-                  !roomCode.trim() ||
-                  isCreating ||
-                  isJoining
-                }
+                disabled={!roomCode.trim() || isCreating || isJoining}
                 className="join-room-btn"
               >
                 {isJoining ? "Joining..." : "Join Room"}
               </button>
             </form>
-          </div>
-
-          <div className="room-list-section">
-            <button
-              onClick={loadRoomList}
-              disabled={isCreating || isJoining}
-              className="load-rooms-btn"
-            >
-              {showRoomList ? "Refresh Room List" : "Show Available Rooms"}
-            </button>
-
-            {showRoomList && roomList.length > 0 && (
-              <div className="room-list">
-                <h4>Available Rooms:</h4>
-                {roomList.map((room) => (
-                  <div key={room.code} className="room-item">
-                    <div className="room-info">
-                      <span className="room-code">{room.code}</span>
-                      <span className="room-players">
-                        {room.playerCount} player
-                        {room.playerCount !== 1 ? "s" : ""}
-                        {room.maxPlayers ? ` / ${room.maxPlayers}` : ""}
-                        {room.spectatorCount > 0 &&
-                          `, ${room.spectatorCount} spectator${
-                            room.spectatorCount !== 1 ? "s" : ""
-                          }`}
-                      </span>
-                      {room.hasGame && (
-                        <span className="game-status">Game in progress</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleJoinRoomFromList(room.code)}
-                      disabled={!playerName.trim() || isCreating || isJoining}
-                      className="join-room-from-list-btn"
-                    >
-                      Join
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {showRoomList && roomList.length === 0 && (
-              <div className="no-rooms">
-                <p>No rooms available</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -265,8 +244,33 @@ const Lobby = () => {
             <li>Up to 10 players can join a room</li>
             <li>Players who join after the player limit become spectators</li>
           </ul>
+          {lastCreatedRoom && (
+            <div className="invite-link-section">
+              <h5>Invite friends quickly</h5>
+              <button
+                onClick={() => handleCopyInviteLink(lastCreatedRoom)}
+                className="copy-invite-btn"
+              >
+                Copy Invite Link
+              </button>
+              {copySuccess && <p className="copy-feedback">{copySuccess}</p>}
+              <p className="invite-tip">
+                Shareable link: <code>{buildInviteLink(lastCreatedRoom)}</code>
+              </p>
+            </div>
+          )}
         </div>
       </div>
+      <NamePromptModal
+        isOpen={isNamePromptOpen}
+        initialValue={pendingName}
+        isSubmitting={isSubmittingName || isCreating || isJoining}
+        error={nameError}
+        onSubmit={submitName}
+        onCancel={closeNamePrompt}
+        pendingAction={pendingAction}
+        roomCode={pendingRoomCode}
+      />
     </div>
   );
 };
