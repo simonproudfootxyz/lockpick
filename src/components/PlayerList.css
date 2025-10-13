@@ -9,9 +9,11 @@
 
 .player-list-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  gap: 1rem;
 }
 
 .player-list-header h3 {
