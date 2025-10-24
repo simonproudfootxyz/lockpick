@@ -8,6 +8,7 @@
 # server
 /server/saved-games/
 /server/saved-rooms/
+/server/node_modules/
 
 # testing
 /coverage

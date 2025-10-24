@@ -34,7 +34,9 @@
     "server:dev": "cd server && npm run dev",
     "install:all": "npm install && cd server && npm install",
     "dev": "concurrently \"npm start\" \"npm run server:dev\"",
-    "build:all": "npm run build && cd server && npm install --production"
+    "build:all": "npm run build && cd server && npm install --production",
+    "build:client": "npm run build",
+    "start:server": "cd server && NODE_ENV=production node server.js"
   },
   "eslintConfig": {
     "extends": [

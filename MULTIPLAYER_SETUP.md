@@ -157,17 +157,47 @@ lockpick/
 
 ## Deployment
 
-### Railway (Recommended)
+### Prerequisites
 
-1. Connect your GitHub repository to Railway
-2. Railway will automatically detect and deploy both client and server
-3. Set environment variables as needed
+- Node.js 18+
+- Railway (or Render) account with GitHub integration
+- Domain (optional)
 
-### Manual Deployment
+### Environment Variables
 
-1. Build the client: `npm run build`
-2. Deploy server to your preferred platform
-3. Update WebSocket URL in production build
+- `PORT` (Railway assigns automatically)
+- `CLIENT_ORIGIN` (comma-separated allowed origins)
+- `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`
+- `SOCKET_PING_TIMEOUT_MS` / `SOCKET_PING_INTERVAL_MS`
+
+### Railway Deployment Steps
+
+1. Connect GitHub repo to Railway and create staging + production environments.
+2. Configure service commands:
+   - Install: `npm install`
+   - Build: `npm run build:client`
+   - Start: `npm run start:server`
+3. Set environment variables in each environment.
+4. Configure health check to `/api/health`.
+5. Attach Railway domain or custom domain; verify HTTPS.
+6. Update `CLIENT_ORIGIN` with deployed URL(s); redeploy if changed.
+7. Optional: enable auto-deploy on merge to `main`.
+
+### Security Checklist
+
+- TLS enforced (middleware redirects HTTP→HTTPS in production).
+- Helmet adds security headers; CORS limited to `CLIENT_ORIGIN`.
+- Names & codes sanitized server-side; rate limiting enabled.
+- Socket.IO ping intervals configurable via env.
+- Secrets stored in Railway environment settings, not source control.
+- Run `npm audit` (root + `server/`) before deployment.
+
+### Monitoring & Maintenance
+
+- Review Railway logs; configure alerts for crashes/high latency.
+- Add uptime monitor (e.g., UptimeRobot) calling `/api/health`.
+- Monthly: dependency audit, secret rotation, CORS/origin review.
+- Document rollback (Railway rollback or git revert).
 
 ## Troubleshooting
 

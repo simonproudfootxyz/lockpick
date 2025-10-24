@@ -319,18 +319,15 @@ class RoomManager {
       return { players: [], spectators: [] };
     }
 
+    const sanitize = (participant) => ({
+      ...participant,
+      name: (participant.name || "").replace(/[<>&"']/g, ""),
+    });
+
     return {
-      players: Array.from(room.players.values()).map((player) => ({
-        name: player.name,
-        socketId: player.socketId,
-        isHost: !!player.isHost,
-        isConnected: !!player.isConnected,
-      })),
+      players: Array.from(room.players.values()).map(sanitize),
       spectators: Array.from(room.spectators.values()).map((spectator) => ({
-        name: spectator.name,
-        socketId: spectator.socketId,
-        isHost: !!spectator.isHost,
-        isConnected: !!spectator.isConnected,
+        ...sanitize(spectator),
         isSpectator: true,
       })),
     };

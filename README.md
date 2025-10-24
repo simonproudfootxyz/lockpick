@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# Lockpick Multiplayer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Real-time cooperative card game built with React and Socket.IO.
 
-## Available Scripts
+## Development
 
-In the project directory, you can run:
+```bash
+npm install
+npm run install:all
+npm run dev
+```
 
-### `npm start`
+Front-end runs on `localhost:3000`, server on `localhost:3001`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Testing
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npm test              # client tests
+npm run test:server   # server tests
+```
 
-### `npm test`
+## Production Build
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run build:client
+npm run start:server
+```
 
-### `npm run build`
+Express will serve the compiled React bundle when `NODE_ENV=production`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Deployment (Railway)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Create Railway project (staging + production recommended).
+2. Add Node service pointing to repo root.
+   - Install: `npm install`
+   - Build: `npm run build:client`
+   - Start: `npm run start:server`
+3. Configure environment variables:
+   - `PORT` (Railway auto-sets)
+   - `CLIENT_ORIGIN` (comma-separated allowed origins)
+   - `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX` (optional tuning)
+   - `SOCKET_PING_TIMEOUT_MS`, `SOCKET_PING_INTERVAL_MS` (optional)
+4. Set health check to `/api/health`.
+5. Attach domain; enable HTTPS (Railway manages TLS).
+6. Point DNS if using custom domain.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Security Notes
 
-### `npm run eject`
+- Names/room codes validated and sanitized server-side.
+- Helmet, compression, and rate-limiting enabled.
+- Socket.IO CORS restricted to `CLIENT_ORIGIN`.
+- Enforces HTTPS in production (honors `x-forwarded-proto`).
+- Secrets must be stored in Railway environment settings.
+- Run `npm audit` regularly for both root and `server/` packages.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Monitoring & Maintenance
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Review Railway logs; configure alerts if available.
+- Add external uptime monitor (e.g. UptimeRobot) hitting `/api/health`.
+- Monthly: dependency audit, secret rotation, CORS/origin review.
+- Document redeploy/rollback plan (Railway rollback or git revert).
