@@ -33,9 +33,11 @@ jest.mock("../hooks/useSocket", () => ({
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useParams: () => ({ gameId: "TEST123" }),
-  useSearchParams: () => [new URLSearchParams("playerName=FromQuery")],
+  useSearchParams: () => [new URLSearchParams("playerId=FromQueryId")],
   useNavigate: () => jest.fn(),
-  useLocation: () => ({ state: { playerName: "FromState" } }),
+  useLocation: () => ({
+    state: { playerName: "FromState", playerId: "StatePlayerId" },
+  }),
 }));
 
 describe("MultiplayerGame", () => {
@@ -97,7 +99,10 @@ describe("MultiplayerGame", () => {
 
     expect(mockEmit).toHaveBeenCalledWith(
       "join-room",
-      expect.objectContaining({ playerName: "FromState" })
+      expect.objectContaining({
+        playerName: "FromState",
+        playerId: "StatePlayerId",
+      })
     );
   });
 });

@@ -21,6 +21,10 @@ import GameOverModal from "../GameOverModal";
 import RulesModal from "../RulesModal";
 import { getTotalCardCount, getDescendingStartValue } from "../gameLogic";
 import "../Game.css";
+import {
+  getStoredPlayerName,
+  storePlayerIdentity,
+} from "../utils/playerIdentity";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -49,25 +53,53 @@ const MultiplayerGame = () => {
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
   const locationStateName = location.state?.playerName || "";
+  const locationStatePlayerId = location.state?.playerId || "";
+  const searchParamPlayerId = searchParams.get("playerId") || "";
+  const playerId =
+    (locationStatePlayerId && locationStatePlayerId.trim()) ||
+    (searchParamPlayerId && searchParamPlayerId.trim()) ||
+    "";
+  const storedPlayerName = useMemo(
+    () => getStoredPlayerName(playerId),
+    [playerId]
+  );
   const playerName =
     (locationStateName && locationStateName.trim()) ||
-    searchParams.get("playerName") ||
+    storedPlayerName ||
     "Anonymous";
 
-  const handleRoomJoined = useCallback((data) => {
-    console.log("Room joined:", data);
-    setRoomData(data);
-    setPlayers(data.players || []);
-    setSpectators(data.spectators || []);
-    setIsHost(data.isHost || false);
-    setIsSpectator(data.isSpectator || false);
-    hasJoinedRoom.current = true;
+  const handleRoomJoined = useCallback(
+    (data) => {
+      console.log("Room joined:", data);
+      setRoomData(data);
+      setPlayers(data.players || []);
+      setSpectators(data.spectators || []);
+      setIsHost(data.isHost || false);
+      setIsSpectator(data.isSpectator || false);
+      hasJoinedRoom.current = true;
 
-    if (data.gameState) {
-      setGameState(data.gameState);
-      setGameStarted(true);
+      if (playerId) {
+        const selfParticipant =
+          (data.players || []).find((p) => p.playerId === playerId) ||
+          (data.spectators || []).find((s) => s.playerId === playerId);
+        if (selfParticipant) {
+          storePlayerIdentity(selfParticipant.playerId, selfParticipant.name);
+        }
+      }
+
+      if (data.gameState) {
+        setGameState(data.gameState);
+        setGameStarted(true);
+      }
+    },
+    [playerId]
+  );
+
+  useEffect(() => {
+    if (!playerId && gameId) {
+      navigate(`/join/${gameId}`, { replace: true });
     }
-  }, []);
+  }, [playerId, gameId, navigate]);
 
   const handlePlayerJoined = useCallback(
     (data) => {
@@ -159,11 +191,17 @@ const MultiplayerGame = () => {
     joinAttemptsRef.current += 1;
     console.log("Joining room:", gameId);
 
+    if (!playerId) {
+      console.error("Missing playerId, cannot join room");
+      return;
+    }
+
     emit("join-room", {
       roomCode: gameId,
       playerName,
+      playerId,
     });
-  }, [socket, isConnected, gameId, emit, playerName]);
+  }, [socket, isConnected, gameId, emit, playerName, playerId]);
 
   useEffect(() => {
     if (!socket) return;

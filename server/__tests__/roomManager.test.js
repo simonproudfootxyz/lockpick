@@ -49,10 +49,15 @@ describe("RoomManager", () => {
 
       // Add 4 more players (total 5)
       for (let i = 2; i <= 5; i++) {
+        const reservation = roomManager.createPendingPlayer(
+          roomCode,
+          `Player${i}`
+        );
         const result = roomManager.joinRoom(
           roomCode,
           `socket${i}`,
-          `Player${i}`
+          `Player${i}`,
+          reservation.playerId
         );
         expect(result.success).toBe(true);
         expect(result.isSpectator).toBe(false);
@@ -67,11 +72,26 @@ describe("RoomManager", () => {
 
       // Add 4 more players (total 5)
       for (let i = 2; i <= 5; i++) {
-        roomManager.joinRoom(roomCode, `socket${i}`, `Player${i}`);
+        const reservation = roomManager.createPendingPlayer(
+          roomCode,
+          `Player${i}`
+        );
+        roomManager.joinRoom(
+          roomCode,
+          `socket${i}`,
+          `Player${i}`,
+          reservation.playerId
+        );
       }
 
       // 6th player should be spectator
-      const result = roomManager.joinRoom(roomCode, "socket6", "Player6");
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player6");
+      const result = roomManager.joinRoom(
+        roomCode,
+        "socket6",
+        "Player6",
+        reservation.playerId
+      );
       expect(result.success).toBe(true);
       expect(result.isSpectator).toBe(true);
       expect(room.spectators.has("socket6")).toBe(true);
@@ -83,12 +103,27 @@ describe("RoomManager", () => {
     test("should not allow duplicate player names", () => {
       const room = roomManager.createRoom("socket1", "Player1");
       const roomCode = room.code;
-      roomManager.joinRoom(roomCode, "socket2", "Player2");
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player2");
+      roomManager.joinRoom(
+        roomCode,
+        "socket2",
+        "Player2",
+        reservation.playerId
+      );
 
       // Try to add player with same name
-      const result = roomManager.joinRoom(roomCode, "socket3", "Player1");
+      const duplicateReservation = roomManager.createPendingPlayer(
+        roomCode,
+        "Player1"
+      );
+      const result = roomManager.joinRoom(
+        roomCode,
+        "socket3",
+        "Player1",
+        duplicateReservation.playerId
+      );
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Player name already taken");
+      expect(result.error).toBe("That name is already in use in this room.");
     });
 
     test("should allow same name in different rooms", () => {
@@ -118,7 +153,13 @@ describe("RoomManager", () => {
     test("should assign new host when host leaves", () => {
       const room = roomManager.createRoom("socket1", "Player1");
       const roomCode = room.code;
-      roomManager.joinRoom(roomCode, "socket2", "Player2");
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player2");
+      roomManager.joinRoom(
+        roomCode,
+        "socket2",
+        "Player2",
+        reservation.playerId
+      );
 
       // Host leaves
       const result = roomManager.leaveRoom("socket1");

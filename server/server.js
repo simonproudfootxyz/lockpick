@@ -124,9 +124,14 @@ io.on("connection", (socket) => {
   // Create a new room
   socket.on("create-room", async (data = {}) => {
     try {
-      const { playerName } = data;
+      const { playerName, playerId } = data;
       if (!isValidPlayerName(playerName)) {
         socket.emit("error", { message: "Player name is required" });
+        return;
+      }
+
+      if (playerId && !isValidPlayerId(playerId)) {
+        socket.emit("error", { message: "Invalid player identifier" });
         return;
       }
 
@@ -145,13 +150,15 @@ io.on("connection", (socket) => {
 
       const room = await roomManager.createRoom(
         socket.id,
-        sanitizeName(playerName)
+        sanitizeName(playerName),
+        playerId
       );
       console.log(`Room created: ${room.code} by ${playerName}`);
 
       socket.emit("room-created", {
         roomCode: room.code,
         isHost: true,
+        playerId: room.players.get(socket.id)?.playerId,
         players: Array.from(room.players.values()),
         spectators: Array.from(room.spectators.values()),
       });
@@ -166,13 +173,22 @@ io.on("connection", (socket) => {
   // Join an existing room
   socket.on("join-room", async (data = {}) => {
     try {
-      const { roomCode, playerName } = data;
-      console.log(`Attempting to join room: ${roomCode} by ${playerName}`);
+      const { roomCode, playerName, playerId } = data;
+      console.log(
+        `Attempting to join room: ${roomCode} by ${playerName} (${
+          playerId || "no id"
+        })`
+      );
 
       if (!isValidRoomCode(roomCode) || !isValidPlayerName(playerName)) {
         socket.emit("error", {
           message: "Room code and player name are required",
         });
+        return;
+      }
+
+      if (playerId && !isValidPlayerId(playerId)) {
+        socket.emit("error", { message: "Invalid player identifier" });
         return;
       }
 
@@ -188,6 +204,7 @@ io.on("connection", (socket) => {
       // First try to handle reconnection
       const reconnectionResult = await roomManager.handlePlayerReconnection(
         socket.id,
+        playerId,
         sanitizeName(playerName)
       );
 
@@ -198,7 +215,8 @@ io.on("connection", (socket) => {
         result = await roomManager.joinRoom(
           normalizeRoomCode(roomCode),
           socket.id,
-          sanitizeName(playerName)
+          sanitizeName(playerName),
+          playerId
         );
       }
 
@@ -230,10 +248,14 @@ io.on("connection", (socket) => {
         });
       }
 
+      const participant =
+        room.players.get(socket.id) || room.spectators.get(socket.id);
+
       socket.emit("room-joined", {
         roomCode: normalizedCode,
         isHost: room.players.get(socket.id)?.isHost || false,
         isSpectator,
+        playerId: participant?.playerId,
         players: Array.from(room.players.values()).map(sanitizeParticipant),
         spectators: Array.from(room.spectators.values()).map(
           sanitizeParticipant
@@ -577,28 +599,70 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("validate-name", (data = {}, callback) => {
+  socket.on("validate-name", (data = {}, callback = () => {}) => {
     try {
-      const { roomCode, playerName } = data;
-      if (!isValidRoomCode(roomCode) || !isValidPlayerName(playerName)) {
-        callback({ ok: false, error: "Room code and player name required" });
+      const { roomCode, playerName, action = "join" } = data;
+
+      if (!isValidPlayerName(playerName)) {
+        callback({ ok: false, error: "Player name is required" });
         return;
       }
 
-      const room = roomManager.getRoom(normalizeRoomCode(roomCode));
+      const sanitizedPlayerName = sanitizeName(playerName);
+      const normalizedAction = action === "create" ? "create" : "join";
+
+      if (normalizedAction === "create") {
+        const playerId = roomManager.generatePlayerId();
+        callback({
+          ok: true,
+          isTaken: false,
+          playerId,
+        });
+        return;
+      }
+
+      if (!isValidRoomCode(roomCode)) {
+        callback({ ok: false, error: "Room code is required" });
+        return;
+      }
+
+      const normalizedRoomCode = normalizeRoomCode(roomCode);
+      const room = roomManager.getRoom(normalizedRoomCode);
       if (!room) {
         callback({ ok: false, error: "Room not found" });
         return;
       }
 
-      const nameLower = playerName.trim().toLowerCase();
+      const nameLower = sanitizedPlayerName.trim().toLowerCase();
       const players = Array.from(room.players.values());
       const spectators = Array.from(room.spectators.values());
-      const isTaken = [...players, ...spectators].some(
-        (participant) => participant.name.trim().toLowerCase() === nameLower
+      const isTaken =
+        [...players, ...spectators].some(
+          (participant) => participant.name.trim().toLowerCase() === nameLower
+        ) ||
+        players.some((participant) => participant.playerId === data.playerId);
+
+      if (isTaken) {
+        callback({ ok: true, isTaken: true });
+        return;
+      }
+
+      const reservation = roomManager.createPendingPlayer(
+        normalizedRoomCode,
+        sanitizedPlayerName
       );
 
-      callback({ ok: true, isTaken });
+      if (!reservation) {
+        callback({ ok: false, error: "Unable to reserve player name" });
+        return;
+      }
+
+      callback({
+        ok: true,
+        isTaken: false,
+        playerId: reservation.playerId,
+        expiresAt: reservation.expiresAt,
+      });
     } catch (error) {
       console.error("Error validating name:", error);
       callback({ ok: false, error: "Failed to validate name" });
@@ -652,6 +716,12 @@ function isValidRoomCode(code) {
   if (typeof code !== "string") return false;
   const trimmed = code.trim();
   return trimmed.length === 6 && validator.isAlphanumeric(trimmed);
+}
+
+function isValidPlayerId(id) {
+  if (typeof id !== "string") return false;
+  const trimmed = id.trim();
+  return validator.isUUID(trimmed);
 }
 
 function sanitizeName(name) {

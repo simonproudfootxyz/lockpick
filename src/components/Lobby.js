@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import NamePromptModal from "./NamePromptModal";
 import useSocket from "../hooks/useSocket";
 import "./Lobby.css";
+import { storePlayerIdentity } from "../utils/playerIdentity";
 
 const Lobby = () => {
   const navigate = useNavigate();
   const { socket, isConnected, error, emit, on, off } = useSocket();
   const [playerName, setPlayerName] = useState("");
+  const [playerId, setPlayerId] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -28,11 +30,18 @@ const Lobby = () => {
       console.log("Room created:", data);
       setIsCreating(false);
       setLastCreatedRoom(data.roomCode);
+      const effectivePlayerId = data.playerId || playerId;
+      if (!effectivePlayerId) {
+        console.error("Missing playerId for created room");
+        setNameError("Failed to create room. Please try again.");
+        return;
+      }
+      storePlayerIdentity(effectivePlayerId, playerName);
       navigate(
-        `/multiplayer/${data.roomCode}?playerName=${encodeURIComponent(
-          playerName
+        `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
+          effectivePlayerId
         )}`,
-        { replace: true, state: { playerName } }
+        { replace: true, state: { playerId: effectivePlayerId, playerName } }
       );
     };
 
@@ -40,11 +49,18 @@ const Lobby = () => {
     const handleRoomJoined = (data) => {
       console.log("Room joined:", data);
       setIsJoining(false);
+      const effectivePlayerId = data.playerId || playerId;
+      if (!effectivePlayerId) {
+        console.error("Missing playerId after joining room");
+        setNameError("Failed to join room. Please try again.");
+        return;
+      }
+      storePlayerIdentity(effectivePlayerId, playerName);
       navigate(
-        `/multiplayer/${data.roomCode}?playerName=${encodeURIComponent(
-          playerName
+        `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
+          effectivePlayerId
         )}`,
-        { replace: true, state: { playerName } }
+        { replace: true, state: { playerId: effectivePlayerId, playerName } }
       );
     };
 
@@ -66,7 +82,7 @@ const Lobby = () => {
       off("room-joined", handleRoomJoined);
       off("error", handleError);
     };
-  }, [socket, playerName, navigate, on, off]);
+  }, [socket, playerName, playerId, navigate, on, off]);
 
   const openNamePrompt = (action, code = "") => {
     setPendingAction(action);
@@ -122,26 +138,65 @@ const Lobby = () => {
     setPlayerName(trimmedName);
     setPendingName(trimmedName);
 
-    if (pendingAction === "create") {
-      setIsCreating(true);
-      emit("create-room", { playerName: trimmedName });
-    } else if (pendingAction === "join") {
+    const action = pendingAction === "create" ? "create" : "join";
+    const payload = {
+      action,
+      playerName: trimmedName,
+    };
+    if (action === "join") {
       if (!pendingRoomCode) {
         setNameError("Missing room code");
         setIsSubmittingName(false);
         return;
       }
-      setIsJoining(true);
-      emit("join-room", {
-        roomCode: pendingRoomCode,
-        playerName: trimmedName,
-      });
+      payload.roomCode = pendingRoomCode;
     }
 
-    setIsSubmittingName(false);
-    setIsNamePromptOpen(false);
-    setPendingAction(null);
-    setPendingRoomCode("");
+    socket.emit("validate-name", payload, (response) => {
+      if (!response?.ok) {
+        setNameError(response?.error || "Failed to validate name.");
+        setIsSubmittingName(false);
+        return;
+      }
+
+      if (response.isTaken) {
+        setNameError(
+          `${trimmedName} is already taken, please choose another name`
+        );
+        setIsSubmittingName(false);
+        return;
+      }
+
+      if (!response.playerId) {
+        setNameError("Failed to reserve player identity. Please try again.");
+        setIsSubmittingName(false);
+        return;
+      }
+
+      const reservedPlayerId = response.playerId;
+      setPlayerId(reservedPlayerId);
+      storePlayerIdentity(reservedPlayerId, trimmedName);
+
+      if (action === "create") {
+        setIsCreating(true);
+        emit("create-room", {
+          playerName: trimmedName,
+          playerId: reservedPlayerId,
+        });
+      } else {
+        setIsJoining(true);
+        emit("join-room", {
+          roomCode: pendingRoomCode,
+          playerName: trimmedName,
+          playerId: reservedPlayerId,
+        });
+      }
+
+      setIsSubmittingName(false);
+      setIsNamePromptOpen(false);
+      setPendingAction(null);
+      setPendingRoomCode("");
+    });
   };
 
   const handleRoomListJoin = (code) => {

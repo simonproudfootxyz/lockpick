@@ -19,6 +19,16 @@ describe("RoomManager Basic Tests", () => {
     roomManager = new RoomManager();
   });
 
+  const reserveAndJoin = async (roomCode, socketId, playerName) => {
+    const reservation = roomManager.createPendingPlayer(roomCode, playerName);
+    return roomManager.joinRoom(
+      roomCode,
+      socketId,
+      playerName,
+      reservation?.playerId
+    );
+  };
+
   test("should create a room", async () => {
     const room = await roomManager.createRoom("socket1", "Player1");
 
@@ -32,7 +42,7 @@ describe("RoomManager Basic Tests", () => {
     const room = await roomManager.createRoom("socket1", "Player1");
     const roomCode = room.code;
 
-    const result = await roomManager.joinRoom(roomCode, "socket2", "Player2");
+    const result = await reserveAndJoin(roomCode, "socket2", "Player2");
 
     expect(result.success).toBe(true);
     expect(result.isSpectator).toBe(false);
@@ -40,7 +50,12 @@ describe("RoomManager Basic Tests", () => {
   });
 
   test("should handle invalid room code", async () => {
-    const result = await roomManager.joinRoom("INVALID", "socket1", "Player1");
+    const result = await roomManager.joinRoom(
+      "INVALID",
+      "socket1",
+      "Player1",
+      "test-player-id"
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Room not found");
@@ -50,12 +65,12 @@ describe("RoomManager Basic Tests", () => {
     const room = await roomManager.createRoom("socket1", "Host");
     const roomCode = room.code;
 
-    await roomManager.joinRoom(roomCode, "socket2", "Player2");
+    await reserveAndJoin(roomCode, "socket2", "Player2");
 
     room.gameState = { playerHands: [[1], [2]], currentPlayer: 0 };
     await roomManager.updateGameState(roomCode, room.gameState);
 
-    const result = await roomManager.joinRoom(roomCode, "socket3", "Latecomer");
+    const result = await reserveAndJoin(roomCode, "socket3", "Latecomer");
 
     expect(result.success).toBe(true);
     expect(result.isSpectator).toBe(true);

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useSocket from "../hooks/useSocket";
 import NamePromptModal from "./NamePromptModal";
 import "./JoinViaLink.css";
+import { storePlayerIdentity } from "../utils/playerIdentity";
 
 const JoinViaLink = () => {
   const { roomCode } = useParams();
@@ -44,7 +45,11 @@ const JoinViaLink = () => {
       setError("");
       socket.emit(
         "validate-name",
-        { roomCode: normalizedRoomCode, playerName: trimmedName },
+        {
+          action: "join",
+          roomCode: normalizedRoomCode,
+          playerName: trimmedName,
+        },
         (response) => {
           if (!response?.ok) {
             setError(response?.error || "Failed to validate name.");
@@ -60,11 +65,23 @@ const JoinViaLink = () => {
             return;
           }
 
+          if (!response.playerId) {
+            setError("Failed to reserve player identity. Please try again.");
+            setIsSubmitting(false);
+            return;
+          }
+
+          const playerId = response.playerId;
+          storePlayerIdentity(playerId, trimmedName);
+
           navigate(
-            `/multiplayer/${normalizedRoomCode}?playerName=${encodeURIComponent(
-              trimmedName
+            `/multiplayer/${normalizedRoomCode}?playerId=${encodeURIComponent(
+              playerId
             )}`,
-            { replace: true, state: { playerName: trimmedName } }
+            {
+              replace: true,
+              state: { playerId, playerName: trimmedName },
+            }
           );
         }
       );

@@ -8,6 +8,16 @@ describe("Basic RoomManager Tests", () => {
     roomManager = new RoomManager();
   });
 
+  const reserveAndJoin = (roomCode, socketId, playerName) => {
+    const reservation = roomManager.createPendingPlayer(roomCode, playerName);
+    return roomManager.joinRoom(
+      roomCode,
+      socketId,
+      playerName,
+      reservation?.playerId
+    );
+  };
+
   test("should create a room", () => {
     const room = roomManager.createRoom("socket1", "Player1");
 
@@ -21,7 +31,7 @@ describe("Basic RoomManager Tests", () => {
     const room = roomManager.createRoom("socket1", "Player1");
     const roomCode = room.code;
 
-    const result = roomManager.joinRoom(roomCode, "socket2", "Player2");
+    const result = reserveAndJoin(roomCode, "socket2", "Player2");
 
     expect(result.success).toBe(true);
     expect(result.isSpectator).toBe(false);
@@ -29,7 +39,12 @@ describe("Basic RoomManager Tests", () => {
   });
 
   test("should handle invalid room code", () => {
-    const result = roomManager.joinRoom("INVALID", "socket1", "Player1");
+    const result = roomManager.joinRoom(
+      "INVALID",
+      "socket1",
+      "Player1",
+      "test-player-id"
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Room not found");
@@ -39,12 +54,12 @@ describe("Basic RoomManager Tests", () => {
     const room = roomManager.createRoom("socket1", "Player1");
     const roomCode = room.code;
 
-    roomManager.joinRoom(roomCode, "socket2", "Player2");
+    reserveAndJoin(roomCode, "socket2", "Player2");
 
-    const result = roomManager.joinRoom(roomCode, "socket3", "Player1");
+    const result = reserveAndJoin(roomCode, "socket3", "Player1");
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Player name already taken");
+    expect(result.error).toBe("That name is already in use in this room.");
   });
 
   test("should make 6th player a spectator", () => {
@@ -53,11 +68,11 @@ describe("Basic RoomManager Tests", () => {
 
     // Add 4 more players (total 5)
     for (let i = 2; i <= 5; i++) {
-      roomManager.joinRoom(roomCode, `socket${i}`, `Player${i}`);
+      reserveAndJoin(roomCode, `socket${i}`, `Player${i}`);
     }
 
     // 6th player should be spectator
-    const result = roomManager.joinRoom(roomCode, "socket6", "Player6");
+    const result = reserveAndJoin(roomCode, "socket6", "Player6");
 
     expect(result.success).toBe(true);
     expect(result.isSpectator).toBe(true);
@@ -65,13 +80,3 @@ describe("Basic RoomManager Tests", () => {
     expect(room.spectators.size).toBe(1);
   });
 });
-
-
-
-
-
-
-
-
-
-

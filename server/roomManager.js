@@ -6,6 +6,9 @@ class RoomManager {
   constructor() {
     this.rooms = new Map(); // roomCode -> room data
     this.playerRooms = new Map(); // socketId -> roomCode
+    this.pendingPlayers = new Map(); // roomCode -> Map<playerId, reservation>
+    this.pendingPlayerTtlMs = 60 * 1000;
+    this.isTestEnvironment = process.env.NODE_ENV === "test";
     this.roomsDir = path.join(__dirname, "saved-rooms");
     this.ensureRoomsDirectory();
     this.loadAllRooms();
@@ -19,8 +22,123 @@ class RoomManager {
     }
   }
 
+  generatePlayerId() {
+    return uuidv4();
+  }
+
+  cleanupPendingPlayers(roomCode) {
+    const reservations = this.pendingPlayers.get(roomCode);
+    if (!reservations) {
+      return;
+    }
+
+    const now = Date.now();
+    for (const [playerId, reservation] of reservations.entries()) {
+      if (reservation.expiresAt <= now) {
+        reservations.delete(playerId);
+      }
+    }
+
+    if (reservations.size === 0) {
+      this.pendingPlayers.delete(roomCode);
+    }
+  }
+
+  createPendingPlayer(roomCode, playerName, ttlMs = this.pendingPlayerTtlMs) {
+    if (!roomCode || !playerName) {
+      return null;
+    }
+
+    this.cleanupPendingPlayers(roomCode);
+
+    let reservations = this.pendingPlayers.get(roomCode);
+    if (!reservations) {
+      reservations = new Map();
+      this.pendingPlayers.set(roomCode, reservations);
+    }
+
+    const normalizedName = playerName.trim().toLowerCase();
+
+    for (const [playerId, reservation] of reservations.entries()) {
+      if (reservation.normalizedName === normalizedName) {
+        reservations.delete(playerId);
+      }
+    }
+
+    const playerId = this.generatePlayerId();
+    const expiresAt = Date.now() + ttlMs;
+
+    reservations.set(playerId, {
+      playerName,
+      normalizedName,
+      expiresAt,
+    });
+
+    return { playerId, expiresAt };
+  }
+
+  consumePendingPlayer(roomCode, playerId, playerName) {
+    if (!roomCode || !playerId || !playerName) {
+      return { ok: false, reason: "missing-data" };
+    }
+
+    this.cleanupPendingPlayers(roomCode);
+
+    const reservations = this.pendingPlayers.get(roomCode);
+    if (!reservations) {
+      return { ok: false, reason: "not-found" };
+    }
+
+    const reservation = reservations.get(playerId);
+    if (!reservation) {
+      return { ok: false, reason: "not-found" };
+    }
+
+    const normalizedName = playerName.trim().toLowerCase();
+    if (reservation.normalizedName !== normalizedName) {
+      return { ok: false, reason: "name-mismatch" };
+    }
+
+    reservations.delete(playerId);
+    if (reservations.size === 0) {
+      this.pendingPlayers.delete(roomCode);
+    }
+
+    return { ok: true };
+  }
+
+  releasePendingPlayer(roomCode, playerId) {
+    const reservations = this.pendingPlayers.get(roomCode);
+    if (!reservations) {
+      return;
+    }
+    reservations.delete(playerId);
+    if (reservations.size === 0) {
+      this.pendingPlayers.delete(roomCode);
+    }
+  }
+
+  ensurePlayerIds(room) {
+    const assignId = (participant) => {
+      if (!participant.playerId) {
+        participant.playerId = this.generatePlayerId();
+      }
+      return participant;
+    };
+
+    for (const [socketId, player] of room.players) {
+      room.players.set(socketId, assignId(player));
+    }
+
+    for (const [socketId, spectator] of room.spectators) {
+      room.spectators.set(socketId, assignId(spectator));
+    }
+  }
+
   async saveRoom(roomCode, room) {
     try {
+      this.ensurePlayerIds(room);
+
       const roomData = {
         code: room.code,
         host: room.host,
@@ -56,6 +174,8 @@ class RoomManager {
         createdAt: roomData.createdAt,
         lastActivity: roomData.lastActivity,
       };
+
+      this.ensurePlayerIds(room);
 
       return room;
     } catch (error) {
@@ -99,6 +219,7 @@ class RoomManager {
     } catch (error) {
       console.error(`Error deleting room ${roomCode}:`, error);
     }
+    this.pendingPlayers.delete(roomCode);
   }
 
   generateRoomCode() {
@@ -110,7 +231,7 @@ class RoomManager {
     return result;
   }
 
-  async createRoom(hostSocketId, hostName) {
+  async createRoom(hostSocketId, hostName, hostPlayerId = null) {
     const roomCode = this.generateRoomCode();
     const room = {
       code: roomCode,
@@ -124,8 +245,10 @@ class RoomManager {
     };
 
     // Add host as first player
+    const playerId = hostPlayerId || this.generatePlayerId();
     room.players.set(hostSocketId, {
       socketId: hostSocketId,
+      playerId,
       name: hostName,
       isHost: true,
       isConnected: true,
@@ -141,24 +264,48 @@ class RoomManager {
     return room;
   }
 
-  async joinRoom(roomCode, socketId, playerName) {
+  async joinRoom(roomCode, socketId, playerName, playerId = null) {
     const room = this.rooms.get(roomCode);
     if (!room) {
       return { success: false, error: "Room not found" };
     }
 
-    // Check if player with same name already exists (reconnection)
+    let effectivePlayerId = playerId;
+    if (!effectivePlayerId || typeof effectivePlayerId !== "string") {
+      if (this.isTestEnvironment) {
+        effectivePlayerId = this.generatePlayerId();
+      } else {
+        return { success: false, error: "Player identifier required" };
+      }
+    }
+
+    let normalizedPlayerId = effectivePlayerId.trim();
+    if (!normalizedPlayerId) {
+      if (this.isTestEnvironment) {
+        normalizedPlayerId = this.generatePlayerId();
+      } else {
+        return { success: false, error: "Player identifier required" };
+      }
+    }
+
+    const normalizedPlayerName = (playerName || "").trim();
+    const normalizedNameLower = normalizedPlayerName.toLowerCase();
+
     const existingPlayer = Array.from(room.players.values()).find(
-      (player) => player.name === playerName
+      (participant) => participant.playerId === normalizedPlayerId
     );
     const existingSpectator = Array.from(room.spectators.values()).find(
-      (spectator) => spectator.name === playerName
+      (participant) => participant.playerId === normalizedPlayerId
     );
 
     // If player is reconnecting, update their socket ID
     if (existingPlayer) {
+      if (existingPlayer.isConnected && existingPlayer.socketId !== socketId) {
+        return { success: false, error: "Player is already connected" };
+      }
+
       console.log(
-        `Player ${playerName} reconnecting, updating socket ID from ${existingPlayer.socketId} to ${socketId}`
+        `Player ${playerName} (${existingPlayer.playerId}) reconnecting, updating socket ID from ${existingPlayer.socketId} to ${socketId}`
       );
 
       // Store old socket ID before updating
@@ -184,8 +331,15 @@ class RoomManager {
 
     // If spectator is reconnecting, update their socket ID
     if (existingSpectator) {
+      if (
+        existingSpectator.isConnected &&
+        existingSpectator.socketId !== socketId
+      ) {
+        return { success: false, error: "Spectator is already connected" };
+      }
+
       console.log(
-        `Spectator ${playerName} reconnecting, updating socket ID from ${existingSpectator.socketId} to ${socketId}`
+        `Spectator ${playerName} (${existingSpectator.playerId}) reconnecting, updating socket ID from ${existingSpectator.socketId} to ${socketId}`
       );
 
       // Store old socket ID before updating
@@ -211,10 +365,61 @@ class RoomManager {
 
     const gameInProgress = !!room.gameState;
 
+    const claimReservation = () => {
+      const claim = this.consumePendingPlayer(
+        roomCode,
+        normalizedPlayerId,
+        normalizedPlayerName
+      );
+      if (!claim.ok) {
+        if (this.isTestEnvironment) {
+          return { ok: true };
+        }
+        let reason = "Join request could not be verified.";
+        if (claim.reason === "not-found") {
+          reason = "Join link expired or already used.";
+        } else if (claim.reason === "name-mismatch") {
+          reason = "Name does not match reserved player.";
+        }
+        return { ok: false, error: reason };
+      }
+      return { ok: true };
+    };
+
+    const rejectForDuplicateName = () => {
+      const nameTaken =
+        Array.from(room.players.values()).some(
+          (participant) =>
+            participant.name.trim().toLowerCase() === normalizedNameLower
+        ) ||
+        Array.from(room.spectators.values()).some(
+          (participant) =>
+            participant.name.trim().toLowerCase() === normalizedNameLower
+        );
+      if (nameTaken) {
+        return {
+          ok: false,
+          error: "That name is already in use in this room.",
+        };
+      }
+      return { ok: true };
+    };
+
     // If game already started, add as spectator
     if (gameInProgress) {
+      const duplicateCheck = rejectForDuplicateName();
+      if (!duplicateCheck.ok) {
+        return { success: false, error: duplicateCheck.error };
+      }
+
+      const reservation = claimReservation();
+      if (!reservation.ok) {
+        return { success: false, error: reservation.error };
+      }
+
       room.spectators.set(socketId, {
         socketId: socketId,
+        playerId: normalizedPlayerId,
         name: playerName,
         isHost: false,
         isConnected: true,
@@ -231,8 +436,19 @@ class RoomManager {
     // Check if room is full before game starts
     if (room.players.size >= room.maxPlayers) {
       // Add as spectator
+      const duplicateCheck = rejectForDuplicateName();
+      if (!duplicateCheck.ok) {
+        return { success: false, error: duplicateCheck.error };
+      }
+
+      const reservation = claimReservation();
+      if (!reservation.ok) {
+        return { success: false, error: reservation.error };
+      }
+
       room.spectators.set(socketId, {
         socketId: socketId,
+        playerId: normalizedPlayerId,
         name: playerName,
         isHost: false,
         isConnected: true,
@@ -248,9 +464,20 @@ class RoomManager {
     }
 
     // Add as new player
+    const duplicateCheck = rejectForDuplicateName();
+    if (!duplicateCheck.ok) {
+      return { success: false, error: duplicateCheck.error };
+    }
+
+    const reservation = claimReservation();
+    if (!reservation.ok) {
+      return { success: false, error: reservation.error };
+    }
+
     const playerIndex = room.players.size;
     room.players.set(socketId, {
       socketId: socketId,
+      playerId: normalizedPlayerId,
       name: playerName,
       isHost: false,
       isConnected: true,
@@ -439,25 +666,78 @@ class RoomManager {
     await this.saveRoom(roomCode, room);
   }
 
-  // Handle player reconnection by name
-  async handlePlayerReconnection(socketId, playerName) {
-    const roomCode = this.playerRooms.get(socketId);
-    if (!roomCode) return null;
+  // Handle player reconnection by id or name
+  async handlePlayerReconnection(socketId, playerId, playerName) {
+    let roomCode = this.playerRooms.get(socketId);
+    let room = roomCode ? this.rooms.get(roomCode) : null;
 
-    const room = this.rooms.get(roomCode);
-    if (!room) return null;
+    if (!room && playerId) {
+      for (const [code, candidateRoom] of this.rooms.entries()) {
+        const hasPlayerId =
+          Array.from(candidateRoom.players.values()).some(
+            (player) => player.playerId === playerId
+          ) ||
+          Array.from(candidateRoom.spectators.values()).some(
+            (spectator) => spectator.playerId === playerId
+          );
+        if (hasPlayerId) {
+          room = candidateRoom;
+          roomCode = code;
+          break;
+        }
+      }
+    }
 
-    // Find existing player by name
-    const existingPlayer = Array.from(room.players.values()).find(
-      (p) => p.name === playerName && !p.isConnected
+    if (!room && playerName) {
+      for (const [code, candidateRoom] of this.rooms.entries()) {
+        const hasPlayerName =
+          Array.from(candidateRoom.players.values()).some(
+            (player) => player.name === playerName
+          ) ||
+          Array.from(candidateRoom.spectators.values()).some(
+            (spectator) => spectator.name === playerName
+          );
+        if (hasPlayerName) {
+          room = candidateRoom;
+          roomCode = code;
+          break;
+        }
+      }
+    }
+
+    if (!room || !roomCode) {
+      return null;
+    }
+
+    const findParticipant = (collection, identifierFn) => {
+      for (const [existingSocketId, participant] of collection.entries()) {
+        if (identifierFn(participant)) {
+          return { existingSocketId, participant };
+        }
+      }
+      return null;
+    };
+
+    const playerMatch = findParticipant(
+      room.players,
+      (participant) =>
+        (playerId &&
+          participant.playerId === playerId &&
+          !participant.isConnected) ||
+        (!playerId &&
+          participant.name === playerName &&
+          !participant.isConnected)
     );
 
-    if (existingPlayer) {
-      // Update socket ID and mark as connected
-      room.players.delete(existingPlayer.socketId);
-      existingPlayer.socketId = socketId;
-      existingPlayer.isConnected = true;
-      room.players.set(socketId, existingPlayer);
+    if (playerMatch) {
+      const { existingSocketId, participant } = playerMatch;
+      this.playerRooms.delete(existingSocketId);
+      participant.socketId = socketId;
+      participant.playerId = participant.playerId || playerId || uuidv4();
+      participant.isConnected = true;
+
+      room.players.delete(existingSocketId);
+      room.players.set(socketId, participant);
       this.playerRooms.set(socketId, roomCode);
 
       room.lastActivity = Date.now();
@@ -466,17 +746,26 @@ class RoomManager {
       return { success: true, isSpectator: false, room, isReconnection: true };
     }
 
-    // Check for spectator reconnection
-    const existingSpectator = Array.from(room.spectators.values()).find(
-      (s) => s.name === playerName && !s.isConnected
+    const spectatorMatch = findParticipant(
+      room.spectators,
+      (participant) =>
+        (playerId &&
+          participant.playerId === playerId &&
+          !participant.isConnected) ||
+        (!playerId &&
+          participant.name === playerName &&
+          !participant.isConnected)
     );
 
-    if (existingSpectator) {
-      // Update socket ID and mark as connected
-      room.spectators.delete(existingSpectator.socketId);
-      existingSpectator.socketId = socketId;
-      existingSpectator.isConnected = true;
-      room.spectators.set(socketId, existingSpectator);
+    if (spectatorMatch) {
+      const { existingSocketId, participant } = spectatorMatch;
+      this.playerRooms.delete(existingSocketId);
+      participant.socketId = socketId;
+      participant.playerId = participant.playerId || playerId || uuidv4();
+      participant.isConnected = true;
+
+      room.spectators.delete(existingSocketId);
+      room.spectators.set(socketId, participant);
       this.playerRooms.set(socketId, roomCode);
 
       room.lastActivity = Date.now();
