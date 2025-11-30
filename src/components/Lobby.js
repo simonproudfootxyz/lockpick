@@ -199,15 +199,6 @@ const Lobby = () => {
     });
   };
 
-  const handleRoomListJoin = (code) => {
-    if (!isConnected) {
-      alert("Not connected to server");
-      return;
-    }
-    setRoomCode(code);
-    openNamePrompt("join", code);
-  };
-
   const buildInviteLink = (code) => {
     const origin = window.location.origin;
     return `${origin}/join/${code}`;

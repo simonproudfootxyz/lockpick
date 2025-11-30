@@ -19,7 +19,7 @@ import ConnectionStatus from "./ConnectionStatus";
 import PileViewModal from "../PileViewModal";
 import GameOverModal from "../GameOverModal";
 import RulesModal from "../RulesModal";
-import { getTotalCardCount, getDescendingStartValue } from "../gameLogic";
+import { getTotalCardCount } from "../gameLogic";
 import "../Game.css";
 import {
   getStoredPlayerName,
@@ -33,6 +33,8 @@ const MultiplayerGame = () => {
   const location = useLocation();
   const { socket, isConnected, error, emit, on, off, connectionQuality } =
     useSocket();
+
+  const socketId = socket?.id;
 
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -107,15 +109,15 @@ const MultiplayerGame = () => {
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socket?.id
+        (p) => p.socketId === socketId
       );
       const spectatorEntry = (data.spectators || []).find(
-        (s) => s.socketId === socket?.id
+        (s) => s.socketId === socketId
       );
       setIsHost(currentPlayer?.isHost || false);
       setIsSpectator(!!spectatorEntry);
     },
-    [socket?.id]
+    [socketId]
   );
 
   const handlePlayerLeft = useCallback(
@@ -124,26 +126,29 @@ const MultiplayerGame = () => {
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socket?.id
+        (p) => p.socketId === socketId
       );
       setIsHost(currentPlayer?.isHost || false);
     },
-    [socket?.id]
+    [socketId]
   );
 
-  const handleGameStarted = useCallback((data) => {
-    console.log("Game started:", data);
-    setGameState(data.gameState);
-    setGameStarted(true);
-    setGameStatus(data.status);
-    // If we joined after the game started, ensure spectator state aligns with current roster
-    const spectatorEntry = (data.players || []).find(
-      (p) => p.socketId === socket?.id && p.isSpectator
-    );
-    if (spectatorEntry) {
-      setIsSpectator(true);
-    }
-  }, []);
+  const handleGameStarted = useCallback(
+    (data) => {
+      console.log("Game started:", data);
+      setGameState(data.gameState);
+      setGameStarted(true);
+      setGameStatus(data.status);
+      // If we joined after the game started, ensure spectator state aligns with current roster
+      const spectatorEntry = (data.players || []).find(
+        (p) => p.socketId === socketId && p.isSpectator
+      );
+      if (spectatorEntry) {
+        setIsSpectator(true);
+      }
+    },
+    [socketId]
+  );
 
   const handleCardPlayed = useCallback((data) => {
     console.log("Card played:", data);
@@ -315,7 +320,7 @@ const MultiplayerGame = () => {
       isHost,
       gameStarted,
       players: players.length,
-      socketId: socket?.id,
+      socketId,
     });
 
     if (!isHost) {
@@ -364,14 +369,14 @@ const MultiplayerGame = () => {
   );
 
   const localPlayerIndex = useMemo(() => {
-    const entry = players.find((p) => p.socketId === socket?.id);
+    const entry = players.find((p) => p.socketId === socketId);
     if (typeof entry?.playerIndex === "number") {
       return entry.playerIndex;
     }
     return typeof players[0]?.playerIndex === "number"
       ? players[0].playerIndex
       : 0;
-  }, [players, socket?.id]);
+  }, [players, socketId]);
 
   const closeGameOverModal = () => {
     setShowGameOverModal(false);
@@ -450,7 +455,7 @@ const MultiplayerGame = () => {
     players: players.length,
     gameState: !!gameState,
     roomData: !!roomData,
-    socketId: socket?.id,
+    socketId,
     playerDetails: players.map((p) => ({
       name: p.name,
       socketId: p.socketId,

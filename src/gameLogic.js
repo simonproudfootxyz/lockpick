@@ -124,7 +124,6 @@ export const getGameStatus = (gameState) => {
   const {
     playerHands,
     currentPlayer,
-    discardPiles,
     deck,
     gameWon,
     cardsPlayedThisTurn,

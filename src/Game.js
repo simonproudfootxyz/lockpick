@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   createDeck,
@@ -32,39 +32,43 @@ const Game = () => {
   const numPlayers = parseInt(searchParams.get("players")) || 1;
 
   // Game state persistence functions
-  const saveGameState = (state) => {
-    if (gameId && state) {
-      const gameData = {
-        gameState: state,
-        timestamp: Date.now(),
-        gameId: gameId,
-        numPlayers: numPlayers,
-      };
-      localStorage.setItem(`lockpick_game_${gameId}`, JSON.stringify(gameData));
-      setLastSaved(new Date());
-    }
-  };
-
-  const loadGameState = () => {
-    if (gameId) {
-      try {
-        const savedData = localStorage.getItem(`lockpick_game_${gameId}`);
-        if (savedData) {
-          const gameData = JSON.parse(savedData);
-          // Check if the saved game matches current game ID and player count
-          if (
-            gameData.gameId === gameId &&
-            gameData.numPlayers === numPlayers
-          ) {
-            return gameData.gameState;
-          }
-        }
-      } catch (error) {
-        console.error("Error loading game state:", error);
+  const saveGameState = useCallback(
+    (state) => {
+      if (gameId && state) {
+        const gameData = {
+          gameState: state,
+          timestamp: Date.now(),
+          gameId: gameId,
+          numPlayers: numPlayers,
+        };
+        localStorage.setItem(
+          `lockpick_game_${gameId}`,
+          JSON.stringify(gameData)
+        );
+        setLastSaved(new Date());
       }
+    },
+    [gameId, numPlayers]
+  );
+
+  const loadGameState = useCallback(() => {
+    if (!gameId) {
+      return null;
+    }
+    try {
+      const savedData = localStorage.getItem(`lockpick_game_${gameId}`);
+      if (savedData) {
+        const gameData = JSON.parse(savedData);
+        // Check if the saved game matches current game ID and player count
+        if (gameData.gameId === gameId && gameData.numPlayers === numPlayers) {
+          return gameData.gameState;
+        }
+      }
+    } catch (error) {
+      console.error("Error loading game state:", error);
     }
     return null;
-  };
+  }, [gameId, numPlayers]);
 
   const clearGameState = () => {
     if (gameId) {
@@ -72,35 +76,38 @@ const Game = () => {
     }
   };
 
-  const initializeGame = (players) => {
-    const deck = createDeck(players);
-    const handSize = getHandSize(players);
-    const totalCards = getTotalCardCount(players);
-    const maxCard = getMaxCardValue(players);
-    const descendingStart = getDescendingStartValue(players);
+  const initializeGame = useCallback(
+    (players) => {
+      const deck = createDeck(players);
+      const handSize = getHandSize(players);
+      const totalCards = getTotalCardCount(players);
+      const maxCard = getMaxCardValue(players);
+      const descendingStart = getDescendingStartValue(players);
 
-    // Deal hands for all players
-    const playerHands = [];
-    for (let i = 0; i < players; i++) {
-      playerHands.push(deck.splice(0, handSize));
-    }
+      // Deal hands for all players
+      const playerHands = [];
+      for (let i = 0; i < players; i++) {
+        playerHands.push(deck.splice(0, handSize));
+      }
 
-    const newGameState = {
-      playerHands,
-      currentPlayer: 0,
-      discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
-      deck,
-      gameWon: false,
-      cardsPlayedThisTurn: 0,
-      turnComplete: false,
-      totalCards,
-      maxCard,
-      descendingStart,
-    };
+      const newGameState = {
+        playerHands,
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
+        deck,
+        gameWon: false,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+        totalCards,
+        maxCard,
+        descendingStart,
+      };
 
-    setGameState(newGameState);
-    saveGameState(newGameState);
-  };
+      setGameState(newGameState);
+      saveGameState(newGameState);
+    },
+    [saveGameState]
+  );
 
   // Initialize game when component mounts
   useEffect(() => {
@@ -114,7 +121,7 @@ const Game = () => {
         initializeGame(numPlayers);
       }
     }
-  }, [gameId, numPlayers, gameState]);
+  }, [gameId, numPlayers, gameState, loadGameState, initializeGame]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
