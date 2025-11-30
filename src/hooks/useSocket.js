@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const useSocket = (serverUrl = "http://localhost:3001") => {
+const defaultServerUrl =
+  process.env.REACT_APP_SOCKET_URL ||
+  (typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost:3001");
+
+const useSocket = (serverUrl = defaultServerUrl) => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const [connectionQuality, setConnectionQuality] = useState("good");
