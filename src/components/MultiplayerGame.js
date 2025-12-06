@@ -629,8 +629,22 @@ const MultiplayerGame = () => {
               <div className="play-card-section">
                 <button
                   onClick={handleEndTurn}
-                  disabled={!gameState.turnComplete || isSpectator}
+                  disabled={
+                    !gameState ||
+                    isSpectator ||
+                    localPlayerIndex !== gameState.currentPlayer ||
+                    !gameState.turnComplete
+                  }
                   className="end-turn-btn"
+                  title={
+                    !gameState || isSpectator
+                      ? "Only active players can end the turn"
+                      : localPlayerIndex !== gameState.currentPlayer
+                      ? "Wait for your turn"
+                      : !gameState.turnComplete
+                      ? "Play the required number of cards first"
+                      : undefined
+                  }
                 >
                   End Turn & Draw Cards
                 </button>
