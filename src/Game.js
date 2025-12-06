@@ -27,6 +27,7 @@ const Game = () => {
   const [viewingPile, setViewingPile] = useState(null);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [gameOverInfo, setGameOverInfo] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
@@ -122,6 +123,24 @@ const Game = () => {
       }
     }
   }, [gameId, numPlayers, gameState, loadGameState, initializeGame]);
+
+  useEffect(() => {
+    if (gameState?.gameWon) {
+      const totalCards =
+        typeof gameState.totalCards === "number"
+          ? gameState.totalCards
+          : getTotalCardCount(gameState.playerHands?.length || numPlayers);
+      setGameOverInfo({
+        type: "win",
+        title: "Congratulations!",
+        message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
+      });
+      setShowGameOverModal(true);
+    } else if (gameOverInfo?.type === "win") {
+      setGameOverInfo(null);
+      setShowGameOverModal(false);
+    }
+  }, [gameState, gameOverInfo, numPlayers]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -274,11 +293,12 @@ const Game = () => {
   };
 
   const handleCantPlayCard = () => {
+    setGameOverInfo({
+      type: "cant-play",
+      title: "Game Over!",
+      message: "No more moves are available. Start a new game to try again!",
+    });
     setShowGameOverModal(true);
-  };
-
-  const closeGameOverModal = () => {
-    setShowGameOverModal(false);
   };
 
   const startNewGame = () => {
@@ -290,9 +310,8 @@ const Game = () => {
     setViewingPile(null);
     setShowGameOverModal(false);
     setShowRulesModal(false);
-
-    const newGameId = Math.random().toString(36).substr(2, 9);
-    navigate(`/game/${newGameId}?players=${numPlayers}`);
+    setGameOverInfo(null);
+    navigate("/");
   };
 
   const openRulesModal = () => {
@@ -314,7 +333,7 @@ const Game = () => {
     );
   }
 
-  const status = getGameStatus(gameState);
+  const status = gameState.gameWon ? "" : getGameStatus(gameState);
   const descendingStart =
     gameState?.descendingStart ||
     (gameState?.maxCard && gameState.maxCard > 100
@@ -480,9 +499,10 @@ const Game = () => {
 
       <GameOverModal
         isOpen={showGameOverModal}
-        onClose={closeGameOverModal}
-        onNewGame={startNewGame}
-        currentPlayer={gameState?.currentPlayer || 0}
+        title={gameOverInfo?.title}
+        message={gameOverInfo?.message}
+        actionLabel="Start New Game"
+        onAction={startNewGame}
       />
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />

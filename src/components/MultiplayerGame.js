@@ -51,7 +51,7 @@ const MultiplayerGame = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameStatus, setGameStatus] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
-  const [endedByPlayer, setEndedByPlayer] = useState(null);
+  const [gameOverInfo, setGameOverInfo] = useState(null);
 
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
@@ -70,6 +70,45 @@ const MultiplayerGame = () => {
     (locationStateName && locationStateName.trim()) ||
     storedPlayerName ||
     "Anonymous";
+
+  const updateGameOverState = useCallback((state) => {
+    if (!state) {
+      setGameOverInfo(null);
+      setShowGameOverModal(false);
+      return;
+    }
+
+    if (state.gameWon) {
+      const totalCards =
+        typeof state.totalCards === "number"
+          ? state.totalCards
+          : getTotalCardCount(state.playerHands?.length || 0);
+      setGameOverInfo({
+        title: "Congratulations!",
+        message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
+      });
+      setShowGameOverModal(true);
+      return;
+    }
+
+    if (state.gameOver) {
+      const failedPlayer =
+        typeof state.endedByPlayer === "number"
+          ? state.endedByPlayer
+          : state.currentPlayer ?? 0;
+      setGameOverInfo({
+        title: "Game Over!",
+        message: `Player ${
+          failedPlayer + 1
+        } couldn't play a card. The game has ended.`,
+      });
+      setShowGameOverModal(true);
+      return;
+    }
+
+    setGameOverInfo(null);
+    setShowGameOverModal(false);
+  }, []);
 
   const handleRoomJoined = useCallback(
     (data) => {
@@ -93,20 +132,12 @@ const MultiplayerGame = () => {
       if (data.gameState) {
         setGameState(data.gameState);
         setGameStarted(true);
-        if (data.gameState.gameOver) {
-          const failedPlayer =
-            typeof data.gameState.endedByPlayer === "number"
-              ? data.gameState.endedByPlayer
-              : data.gameState.currentPlayer ?? 0;
-          setEndedByPlayer(failedPlayer);
-          setShowGameOverModal(true);
-        } else {
-          setEndedByPlayer(null);
-          setShowGameOverModal(false);
-        }
+        updateGameOverState(data.gameState);
+      } else {
+        updateGameOverState(null);
       }
     },
-    [playerId]
+    [playerId, updateGameOverState]
   );
 
   useEffect(() => {
@@ -151,8 +182,7 @@ const MultiplayerGame = () => {
       setGameState(data.gameState);
       setGameStarted(true);
       setGameStatus(data.status);
-      setShowGameOverModal(false);
-      setEndedByPlayer(null);
+      updateGameOverState(data.gameState);
       // If we joined after the game started, ensure spectator state aligns with current roster
       const spectatorEntry = (data.players || []).find(
         (p) => p.socketId === socketId && p.isSpectator
@@ -161,53 +191,52 @@ const MultiplayerGame = () => {
         setIsSpectator(true);
       }
     },
-    [socketId]
+    [socketId, updateGameOverState]
   );
 
-  const handleCardPlayed = useCallback((data) => {
-    console.log("Card played:", data);
-    setGameState(data.gameState);
-    setGameStatus(data.status);
-    setSelectedCard(null);
-    setSelectedPile(null);
-    setShowGameOverModal(false);
-    setEndedByPlayer(null);
-  }, []);
+  const handleCardPlayed = useCallback(
+    (data) => {
+      console.log("Card played:", data);
+      setGameState(data.gameState);
+      setGameStatus(data.status);
+      setSelectedCard(null);
+      setSelectedPile(null);
+      updateGameOverState(data.gameState);
+    },
+    [updateGameOverState]
+  );
 
-  const handleHandSorted = useCallback((data) => {
-    console.log("Hand sorted:", data);
-    setGameState(data.gameState);
-    setGameStatus(data.status);
-    setShowGameOverModal(false);
-    setEndedByPlayer(null);
-  }, []);
+  const handleHandSorted = useCallback(
+    (data) => {
+      console.log("Hand sorted:", data);
+      setGameState(data.gameState);
+      setGameStatus(data.status);
+      updateGameOverState(data.gameState);
+    },
+    [updateGameOverState]
+  );
 
-  const handleTurnEnded = useCallback((data) => {
-    console.log("Turn ended:", data);
-    setGameState(data.gameState);
-    setGameStatus(data.status);
-    setSelectedCard(null);
-    setSelectedPile(null);
-    setShowGameOverModal(false);
-    setEndedByPlayer(null);
-  }, []);
+  const handleTurnEnded = useCallback(
+    (data) => {
+      console.log("Turn ended:", data);
+      setGameState(data.gameState);
+      setGameStatus(data.status);
+      setSelectedCard(null);
+      setSelectedPile(null);
+      updateGameOverState(data.gameState);
+    },
+    [updateGameOverState]
+  );
 
-  const handleCantPlay = useCallback((data) => {
-    console.log("Cant play:", data);
-    setGameState(data.gameState);
-    setGameStatus(data.status);
-    if (data?.gameState?.gameOver) {
-      const failedPlayer =
-        typeof data.gameState.endedByPlayer === "number"
-          ? data.gameState.endedByPlayer
-          : data.gameState.currentPlayer ?? 0;
-      setEndedByPlayer(failedPlayer);
-      setShowGameOverModal(true);
-    } else {
-      setEndedByPlayer(null);
-      setShowGameOverModal(false);
-    }
-  }, []);
+  const handleCantPlay = useCallback(
+    (data) => {
+      console.log("Cant play:", data);
+      setGameState(data.gameState);
+      setGameStatus(data.status);
+      updateGameOverState(data.gameState);
+    },
+    [updateGameOverState]
+  );
 
   const handleError = useCallback((data) => {
     console.error("Game error:", data);
@@ -409,14 +438,10 @@ const MultiplayerGame = () => {
       : 0;
   }, [players, socketId]);
 
-  const closeGameOverModal = () => {
-    setShowGameOverModal(false);
-    setEndedByPlayer(null);
-  };
-
   const startNewGame = useCallback(() => {
+    setGameOverInfo(null);
+    setShowGameOverModal(false);
     navigate("/");
-    setEndedByPlayer(null);
   }, [navigate]);
 
   const buildInviteLink = () => {
@@ -739,13 +764,10 @@ const MultiplayerGame = () => {
 
       <GameOverModal
         isOpen={showGameOverModal}
-        onClose={closeGameOverModal}
-        onNewGame={startNewGame}
-        currentPlayer={
-          typeof endedByPlayer === "number"
-            ? endedByPlayer
-            : gameState?.currentPlayer || 0
-        }
+        title={gameOverInfo?.title}
+        message={gameOverInfo?.message}
+        actionLabel="Start New Game"
+        onAction={startNewGame}
       />
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />

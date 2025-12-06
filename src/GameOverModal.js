@@ -1,20 +1,23 @@
 import React from "react";
 import "./GameOverModal.css";
 
-const GameOverModal = ({ isOpen, onNewGame, currentPlayer }) => {
+const GameOverModal = ({
+  isOpen,
+  title = "Game Over!",
+  message,
+  actionLabel = "Start New Game",
+  onAction,
+}) => {
   if (!isOpen) return null;
 
   return (
     <div className="game-over-modal-overlay">
       <div className="game-over-modal">
-        <h2>Game Over!</h2>
-        <p>
-          Player {currentPlayer + 1} couldn't play a card and the game has
-          ended.
-        </p>
+        {title && <h2>{title}</h2>}
+        {message && <p>{message}</p>}
         <div className="game-over-actions">
-          <button onClick={onNewGame} className="new-game-btn">
-            Start New Game
+          <button onClick={onAction} className="new-game-btn">
+            {actionLabel}
           </button>
         </div>
       </div>
