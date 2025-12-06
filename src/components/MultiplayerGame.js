@@ -71,44 +71,49 @@ const MultiplayerGame = () => {
     storedPlayerName ||
     "Anonymous";
 
-  const updateGameOverState = useCallback((state) => {
-    if (!state) {
+  const updateGameOverState = useCallback(
+    (state, context = {}) => {
+      if (!state) {
+        setGameOverInfo(null);
+        setShowGameOverModal(false);
+        return;
+      }
+
+      if (state.gameWon) {
+        const totalCards =
+          typeof state.totalCards === "number"
+            ? state.totalCards
+            : getTotalCardCount(state.playerHands?.length || 0);
+        setGameOverInfo({
+          title: "Congratulations!",
+          message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
+        });
+        setShowGameOverModal(true);
+        return;
+      }
+
+      if (state.gameOver) {
+        const failedPlayer =
+          typeof state.endedByPlayer === "number"
+            ? state.endedByPlayer
+            : state.currentPlayer ?? 0;
+        const displayName =
+          context.playerName ||
+          players.find((p) => p.playerIndex === failedPlayer)?.name ||
+          `Player ${failedPlayer + 1}`;
+        setGameOverInfo({
+          title: "Game Over!",
+          message: `${displayName} couldn't play a card. The game has ended.`,
+        });
+        setShowGameOverModal(true);
+        return;
+      }
+
       setGameOverInfo(null);
       setShowGameOverModal(false);
-      return;
-    }
-
-    if (state.gameWon) {
-      const totalCards =
-        typeof state.totalCards === "number"
-          ? state.totalCards
-          : getTotalCardCount(state.playerHands?.length || 0);
-      setGameOverInfo({
-        title: "Congratulations!",
-        message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
-      });
-      setShowGameOverModal(true);
-      return;
-    }
-
-    if (state.gameOver) {
-      const failedPlayer =
-        typeof state.endedByPlayer === "number"
-          ? state.endedByPlayer
-          : state.currentPlayer ?? 0;
-      setGameOverInfo({
-        title: "Game Over!",
-        message: `Player ${
-          failedPlayer + 1
-        } couldn't play a card. The game has ended.`,
-      });
-      setShowGameOverModal(true);
-      return;
-    }
-
-    setGameOverInfo(null);
-    setShowGameOverModal(false);
-  }, []);
+    },
+    [players]
+  );
 
   const handleRoomJoined = useCallback(
     (data) => {
@@ -233,7 +238,7 @@ const MultiplayerGame = () => {
       console.log("Cant play:", data);
       setGameState(data.gameState);
       setGameStatus(data.status);
-      updateGameOverState(data.gameState);
+      updateGameOverState(data.gameState, { playerName: data.playerName });
     },
     [updateGameOverState]
   );
