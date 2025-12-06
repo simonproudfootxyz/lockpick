@@ -1,5 +1,12 @@
 // Server-side game logic for Lockpick card game
 
+const isDeterministicDealEnabled = () => {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+  return process.env.DEV_MODE === "deterministic-deal";
+};
+
 const getMaxCardValue = (numPlayers = 1) => {
   const extraPlayers = Math.max(0, numPlayers - 5);
   return 99 + extraPlayers * 10;
@@ -20,6 +27,9 @@ const createDeck = (numPlayers = 1) => {
   const maxCard = getMaxCardValue(numPlayers);
   for (let i = 2; i <= maxCard; i++) {
     deck.push(i);
+  }
+  if (isDeterministicDealEnabled()) {
+    return deck.sort((a, b) => b - a);
   }
   return shuffleDeck(deck);
 };
@@ -90,6 +100,7 @@ const getGameStatus = (gameState) => {
     discardPiles,
     deck,
     gameWon,
+    gameOver,
     cardsPlayedThisTurn,
     turnComplete,
     totalCards,
@@ -102,6 +113,10 @@ const getGameStatus = (gameState) => {
   const highestCard = maxCard || getMaxCardValue(playerCount);
   const descendingStartValue =
     descendingStart || getDescendingStartValue(playerCount);
+
+  if (gameOver) {
+    return `Game over! Player ${currentPlayer + 1} could not play a card.`;
+  }
 
   if (gameWon) {
     return `Congratulations! Player ${
@@ -148,6 +163,7 @@ const initializeGame = (playersOrCount) => {
     discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
     deck,
     gameWon: false,
+    gameOver: false,
     cardsPlayedThisTurn: 0,
     turnComplete: false,
     gameStarted: true,
@@ -244,9 +260,16 @@ const endTurn = (gameState) => {
 
 // Handle "can't play" scenario
 const handleCantPlay = (gameState) => {
-  // This would typically end the game or have special rules
-  // For now, we'll just return the current state
-  return { success: true, gameState };
+  const newGameState = {
+    ...gameState,
+    gameOver: true,
+    gameWon: false,
+    turnComplete: true,
+    cardsPlayedThisTurn: gameState.cardsPlayedThisTurn,
+    endedByPlayer: gameState.currentPlayer,
+  };
+
+  return { success: true, gameState: newGameState };
 };
 
 const sortCurrentPlayerHand = (gameState) => {
@@ -291,4 +314,5 @@ module.exports = {
   getMaxCardValue,
   getTotalCardCount,
   getDescendingStartValue,
+  isDeterministicDealEnabled,
 };

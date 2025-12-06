@@ -17,6 +17,7 @@ const {
   handleCantPlay,
   getGameStatus,
   sortCurrentPlayerHand,
+  isDeterministicDealEnabled,
 } = require("./gameLogic");
 
 const app = express();
@@ -31,6 +32,19 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const server = http.createServer(app);
+
+if (isDeterministicDealEnabled()) {
+  console.log(
+    "Developer deterministic deck mode ENABLED: players will be dealt descending cards."
+  );
+} else if (
+  process.env.DEV_MODE === "deterministic-deal" &&
+  process.env.NODE_ENV === "production"
+) {
+  console.log(
+    "Developer deterministic deck flag ignored: mode is unavailable in production."
+  );
+}
 
 const devOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
 const allowedOrigins = Array.from(

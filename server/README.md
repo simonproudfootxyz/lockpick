@@ -40,6 +40,9 @@ The server will start on port 3001 by default.
 
 - `PORT`: Server port (default: 3001)
 - `NODE_ENV`: Environment (development/production)
+- `DEV_MODE`: Optional developer-only features. Set to `deterministic-deal`
+  locally (never in production) to deal cards in descending order for manual
+  debugging and end-to-end testing.
 
 ## API Endpoints
 

@@ -1,7 +1,7 @@
 import React from "react";
 import "./GameOverModal.css";
 
-const GameOverModal = ({ isOpen, onClose, onNewGame, currentPlayer }) => {
+const GameOverModal = ({ isOpen, onNewGame, currentPlayer }) => {
   if (!isOpen) return null;
 
   return (
@@ -15,9 +15,6 @@ const GameOverModal = ({ isOpen, onClose, onNewGame, currentPlayer }) => {
         <div className="game-over-actions">
           <button onClick={onNewGame} className="new-game-btn">
             Start New Game
-          </button>
-          <button onClick={onClose} className="close-modal-btn">
-            Close
           </button>
         </div>
       </div>

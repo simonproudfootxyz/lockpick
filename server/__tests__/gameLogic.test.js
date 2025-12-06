@@ -7,6 +7,8 @@ const {
   initializeGame,
   playCard,
   endTurn,
+  handleCantPlay,
+  getGameStatus,
   getTotalCardCount,
   getMaxCardValue,
 } = require("../gameLogic");
@@ -35,6 +37,26 @@ describe("Game Logic", () => {
       // Very unlikely to be identical after shuffling
       expect(shuffled1).not.toEqual(deck1);
       expect(shuffled2).not.toEqual(deck2);
+    });
+
+    test("should produce descending deck when deterministic developer mode is enabled", () => {
+      const originalDevMode = process.env.DEV_MODE;
+
+      try {
+        process.env.DEV_MODE = "deterministic-deal";
+
+        const deck = createDeck(3);
+        expect(deck[0]).toBe(getMaxCardValue(3));
+        expect(deck[deck.length - 1]).toBe(2);
+        const sortedDescending = [...deck].sort((a, b) => b - a);
+        expect(deck).toEqual(sortedDescending);
+      } finally {
+        if (typeof originalDevMode === "undefined") {
+          delete process.env.DEV_MODE;
+        } else {
+          process.env.DEV_MODE = originalDevMode;
+        }
+      }
     });
   });
 
@@ -248,6 +270,22 @@ describe("Game Logic", () => {
         expect(newGameState.discardPiles[pileIndex]).toContain(cardToPlay);
         expect(newGameState.playerHands[0]).not.toContain(cardToPlay);
       }
+    });
+  });
+
+  describe("Can't Play Handling", () => {
+    test("should mark game over when player cannot play", () => {
+      const playerNames = ["Player1", "Player2"];
+      const gameState = initializeGame(playerNames);
+
+      const result = handleCantPlay(gameState);
+      expect(result.success).toBe(true);
+      expect(result.gameState.gameOver).toBe(true);
+      expect(result.gameState.gameWon).toBe(false);
+      expect(result.gameState.endedByPlayer).toBe(gameState.currentPlayer);
+
+      const status = getGameStatus(result.gameState);
+      expect(status).toMatch(/Game over!/);
     });
   });
 });
