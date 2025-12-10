@@ -272,7 +272,7 @@ const handleCantPlay = (gameState) => {
   return { success: true, gameState: newGameState };
 };
 
-const sortCurrentPlayerHand = (gameState) => {
+const sortCurrentPlayerHand = (gameState, order = "asc") => {
   if (!gameState || !Array.isArray(gameState.playerHands)) {
     return {
       success: false,
@@ -288,10 +288,14 @@ const sortCurrentPlayerHand = (gameState) => {
     };
   }
 
+  const normalizedOrder = order === "desc" ? "desc" : "asc";
+  const comparator =
+    normalizedOrder === "desc" ? (a, b) => b - a : (a, b) => a - b;
+
   const newGameState = { ...gameState };
   const newPlayerHands = [...newGameState.playerHands];
   newPlayerHands[newGameState.currentPlayer] = [...currentHand].sort(
-    (a, b) => a - b
+    comparator
   );
 
   newGameState.playerHands = newPlayerHands;

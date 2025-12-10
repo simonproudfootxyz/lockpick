@@ -487,9 +487,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("sort-hand", async (data) => {
+  socket.on("sort-hand", async (data = {}) => {
     try {
-      const { roomCode } = data;
+      const { roomCode, order = "asc" } = data;
       const normalizedCode = normalizeRoomCode(roomCode);
       const room = roomManager.getRoom(normalizedCode);
 
@@ -509,7 +509,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const result = sortCurrentPlayerHand(room.gameState);
+      const result = sortCurrentPlayerHand(room.gameState, order);
 
       if (!result.success) {
         socket.emit("error", {

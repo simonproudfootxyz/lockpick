@@ -151,6 +151,14 @@
   box-shadow: none;
 }
 
+.sort-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
 .sort-hand-btn {
   background: #ed8936;
   color: white;
@@ -161,8 +169,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.2s;
-  margin: 0 auto 15px auto;
-  display: block;
+  margin: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 

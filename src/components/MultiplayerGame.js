@@ -416,12 +416,13 @@ const MultiplayerGame = () => {
     setViewingPile(null);
   };
 
-  const handleSortHand = (playerIndex) => {
+  const handleSortHand = (playerIndex, order = "asc") => {
     if (!gameState || isSpectator) return;
     if (playerIndex !== gameState.currentPlayer) return;
 
     emit("sort-hand", {
       roomCode: gameId,
+      order,
     });
   };
 
@@ -672,16 +673,28 @@ const MultiplayerGame = () => {
                         ? " (Your Turn)"
                         : ""}
                     </h3>
-                    <button
-                      onClick={() => handleSortHand(localPlayerIndex)}
-                      className="sort-hand-btn"
-                      disabled={
-                        localPlayerIndex !== gameState.currentPlayer ||
-                        isSpectator
-                      }
-                    >
-                      Sort Hand
-                    </button>
+                    <div className="sort-buttons">
+                      <button
+                        onClick={() => handleSortHand(localPlayerIndex, "asc")}
+                        className="sort-hand-btn"
+                        disabled={
+                          localPlayerIndex !== gameState.currentPlayer ||
+                          isSpectator
+                        }
+                      >
+                        Sort Hand Ascending
+                      </button>
+                      <button
+                        onClick={() => handleSortHand(localPlayerIndex, "desc")}
+                        className="sort-hand-btn"
+                        disabled={
+                          localPlayerIndex !== gameState.currentPlayer ||
+                          isSpectator
+                        }
+                      >
+                        Sort Hand Descending
+                      </button>
+                    </div>
                     <PlayerHand
                       hand={gameState.playerHands[localPlayerIndex] || []}
                       selectedCard={selectedCard}

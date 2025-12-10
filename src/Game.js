@@ -227,9 +227,9 @@ const Game = () => {
     saveGameState(newGameState);
   };
 
-  const sortHand = () => {
+  const updateSortedHand = (comparator) => {
     const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
-      (a, b) => a - b
+      comparator
     );
     const newPlayerHands = [...gameState.playerHands];
     newPlayerHands[gameState.currentPlayer] = sortedHand;
@@ -242,6 +242,10 @@ const Game = () => {
     setGameState(newGameState);
     saveGameState(newGameState);
   };
+
+  const sortHandAscending = () => updateSortedHand((a, b) => a - b);
+
+  const sortHandDescending = () => updateSortedHand((a, b) => b - a);
 
   const endTurn = () => {
     const deckEmpty = gameState.deck.length === 0;
@@ -435,9 +439,14 @@ const Game = () => {
               {index === gameState.currentPlayer ? "(Your Turn)" : ""}
             </h3>
             {index === gameState.currentPlayer && (
-              <button onClick={sortHand} className="sort-hand-btn">
-                Sort Hand
-              </button>
+              <div className="sort-buttons">
+                <button onClick={sortHandAscending} className="sort-hand-btn">
+                  Sort Hand Ascending
+                </button>
+                <button onClick={sortHandDescending} className="sort-hand-btn">
+                  Sort Hand Descending
+                </button>
+              </div>
             )}
             <PlayerHand
               hand={hand}

@@ -228,7 +228,7 @@ This component mirrors the single-player UI but treats the server as the source 
   };
 ```
 
-Note that hand sorting is server-driven (`sort-hand` event) to keep all clients synchronized; `PlayerHand`’s `onHandReorder` is effectively disabled in multiplayer.
+Note that hand sorting is server-driven (`sort-hand` event with `order` set to `"asc"` or `"desc"`) to keep all clients synchronized; `PlayerHand`’s `onHandReorder` is effectively disabled in multiplayer.
 
 ## Server Application
 
@@ -263,7 +263,7 @@ Handlers worth scanning:
 
 - `join-room`: reconnection-aware, enforces reserved IDs and unique names.
 - `start-game`: only host can launch and only with ≥2 players.
-- `play-card`, `end-turn`, `cant-play`, `sort-hand`: all call server `gameLogic` and persist results.
+- `play-card`, `end-turn`, `cant-play`, `sort-hand` (ascending/descending): all call server `gameLogic` and persist results.
 
 ### Server Game Logic (`server/gameLogic.js`)
 
