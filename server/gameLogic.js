@@ -223,7 +223,8 @@ const playCard = (gameState, card, pileIndex) => {
 };
 
 // End current player's turn
-const endTurn = (gameState) => {
+const endTurn = (gameState, options = {}) => {
+  const { autoSortEnabled = false, sortOrder = "asc" } = options;
   const deckEmpty = gameState.deck.length === 0;
   const minCardsRequired = deckEmpty ? 1 : 2;
 
@@ -239,14 +240,18 @@ const endTurn = (gameState) => {
   const currentHand = newGameState.playerHands[newGameState.currentPlayer];
   const cardsNeeded = handSize - currentHand.length;
   const cardsToDraw = Math.min(cardsNeeded, newGameState.deck.length);
+  const normalizedOrder = sortOrder === "desc" ? "desc" : "asc";
+  const comparator =
+    normalizedOrder === "desc" ? (a, b) => b - a : (a, b) => a - b;
 
   // Draw new cards for current player
   if (cardsToDraw > 0) {
     const newCards = newGameState.deck.splice(0, cardsToDraw);
-    newGameState.playerHands[newGameState.currentPlayer] = [
-      ...currentHand,
-      ...newCards,
-    ];
+    let updatedHand = [...currentHand, ...newCards];
+    if (autoSortEnabled) {
+      updatedHand = updatedHand.sort(comparator);
+    }
+    newGameState.playerHands[newGameState.currentPlayer] = updatedHand;
   }
 
   // Move to next player
@@ -268,6 +273,56 @@ const handleCantPlay = (gameState) => {
     cardsPlayedThisTurn: gameState.cardsPlayedThisTurn,
     endedByPlayer: gameState.currentPlayer,
   };
+
+  return { success: true, gameState: newGameState };
+};
+
+const reorderCurrentPlayerHand = (gameState, newOrder) => {
+  if (!gameState || !Array.isArray(gameState.playerHands)) {
+    return {
+      success: false,
+      error: "Invalid game state",
+    };
+  }
+
+  if (!Array.isArray(newOrder)) {
+    return {
+      success: false,
+      error: "Invalid hand order",
+    };
+  }
+
+  const currentHand = gameState.playerHands[gameState.currentPlayer];
+  if (!Array.isArray(currentHand)) {
+    return {
+      success: false,
+      error: "Current player hand not found",
+    };
+  }
+
+  if (newOrder.length !== currentHand.length) {
+    return {
+      success: false,
+      error: "Hand order length mismatch",
+    };
+  }
+
+  const sortedCurrent = [...currentHand].sort((a, b) => a - b);
+  const sortedNew = [...newOrder].sort((a, b) => a - b);
+
+  for (let i = 0; i < sortedCurrent.length; i++) {
+    if (sortedCurrent[i] !== sortedNew[i]) {
+      return {
+        success: false,
+        error: "Hand order contains invalid cards",
+      };
+    }
+  }
+
+  const newGameState = { ...gameState };
+  const newPlayerHands = [...newGameState.playerHands];
+  newPlayerHands[newGameState.currentPlayer] = [...newOrder];
+  newGameState.playerHands = newPlayerHands;
 
   return { success: true, gameState: newGameState };
 };
@@ -314,6 +369,7 @@ module.exports = {
   playCard,
   endTurn,
   handleCantPlay,
+  reorderCurrentPlayerHand,
   sortCurrentPlayerHand,
   getMaxCardValue,
   getTotalCardCount,

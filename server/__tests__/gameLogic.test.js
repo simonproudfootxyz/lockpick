@@ -11,6 +11,7 @@ const {
   getGameStatus,
   getTotalCardCount,
   getMaxCardValue,
+  reorderCurrentPlayerHand,
 } = require("../gameLogic");
 
 describe("Game Logic", () => {
@@ -186,6 +187,105 @@ describe("Game Logic", () => {
       expect(endResult.success).toBe(true);
       newGameState = endResult.gameState;
       expect(newGameState.currentPlayer).toBe(0);
+    });
+
+    test("should auto sort drawn cards ascending when enabled", () => {
+      const baseState = {
+        playerHands: [
+          [12, 3],
+          [25, 30],
+        ],
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []],
+        deck: [18, 7, 22, 15],
+        gameWon: false,
+        gameOver: false,
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+
+      const result = endTurn(
+        {
+          ...baseState,
+          playerHands: baseState.playerHands.map((hand) => [...hand]),
+          deck: [...baseState.deck],
+        },
+        { autoSortEnabled: true, sortOrder: "asc" }
+      );
+
+      expect(result.success).toBe(true);
+      const updatedHand = result.gameState.playerHands[0];
+      expect(updatedHand).toEqual([...updatedHand].sort((a, b) => a - b));
+    });
+
+    test("should auto sort drawn cards descending when enabled", () => {
+      const baseState = {
+        playerHands: [
+          [9, 40],
+          [5, 6],
+        ],
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []],
+        deck: [33, 12, 27],
+        gameWon: false,
+        gameOver: false,
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+
+      const result = endTurn(
+        {
+          ...baseState,
+          playerHands: baseState.playerHands.map((hand) => [...hand]),
+          deck: [...baseState.deck],
+        },
+        { autoSortEnabled: true, sortOrder: "desc" }
+      );
+
+      expect(result.success).toBe(true);
+      const updatedHand = result.gameState.playerHands[0];
+      const sortedDescending = [...updatedHand].sort((a, b) => b - a);
+      expect(updatedHand).toEqual(sortedDescending);
+    });
+
+    test("should reorder current player's hand when provided valid order", () => {
+      const baseState = {
+        playerHands: [
+          [4, 12, 9],
+          [7, 8, 10],
+        ],
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []],
+        deck: [],
+        gameWon: false,
+        gameOver: false,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+      };
+
+      const result = reorderCurrentPlayerHand(baseState, [9, 4, 12]);
+      expect(result.success).toBe(true);
+      expect(result.gameState.playerHands[0]).toEqual([9, 4, 12]);
+    });
+
+    test("should reject reorder with invalid cards", () => {
+      const baseState = {
+        playerHands: [
+          [4, 12, 9],
+          [7, 8, 10],
+        ],
+        currentPlayer: 0,
+        discardPiles: [[], [], [], []],
+        deck: [],
+        gameWon: false,
+        gameOver: false,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+      };
+
+      const result = reorderCurrentPlayerHand(baseState, [9, 4, 13]);
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/invalid cards/i);
     });
   });
 

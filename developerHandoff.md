@@ -64,6 +64,7 @@ Key interactions mutate `gameState` and immediately resync to `localStorage` so 
 - `handlePlayCard` validates a move via `canPlayCard`, updates piles/hands, and checks `isGameWon`.
 - `endTurn` enforces the “play 2 cards (or 1 if deck empty)” rule, refills the hand, and advances the player index.
 - `handleCantPlayCard` marks the game over and opens `GameOverModal`.
+- `sortHandAscending` / `sortHandDescending` capture the most recent direction; if the player enables the `Auto-Sort` checkbox, `endTurn` re-applies that order whenever it draws replacement cards while preserving manual drag-and-drop reordering during the turn.
 
 ```166:215:src/Game.js
   const handlePlayCard = (pileIndex) => {
@@ -228,7 +229,7 @@ This component mirrors the single-player UI but treats the server as the source 
   };
 ```
 
-Note that hand sorting is server-driven (`sort-hand` event with `order` set to `"asc"` or `"desc"`) to keep all clients synchronized; `PlayerHand`’s `onHandReorder` is effectively disabled in multiplayer.
+Note that hand sorting is server-driven (`sort-hand` event with `order` set to `"asc"` or `"desc"`) to keep all clients synchronized; `PlayerHand`’s `onHandReorder` is effectively disabled in multiplayer. When a player ends their turn, the client includes `autoSort` and `sortOrder` flags so the server can automatically reshuffle their replenished hand using the last selected direction.
 
 ## Server Application
 
@@ -263,7 +264,7 @@ Handlers worth scanning:
 
 - `join-room`: reconnection-aware, enforces reserved IDs and unique names.
 - `start-game`: only host can launch and only with ≥2 players.
-- `play-card`, `end-turn`, `cant-play`, `sort-hand` (ascending/descending): all call server `gameLogic` and persist results.
+- `play-card`, `end-turn` (optionally carrying auto-sort metadata), `cant-play`, `sort-hand` (ascending/descending), `reorder-hand`: all call server `gameLogic` and persist results.
 
 ### Server Game Logic (`server/gameLogic.js`)
 
@@ -298,6 +299,8 @@ const playCard = (gameState, card, pileIndex) => {
   return { success: true, gameState: newGameState };
 };
 ```
+
+Manual drag-and-drop is routed through `reorderCurrentPlayerHand`, which ensures the submitted order contains the exact same cards before persisting it. Successful calls are broadcast via `hand-reordered`, keeping every client’s view aligned.
 
 ### Room and Player Management (`server/roomManager.js`)
 

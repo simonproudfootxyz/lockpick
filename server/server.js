@@ -18,6 +18,7 @@ const {
   getGameStatus,
   sortCurrentPlayerHand,
   isDeterministicDealEnabled,
+  reorderCurrentPlayerHand,
 } = require("./gameLogic");
 
 const app = express();
@@ -398,7 +399,7 @@ io.on("connection", (socket) => {
   // End turn
   socket.on("end-turn", async (data) => {
     try {
-      const { roomCode } = data;
+      const { roomCode, autoSort = false, sortOrder = "asc" } = data;
       const normalizedCode = normalizeRoomCode(roomCode);
       const room = roomManager.getRoom(normalizedCode);
 
@@ -418,7 +419,10 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const result = endTurn(room.gameState);
+      const result = endTurn(room.gameState, {
+        autoSortEnabled: Boolean(autoSort),
+        sortOrder,
+      });
 
       if (!result.success) {
         socket.emit("error", { message: result.error });
@@ -531,6 +535,64 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error sorting hand:", error);
       socket.emit("error", { message: "Failed to sort hand" });
+    }
+  });
+
+  socket.on("reorder-hand", async (data = {}) => {
+    try {
+      const { roomCode, hand } = data;
+      const normalizedCode = normalizeRoomCode(roomCode || "");
+      const room = roomManager.getRoom(normalizedCode);
+
+      if (!room || !room.gameState) {
+        socket.emit("error", { message: "Game not found or not started" });
+        return;
+      }
+
+      const player = room.players.get(socket.id);
+      if (!player) {
+        socket.emit("error", { message: "You are not a player in this game" });
+        return;
+      }
+
+      if (room.gameState.currentPlayer !== player.playerIndex) {
+        socket.emit("error", { message: "It is not your turn" });
+        return;
+      }
+
+      if (!Array.isArray(hand)) {
+        socket.emit("error", { message: "Invalid hand order provided" });
+        return;
+      }
+
+      const normalizedHand = hand.map((value) => Number(value));
+      if (normalizedHand.some((value) => !Number.isInteger(value))) {
+        socket.emit("error", { message: "Hand order must contain integers" });
+        return;
+      }
+
+      const result = reorderCurrentPlayerHand(room.gameState, normalizedHand);
+
+      if (!result.success) {
+        socket.emit("error", {
+          message: result.error || "Failed to reorder hand",
+        });
+        return;
+      }
+
+      room.gameState = result.gameState;
+      await roomManager.updateGameState(normalizedCode, result.gameState);
+
+      persistence.saveGame(normalizedCode, result.gameState);
+
+      io.to(normalizedCode).emit("hand-reordered", {
+        gameState: result.gameState,
+        status: getGameStatus(result.gameState),
+        playerName: sanitizeName(player.name),
+      });
+    } catch (error) {
+      console.error("Error reordering hand:", error);
+      socket.emit("error", { message: "Failed to reorder hand" });
     }
   });
 

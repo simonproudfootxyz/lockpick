@@ -52,6 +52,8 @@ const MultiplayerGame = () => {
   const [gameStatus, setGameStatus] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const [gameOverInfo, setGameOverInfo] = useState(null);
+  const [autoSortEnabled, setAutoSortEnabled] = useState(false);
+  const [lastSortOrder, setLastSortOrder] = useState("asc");
 
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
@@ -221,6 +223,16 @@ const MultiplayerGame = () => {
     [updateGameOverState]
   );
 
+  const handleHandReordered = useCallback(
+    (data) => {
+      console.log("Hand reordered:", data);
+      setGameState(data.gameState);
+      setGameStatus(data.status);
+      updateGameOverState(data.gameState);
+    },
+    [updateGameOverState]
+  );
+
   const handleTurnEnded = useCallback(
     (data) => {
       console.log("Turn ended:", data);
@@ -284,6 +296,7 @@ const MultiplayerGame = () => {
     on("turn-ended", handleTurnEnded);
     on("cant-play", handleCantPlay);
     on("hand-sorted", handleHandSorted);
+    on("hand-reordered", handleHandReordered);
     on("error", handleError);
 
     return () => {
@@ -295,6 +308,7 @@ const MultiplayerGame = () => {
       off("turn-ended", handleTurnEnded);
       off("cant-play", handleCantPlay);
       off("hand-sorted", handleHandSorted);
+      off("hand-reordered", handleHandReordered);
       off("error", handleError);
     };
   }, [
@@ -309,6 +323,7 @@ const MultiplayerGame = () => {
     handleTurnEnded,
     handleCantPlay,
     handleHandSorted,
+    handleHandReordered,
     handleError,
   ]);
 
@@ -369,6 +384,8 @@ const MultiplayerGame = () => {
 
     emit("end-turn", {
       roomCode: gameId,
+      autoSort: autoSortEnabled,
+      sortOrder: lastSortOrder,
     });
   };
 
@@ -420,9 +437,34 @@ const MultiplayerGame = () => {
     if (!gameState || isSpectator) return;
     if (playerIndex !== gameState.currentPlayer) return;
 
+    setLastSortOrder(order === "desc" ? "desc" : "asc");
+
     emit("sort-hand", {
       roomCode: gameId,
       order,
+    });
+  };
+
+  const handleAutoSortToggle = (event) => {
+    setAutoSortEnabled(event.target.checked);
+  };
+
+  const handleHandReorder = (newHand) => {
+    if (!gameState || isSpectator) return;
+    if (localPlayerIndex !== gameState.currentPlayer) return;
+
+    setGameState((prevState) => {
+      if (!prevState) {
+        return prevState;
+      }
+      const updatedHands = [...prevState.playerHands];
+      updatedHands[localPlayerIndex] = newHand;
+      return { ...prevState, playerHands: updatedHands };
+    });
+
+    emit("reorder-hand", {
+      roomCode: gameId,
+      hand: newHand,
     });
   };
 
@@ -447,6 +489,8 @@ const MultiplayerGame = () => {
   const startNewGame = useCallback(() => {
     setGameOverInfo(null);
     setShowGameOverModal(false);
+    setAutoSortEnabled(false);
+    setLastSortOrder("asc");
     navigate("/");
   }, [navigate]);
 
@@ -673,27 +717,42 @@ const MultiplayerGame = () => {
                         ? " (Your Turn)"
                         : ""}
                     </h3>
-                    <div className="sort-buttons">
-                      <button
-                        onClick={() => handleSortHand(localPlayerIndex, "asc")}
-                        className="sort-hand-btn"
-                        disabled={
-                          localPlayerIndex !== gameState.currentPlayer ||
-                          isSpectator
-                        }
-                      >
-                        Sort Hand Ascending
-                      </button>
-                      <button
-                        onClick={() => handleSortHand(localPlayerIndex, "desc")}
-                        className="sort-hand-btn"
-                        disabled={
-                          localPlayerIndex !== gameState.currentPlayer ||
-                          isSpectator
-                        }
-                      >
-                        Sort Hand Descending
-                      </button>
+                    <div className="sort-controls">
+                      <div className="sort-buttons">
+                        <button
+                          onClick={() =>
+                            handleSortHand(localPlayerIndex, "asc")
+                          }
+                          className="sort-hand-btn"
+                          disabled={
+                            localPlayerIndex !== gameState.currentPlayer ||
+                            isSpectator
+                          }
+                        >
+                          Sort Hand Ascending
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleSortHand(localPlayerIndex, "desc")
+                          }
+                          className="sort-hand-btn"
+                          disabled={
+                            localPlayerIndex !== gameState.currentPlayer ||
+                            isSpectator
+                          }
+                        >
+                          Sort Hand Descending
+                        </button>
+                      </div>
+                      <label className="auto-sort-toggle">
+                        <input
+                          type="checkbox"
+                          checked={autoSortEnabled}
+                          onChange={handleAutoSortToggle}
+                          disabled={isSpectator}
+                        />
+                        Auto-Sort
+                      </label>
                     </div>
                     <PlayerHand
                       hand={gameState.playerHands[localPlayerIndex] || []}
@@ -701,7 +760,7 @@ const MultiplayerGame = () => {
                       onCardSelect={(card) =>
                         handleCardSelect(card, localPlayerIndex)
                       }
-                      onHandReorder={() => {}}
+                      onHandReorder={handleHandReorder}
                       isCurrentPlayer={
                         localPlayerIndex === gameState.currentPlayer &&
                         !isSpectator

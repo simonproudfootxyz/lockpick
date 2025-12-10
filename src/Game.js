@@ -29,6 +29,8 @@ const Game = () => {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [gameOverInfo, setGameOverInfo] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
+  const [autoSortEnabled, setAutoSortEnabled] = useState(false);
+  const [lastSortOrder, setLastSortOrder] = useState("asc");
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
 
@@ -227,7 +229,8 @@ const Game = () => {
     saveGameState(newGameState);
   };
 
-  const updateSortedHand = (comparator) => {
+  const updateSortedHand = (order, shouldPersistOrder = false) => {
+    const comparator = order === "desc" ? (a, b) => b - a : (a, b) => a - b;
     const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
       comparator
     );
@@ -241,11 +244,18 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+    if (shouldPersistOrder) {
+      setLastSortOrder(order === "desc" ? "desc" : "asc");
+    }
   };
 
-  const sortHandAscending = () => updateSortedHand((a, b) => a - b);
+  const sortHandAscending = () => updateSortedHand("asc", true);
 
-  const sortHandDescending = () => updateSortedHand((a, b) => b - a);
+  const sortHandDescending = () => updateSortedHand("desc", true);
+
+  const handleAutoSortToggle = (event) => {
+    setAutoSortEnabled(event.target.checked);
+  };
 
   const endTurn = () => {
     const deckEmpty = gameState.deck.length === 0;
@@ -265,7 +275,13 @@ const Game = () => {
     const newPlayerHands = [...gameState.playerHands];
     if (cardsToDraw > 0) {
       const newCards = gameState.deck.splice(0, cardsToDraw);
-      newPlayerHands[gameState.currentPlayer] = [...currentHand, ...newCards];
+      let updatedHand = [...currentHand, ...newCards];
+      if (autoSortEnabled) {
+        const comparator =
+          lastSortOrder === "desc" ? (a, b) => b - a : (a, b) => a - b;
+        updatedHand = updatedHand.sort(comparator);
+      }
+      newPlayerHands[gameState.currentPlayer] = updatedHand;
     }
 
     // Move to next player
@@ -315,6 +331,8 @@ const Game = () => {
     setShowGameOverModal(false);
     setShowRulesModal(false);
     setGameOverInfo(null);
+    setAutoSortEnabled(false);
+    setLastSortOrder("asc");
     navigate("/");
   };
 
@@ -439,13 +457,26 @@ const Game = () => {
               {index === gameState.currentPlayer ? "(Your Turn)" : ""}
             </h3>
             {index === gameState.currentPlayer && (
-              <div className="sort-buttons">
-                <button onClick={sortHandAscending} className="sort-hand-btn">
-                  Sort Hand Ascending
-                </button>
-                <button onClick={sortHandDescending} className="sort-hand-btn">
-                  Sort Hand Descending
-                </button>
+              <div className="sort-controls">
+                <div className="sort-buttons">
+                  <button onClick={sortHandAscending} className="sort-hand-btn">
+                    Sort Hand Ascending
+                  </button>
+                  <button
+                    onClick={sortHandDescending}
+                    className="sort-hand-btn"
+                  >
+                    Sort Hand Descending
+                  </button>
+                </div>
+                <label className="auto-sort-toggle">
+                  <input
+                    type="checkbox"
+                    checked={autoSortEnabled}
+                    onChange={handleAutoSortToggle}
+                  />
+                  Auto-Sort
+                </label>
               </div>
             )}
             <PlayerHand
