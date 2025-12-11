@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import Card from "./Card";
 import "./DiscardPile.css";
 
@@ -12,6 +12,7 @@ const DiscardPile = ({
   isSelected,
   isSelectable,
   maxCard,
+  onCardDrop,
 }) => {
   const getPileLabel = () => {
     if (pileType === "ascending") {
@@ -24,8 +25,93 @@ const DiscardPile = ({
     }
   };
 
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const canAcceptDrag = useCallback(
+    (event) => {
+      if (!onCardDrop) return false;
+      if (!event.dataTransfer) return false;
+      const types = Array.from(event.dataTransfer.types || []);
+      return (
+        types.includes("application/lockpick-card") ||
+        types.includes("text/plain") ||
+        types.includes("text")
+      );
+    },
+    [onCardDrop]
+  );
+
+  const handleDragOver = useCallback(
+    (event) => {
+      if (!canAcceptDrag(event)) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+    },
+    [canAcceptDrag]
+  );
+
+  const handleDragEnter = useCallback(
+    (event) => {
+      if (!canAcceptDrag(event)) {
+        return;
+      }
+      event.preventDefault();
+      setIsDragOver(true);
+    },
+    [canAcceptDrag]
+  );
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event) => {
+      if (!onCardDrop || !canAcceptDrag(event)) {
+        return;
+      }
+      event.preventDefault();
+      setIsDragOver(false);
+
+      let cardValue = null;
+      const payload = event.dataTransfer.getData("application/lockpick-card");
+      if (payload) {
+        try {
+          const parsed = JSON.parse(payload);
+          if (parsed && typeof parsed.card === "number") {
+            cardValue = parsed.card;
+          }
+        } catch {
+          cardValue = null;
+        }
+      }
+
+      if (cardValue === null) {
+        const fallback =
+          event.dataTransfer.getData("text/plain") ||
+          event.dataTransfer.getData("text");
+        if (fallback && !Number.isNaN(Number(fallback))) {
+          cardValue = Number(fallback);
+        }
+      }
+
+      if (typeof cardValue === "number") {
+        onCardDrop(cardValue, pileNumber - 1);
+      }
+    },
+    [canAcceptDrag, onCardDrop, pileNumber]
+  );
+
   return (
-    <div className="discard-pile">
+    <div
+      className={`discard-pile ${isDragOver ? "drag-over" : ""}`}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="pile-header">
         <div className="pile-label">{getPileLabel()}</div>
       </div>

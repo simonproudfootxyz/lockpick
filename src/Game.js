@@ -165,15 +165,15 @@ const Game = () => {
     setSelectedPile(pileIndex);
   };
 
-  const handlePlayCard = (pileIndex) => {
-    if (!selectedCard) return;
+  const handlePlayCard = (pileIndex, cardValue = selectedCard) => {
+    if (cardValue === null || cardValue === undefined) return;
 
     const pile = gameState.discardPiles[pileIndex];
     const pileType = pileIndex < 2 ? "ascending" : "descending";
 
     // Validate card can be played on selected pile
-    if (!canPlayCard(selectedCard, pile, pileType)) {
-      alert(`Card ${selectedCard} cannot be played on this ${pileType} pile!`);
+    if (!canPlayCard(cardValue, pile, pileType)) {
+      alert(`Card ${cardValue} cannot be played on this ${pileType} pile!`);
       return;
     }
 
@@ -182,12 +182,13 @@ const Game = () => {
     const newPlayerHands = [...gameState.playerHands];
 
     // Remove played card from current player's hand
-    newDiscardPiles[pileIndex].push(selectedCard);
-    const cardIndex =
-      newPlayerHands[gameState.currentPlayer].indexOf(selectedCard);
+    newDiscardPiles[pileIndex].push(cardValue);
+    const currentHand = [...newPlayerHands[gameState.currentPlayer]];
+    const cardIndex = currentHand.indexOf(cardValue);
     if (cardIndex > -1) {
-      newPlayerHands[gameState.currentPlayer].splice(cardIndex, 1);
+      currentHand.splice(cardIndex, 1);
     }
+    newPlayerHands[gameState.currentPlayer] = currentHand;
 
     // Clear selection
     setSelectedCard(null);
@@ -214,6 +215,10 @@ const Game = () => {
 
     setGameState(newGameState);
     saveGameState(newGameState);
+  };
+
+  const handleCardDrop = (cardValue, pileIndex) => {
+    handlePlayCard(pileIndex, cardValue);
   };
 
   const handleHandReorder = (newHand) => {
@@ -268,7 +273,7 @@ const Game = () => {
 
     // Refill current player's hand to hand size
     const handSize = getHandSize(gameState.playerHands.length);
-    const currentHand = gameState.playerHands[gameState.currentPlayer];
+    const currentHand = [...gameState.playerHands[gameState.currentPlayer]];
     const cardsNeeded = handSize - currentHand.length;
     const cardsToDraw = Math.min(cardsNeeded, gameState.deck.length);
 
@@ -388,6 +393,7 @@ const Game = () => {
               onPlayCard={handlePlayCard}
               isSelected={selectedPile === 0}
               isSelectable={!!selectedCard}
+              onCardDrop={handleCardDrop}
             />
             <DiscardPile
               pile={gameState.discardPiles[1]}
@@ -399,6 +405,7 @@ const Game = () => {
               onPlayCard={handlePlayCard}
               isSelected={selectedPile === 1}
               isSelectable={!!selectedCard}
+              onCardDrop={handleCardDrop}
             />
           </div>
         </div>
@@ -415,6 +422,7 @@ const Game = () => {
               onPlayCard={handlePlayCard}
               isSelected={selectedPile === 2}
               isSelectable={!!selectedCard}
+              onCardDrop={handleCardDrop}
             />
             <DiscardPile
               pile={gameState.discardPiles[3]}
@@ -426,6 +434,7 @@ const Game = () => {
               onPlayCard={handlePlayCard}
               isSelected={selectedPile === 3}
               isSelectable={!!selectedCard}
+              onCardDrop={handleCardDrop}
             />
           </div>
         </div>

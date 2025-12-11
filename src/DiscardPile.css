@@ -13,6 +13,14 @@
   gap: 1rem;
 }
 
+.discard-pile.drag-over {
+  border-color: #ed8936;
+  background: #fffaf0;
+  box-shadow: 0 0 12px rgba(237, 137, 54, 0.35);
+  transform: translateY(-2px);
+  transition: all 0.15s ease;
+}
+
 .pile-header {
   margin-bottom: 8px;
 }

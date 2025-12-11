@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Card from "./Card";
 import { canPlayCard } from "./gameLogic";
 import "./PlayerHand.css";
@@ -13,6 +13,7 @@ const PlayerHand = ({
 }) => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [showPlayableHints, setShowPlayableHints] = useState(false);
   const isCardPlayable = (card) => {
     if (!isCurrentPlayer || discardPiles.length === 0) return false;
 
@@ -30,8 +31,23 @@ const PlayerHand = ({
   const handleDragStart = (e, index) => {
     if (!isCurrentPlayer) return;
     setDraggedIndex(index);
+    setShowPlayableHints(true);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/html", e.target.outerHTML);
+    const cardValue = hand[index];
+    if (typeof cardValue === "number") {
+      try {
+        e.dataTransfer.setData(
+          "application/lockpick-card",
+          JSON.stringify({
+            card: cardValue,
+            source: "player-hand",
+          })
+        );
+      } catch {
+        e.dataTransfer.setData("text/plain", String(cardValue));
+      }
+    }
   };
 
   const handleDragOver = (e, index) => {
@@ -64,7 +80,20 @@ const PlayerHand = ({
   const handleDragEnd = () => {
     setDraggedIndex(null);
     setDragOverIndex(null);
+    setShowPlayableHints(false);
   };
+
+  useEffect(() => {
+    if (!selectedCard) {
+      setShowPlayableHints(false);
+    }
+  }, [selectedCard]);
+
+  useEffect(() => {
+    setShowPlayableHints(false);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, [hand]);
 
   return (
     <div className="player-hand">
@@ -85,8 +114,13 @@ const PlayerHand = ({
             <Card
               value={card}
               isSelected={selectedCard === card}
-              onClick={onCardSelect}
-              isPlayable={isCardPlayable(card)}
+              onClick={(value) => {
+                onCardSelect(value);
+                if (!showPlayableHints) {
+                  setShowPlayableHints(true);
+                }
+              }}
+              isPlayable={showPlayableHints && isCardPlayable(card)}
               isClickable={isCurrentPlayer}
             />
           </div>

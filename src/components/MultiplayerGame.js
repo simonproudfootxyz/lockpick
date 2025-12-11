@@ -369,12 +369,12 @@ const MultiplayerGame = () => {
     }
   };
 
-  const handlePlayCard = (pileIndex) => {
-    if (!selectedCard || !gameState || isSpectator) return;
+  const handlePlayCard = (pileIndex, cardValue = selectedCard) => {
+    if (!cardValue || !gameState || isSpectator) return;
 
     emit("play-card", {
       roomCode: gameId,
-      card: selectedCard,
+      card: cardValue,
       pileIndex,
     });
   };
@@ -466,6 +466,10 @@ const MultiplayerGame = () => {
       roomCode: gameId,
       hand: newHand,
     });
+  };
+
+  const handleCardDrop = (cardValue, pileIndex) => {
+    handlePlayCard(pileIndex, cardValue);
   };
 
   const getPlayerName = useCallback(
@@ -628,6 +632,7 @@ const MultiplayerGame = () => {
                       onPlayCard={handlePlayCard}
                       isSelected={selectedPile === 0}
                       isSelectable={!!selectedCard && !isSpectator}
+                      onCardDrop={!isSpectator ? handleCardDrop : undefined}
                     />
                     <DiscardPile
                       pile={gameState.discardPiles[1]}
@@ -639,6 +644,7 @@ const MultiplayerGame = () => {
                       onPlayCard={handlePlayCard}
                       isSelected={selectedPile === 1}
                       isSelectable={!!selectedCard && !isSpectator}
+                      onCardDrop={!isSpectator ? handleCardDrop : undefined}
                     />
                   </div>
                 </div>
@@ -655,6 +661,7 @@ const MultiplayerGame = () => {
                       onPlayCard={handlePlayCard}
                       isSelected={selectedPile === 2}
                       isSelectable={!!selectedCard && !isSpectator}
+                      onCardDrop={!isSpectator ? handleCardDrop : undefined}
                     />
                     <DiscardPile
                       pile={gameState.discardPiles[3]}
@@ -666,6 +673,7 @@ const MultiplayerGame = () => {
                       onPlayCard={handlePlayCard}
                       isSelected={selectedPile === 3}
                       isSelectable={!!selectedCard && !isSpectator}
+                      onCardDrop={!isSpectator ? handleCardDrop : undefined}
                     />
                   </div>
                 </div>
