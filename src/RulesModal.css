@@ -50,6 +50,10 @@
   font-weight: 700;
 }
 
+.modal-rules-content {
+  padding: 0 24px 20px 24px;
+}
+
 .close-rules-btn {
   background: none;
   border: none;
@@ -69,103 +73,6 @@
 .close-rules-btn:hover {
   background-color: #e2e8f0;
   color: #2d3748;
-}
-
-.rules-content {
-  padding: 0 24px 20px 24px;
-}
-
-.rules-content h3 {
-  color: #4299e1;
-  margin: 24px 0 12px 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 8px;
-}
-
-.rules-content h3:first-child {
-  margin-top: 0;
-}
-
-.rules-content p {
-  color: #4a5568;
-  line-height: 1.6;
-  margin: 0 0 16px 0;
-  font-size: 1rem;
-}
-
-.rules-content ul {
-  color: #4a5568;
-  line-height: 1.6;
-  margin: 0 0 16px 0;
-  padding-left: 20px;
-}
-
-.rules-content li {
-  margin-bottom: 8px;
-}
-
-.rules-content strong {
-  color: #2d3748;
-  font-weight: 600;
-}
-
-.rules-content em {
-  color: #718096;
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-.game-objective {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.game-objective h3 {
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  margin-top: 0;
-}
-
-.game-objective p {
-  color: white;
-  margin-bottom: 0;
-}
-
-.pile-rules {
-  background: #f7fafc;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #4299e1;
-  margin-bottom: 16px;
-}
-
-.special-rules {
-  background: #fff5f5;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #e53e3e;
-  margin-bottom: 16px;
-}
-
-.gameplay-rules {
-  background: #f0fff4;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #48bb78;
-  margin-bottom: 16px;
-}
-
-.hand-sizes {
-  background: #fef5e7;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #ed8936;
-  margin-bottom: 16px;
 }
 
 .rules-modal-footer {
@@ -210,7 +117,7 @@
     font-size: 1.5rem;
   }
 
-  .rules-content {
+  .modal-rules-content {
     padding: 0 20px 16px 20px;
   }
 

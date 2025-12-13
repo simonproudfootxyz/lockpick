@@ -1,5 +1,6 @@
 import React from "react";
 import "./RulesModal.css";
+import RulesContent from "./RulesContent";
 
 const RulesModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -13,82 +14,7 @@ const RulesModal = ({ isOpen, onClose }) => {
             ×
           </button>
         </div>
-        <div className="rules-content">
-          <div className="game-objective">
-            <h3>Objective</h3>
-            <p>
-              Discard the entire deck onto four discard piles before you run out
-              of playable cards. Deck size scales with the number of players
-              (base cards 2-99, plus 10 for every player above five).
-            </p>
-          </div>
-
-          <div className="pile-rules">
-            <h3>Discard Piles</h3>
-            <ul>
-              <li>
-                <strong>Two ascending piles (1 ↑):</strong> Each card must be
-                higher than the previous card
-              </li>
-              <li>
-                <strong>Two descending piles (100 ↓):</strong> Each card must be
-                lower than the previous card
-              </li>
-            </ul>
-          </div>
-
-          <div className="special-rules">
-            <h3>Special Reverse Rules</h3>
-            <ul>
-              <li>
-                <strong>Ascending piles:</strong> Play a card exactly 10 less
-                than the top card
-                <br />
-                <em>Example: Play 27 on 37</em>
-              </li>
-              <li>
-                <strong>Descending piles:</strong> Play a card exactly 10 more
-                than the top card
-                <br />
-                <em>Example: Play 108 on 98 when the deck max card is 109</em>
-              </li>
-            </ul>
-          </div>
-
-          <div className="gameplay-rules">
-            <h3>How to Play</h3>
-            <ul>
-              <li>Select and play cards from your hand</li>
-              <li>
-                You must play at least 2 cards per turn (or 1 if the deck is
-                empty)
-              </li>
-              <li>
-                After playing your required cards, end your turn to draw new
-                cards
-              </li>
-              <li>
-                Play every card in the deck to win! (Deck grows with larger
-                player counts)
-              </li>
-              <li>
-                If you can't play any cards, click "I can't play a card" to end
-                the game
-              </li>
-            </ul>
-          </div>
-
-          <div className="hand-sizes">
-            <h3>Hand Sizes</h3>
-            <ul>
-              <li>1 Player: 8 cards</li>
-              <li>2 Players: 7 cards each</li>
-              <li>3-5 Players: 6 cards each</li>
-              <li>6-8 Players: 5 cards each</li>
-              <li>9-10 Players: 4 cards each</li>
-            </ul>
-          </div>
-        </div>
+        <RulesContent className="modal-rules-content" />
         <div className="rules-modal-footer">
           <button onClick={onClose} className="close-modal-btn">
             Close
