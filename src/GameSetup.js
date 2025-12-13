@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSetup.css";
 import RulesContent from "./RulesContent";
 
+const DEFAULT_PLAYER_COUNT = 1;
+
 const GameSetup = () => {
-  const [numPlayers, setNumPlayers] = useState(1);
   const navigate = useNavigate();
 
   const generateGameId = () => {
@@ -13,13 +14,14 @@ const GameSetup = () => {
 
   const handleStartGame = () => {
     const gameId = generateGameId();
-    navigate(`/game/${gameId}?players=${numPlayers}`);
+    navigate(`/game/${gameId}?players=${DEFAULT_PLAYER_COUNT}`);
   };
 
   return (
     <div className="game-setup">
       <div className="setup-container">
         <h1>Lockpick Card Game</h1>
+
         <div className="setup-options">
           <button className="start-game-btn" onClick={handleStartGame}>
             Start Single Player Game
@@ -35,29 +37,9 @@ const GameSetup = () => {
               Join Multiplayer Lobby
             </button>
           </div>
-          <div className="rules-summary">
-            <RulesContent className="setup-rules-content" />
-          </div>
-
-          {/* <div className="player-selection">
-            <label htmlFor="numPlayers">Number of Players:</label>
-            <select
-              id="numPlayers"
-              value={numPlayers}
-              onChange={(e) => setNumPlayers(parseInt(e.target.value))}
-            >
-              <option value={1}>1 Player (8 cards)</option>
-              <option value={2}>2 Players (7 cards each)</option>
-              <option value={3}>3 Players (6 cards each)</option>
-              <option value={4}>4 Players (6 cards each)</option>
-              <option value={5}>5 Players (6 cards each)</option>
-              <option value={6}>6 Players (5 cards each)</option>
-              <option value={7}>7 Players (5 cards each)</option>
-              <option value={8}>8 Players (5 cards each)</option>
-              <option value={9}>9 Players (4 cards each)</option>
-              <option value={10}>10 Players (4 cards each)</option>
-            </select>
-          </div> */}
+        </div>
+        <div className="rules-summary">
+          <RulesContent className="setup-rules-content" />
         </div>
       </div>
     </div>
