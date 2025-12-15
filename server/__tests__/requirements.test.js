@@ -4,25 +4,33 @@ const {
   playCard,
   endTurn,
   getHandSize,
+  getTotalCardCount,
 } = require("../gameLogic");
 
 describe("Game Requirements Tests", () => {
   let roomManager;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    jest
+      .spyOn(RoomManager.prototype, "loadAllRooms")
+      .mockImplementation(async () => {});
     roomManager = new RoomManager();
+    await roomManager.loadAllRooms();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe("Requirement 1: Room Creation with Host", () => {
-    test("creating a room should create a room with the creator present and as host", () => {
-      const roomCode = "TEST123";
+    test("creating a room should create a room with the creator present and as host", async () => {
       const socketId = "creator-socket";
       const playerName = "Creator";
 
-      const room = roomManager.createRoom(roomCode, socketId, playerName);
+      const room = await roomManager.createRoom(socketId, playerName);
 
       expect(room).toBeDefined();
-      expect(room.code).toBe(roomCode);
+      expect(room.code).toHaveLength(6);
       expect(room.host).toBe(socketId);
       expect(room.players.has(socketId)).toBe(true);
 
@@ -34,29 +42,26 @@ describe("Game Requirements Tests", () => {
   });
 
   describe("Requirement 2: Minimum Players for Game Start", () => {
-    test("game cannot start until room has minimum of 2 players", () => {
-      const roomCode = "TEST123";
-      const createResult = roomManager.createRoom(
-        roomCode,
-        "host-socket",
-        "Host"
-      );
-      const room = createResult.room || createResult;
+    test("game cannot start until room has minimum of 2 players", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
       // With only 1 player, game should not be startable
       expect(room.players.size).toBe(1);
 
       // Add second player
-      const joinResult = roomManager.joinRoom(
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player2");
+      const joinResult = await roomManager.joinRoom(
         roomCode,
         "player2-socket",
-        "Player2"
+        "Player2",
+        reservation.playerId
       );
       expect(joinResult.success).toBe(true);
       expect(joinResult.isSpectator).toBe(false);
 
       // Start game after second player joins
-      roomManager.updateGameState(
+      await roomManager.updateGameState(
         roomCode,
         initializeGame(["Host", "Player2"])
       );
@@ -70,39 +75,39 @@ describe("Game Requirements Tests", () => {
   });
 
   describe("Requirement 3: Unique Player Names", () => {
-    test("game cannot have two players with the same name", () => {
-      const roomCode = "TEST123";
-      roomManager.createRoom(roomCode, "host-socket", "Player1");
-      roomManager.joinRoom(roomCode, "player2-socket", "Player2");
+    test("game cannot have two players with the same name", async () => {
+      const room = await roomManager.createRoom("host-socket", "Player1");
+      const roomCode = room.code;
+      await roomManager.joinRoom(roomCode, "player2-socket", "Player2");
 
       // Try to add player with same name as existing player
-      const duplicateResult = roomManager.joinRoom(
+      const duplicateResult = await roomManager.joinRoom(
         roomCode,
         "player3-socket",
         "Player1"
       );
       expect(duplicateResult.success).toBe(false);
-      expect(duplicateResult.error).toBe("Player name already taken");
+      expect(duplicateResult.error).toBe("That name is already in use in this room.");
 
       // Try to add player with same name as host
-      const hostDuplicateResult = roomManager.joinRoom(
+      const hostDuplicateResult = await roomManager.joinRoom(
         roomCode,
         "player4-socket",
         "Player1"
       );
       expect(hostDuplicateResult.success).toBe(false);
-      expect(hostDuplicateResult.error).toBe("Player name already taken");
+      expect(hostDuplicateResult.error).toBe("That name is already in use in this room.");
     });
   });
 
   describe("Requirement 4: Maximum Players", () => {
-    test("game can have a maximum of 10 players", () => {
-      const roomCode = "TEST123";
-      const room = roomManager.createRoom(roomCode, "host-socket", "Host").room;
+    test("game can have a maximum of 10 players", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
       // Add 9 more players
       for (let i = 1; i <= 9; i++) {
-        const result = roomManager.joinRoom(
+        const result = await roomManager.joinRoom(
           roomCode,
           `player${i}-socket`,
           `Player${i}`
@@ -117,17 +122,17 @@ describe("Game Requirements Tests", () => {
   });
 
   describe("Requirement 5: Spectator Mode for 11th+ Player", () => {
-    test("once room has 10 players, additional players become spectators", () => {
-      const roomCode = "TEST123";
-      const room = roomManager.createRoom(roomCode, "host-socket", "Host").room;
+    test("once room has 10 players, additional players become spectators", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
       // Fill to 10 players
       for (let i = 1; i <= 9; i++) {
-        roomManager.joinRoom(roomCode, `player${i}-socket`, `Player${i}`);
+        await roomManager.joinRoom(roomCode, `player${i}-socket`, `Player${i}`);
       }
 
       // 11th player should be spectator
-      const spectatorResult = roomManager.joinRoom(
+      const spectatorResult = await roomManager.joinRoom(
         roomCode,
         "spectator-socket",
         "Spectator"
@@ -181,17 +186,25 @@ describe("Game Requirements Tests", () => {
         currentPlayer: 0,
         cardsPlayedThisTurn: 0,
         turnComplete: false,
+        deck: [40, 45, 50],
+        gameWon: false,
+        gameOver: false,
       };
 
       // Player can play 20 on ascending pile with 10 (valid)
-      const validPlay = playCard(gameState, 0, 1, 1); // Player 0, card 20, pile 1
-      expect(validPlay.discardPiles[1]).toContain(20);
-      expect(validPlay.playerHands[0]).not.toContain(20);
+      const { success: validSuccess, gameState: afterValidPlay } = playCard(
+        gameState,
+        20,
+        1
+      );
+      expect(validSuccess).toBe(true);
+      expect(afterValidPlay.discardPiles[1]).toContain(20);
+      expect(afterValidPlay.playerHands[0]).not.toContain(20);
 
       // Player cannot play 10 on ascending pile with 5 (invalid)
-      const invalidPlay = playCard(gameState, 0, 0, 0); // Player 0, card 10, pile 0
-      expect(invalidPlay.discardPiles[0]).toEqual([5]); // Should remain unchanged
-      expect(invalidPlay.playerHands[0]).toContain(10); // Card should still be in hand
+      const invalidResult = playCard(gameState, 3, 0);
+      expect(invalidResult.success).toBe(false);
+      expect(invalidResult.error).toBeDefined();
     });
   });
 
@@ -206,20 +219,33 @@ describe("Game Requirements Tests", () => {
         currentPlayer: 0,
         cardsPlayedThisTurn: 0,
         turnComplete: false,
+        deck: [50, 60, 70],
+        gameWon: false,
+        gameOver: false,
       };
 
       // Play 1 card - turn should not be complete
-      let newGameState = playCard(gameState, 0, 0, 0);
+      const firstPlay = playCard(gameState, 10, 0);
+      expect(firstPlay.success).toBe(true);
+      let newGameState = firstPlay.gameState;
       expect(newGameState.turnComplete).toBe(false);
       expect(newGameState.cardsPlayedThisTurn).toBe(1);
 
       // Play 2nd card - turn should be complete
-      newGameState = playCard(newGameState, 0, 0, 1);
+      const secondPlay = playCard(newGameState, 20, 0);
+      expect(secondPlay.success).toBe(true);
+      newGameState = secondPlay.gameState;
       expect(newGameState.turnComplete).toBe(true);
       expect(newGameState.cardsPlayedThisTurn).toBe(2);
 
       // Now player can end turn
-      const endTurnState = endTurn(newGameState);
+      const endTurnResult = endTurn({
+        ...newGameState,
+        deck: [...newGameState.deck],
+        playerHands: newGameState.playerHands.map((hand) => [...hand]),
+      });
+      expect(endTurnResult.success).toBe(true);
+      const endTurnState = endTurnResult.gameState;
       expect(endTurnState.currentPlayer).toBe(1); // Next player
       expect(endTurnState.cardsPlayedThisTurn).toBe(0); // Reset
       expect(endTurnState.turnComplete).toBe(false); // Reset
@@ -227,59 +253,55 @@ describe("Game Requirements Tests", () => {
   });
 
   describe("Requirement 9: Turn Order Based on Join Sequence", () => {
-    test("turn order should follow the order players joined the game", () => {
-      const roomCode = "TEST123";
-
-      // Create room with host
-      roomManager.createRoom(roomCode, "host-socket", "Host");
+    test("turn order should follow the order players joined the game", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
       // Add players in specific order
       const joinOrder = ["Player1", "Player2", "Player3"];
       for (let i = 0; i < joinOrder.length; i++) {
-        roomManager.joinRoom(roomCode, `player${i}-socket`, joinOrder[i]);
+        await roomManager.joinRoom(roomCode, `player${i}-socket`, joinOrder[i]);
       }
 
       // Start game - turn order should be: Host (0), Player1 (1), Player2 (2), Player3 (3)
-      const gameState = initializeGame(["Host", ...joinOrder]);
+      let currentState = initializeGame(["Host", ...joinOrder]);
 
-      expect(gameState.currentPlayer).toBe(0); // Host starts
+      const advanceTurn = (state) => {
+        const readyState = {
+          ...state,
+          deck: [...state.deck],
+          playerHands: state.playerHands.map((hand) => [...hand]),
+          cardsPlayedThisTurn: 2,
+          turnComplete: true,
+        };
+        const result = endTurn(readyState);
+        expect(result.success).toBe(true);
+        return result.gameState;
+      };
 
-      // Simulate turns
-      let currentState = { ...gameState, turnComplete: true };
-      currentState = endTurn(currentState);
+      expect(currentState.currentPlayer).toBe(0); // Host starts
+      currentState = advanceTurn(currentState);
       expect(currentState.currentPlayer).toBe(1); // Player1
-
-      currentState = { ...currentState, turnComplete: true };
-      currentState = endTurn(currentState);
+      currentState = advanceTurn(currentState);
       expect(currentState.currentPlayer).toBe(2); // Player2
-
-      currentState = { ...currentState, turnComplete: true };
-      currentState = endTurn(currentState);
+      currentState = advanceTurn(currentState);
       expect(currentState.currentPlayer).toBe(3); // Player3
-
-      currentState = { ...currentState, turnComplete: true };
-      currentState = endTurn(currentState);
+      currentState = advanceTurn(currentState);
       expect(currentState.currentPlayer).toBe(0); // Back to Host
     });
   });
 
   describe("Integration Test: Full Game Flow", () => {
-    test("should handle complete game flow with all requirements", () => {
-      const roomCode = "FULLTEST";
-
+    test("should handle complete game flow with all requirements", async () => {
       // 1. Create room with host
-      const hostResult = roomManager.createRoom(
-        roomCode,
-        "host-socket",
-        "Host"
-      );
-      expect(hostResult.success).toBe(true);
-      expect(hostResult.room.players.get("host-socket").isHost).toBe(true);
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
+      expect(room.players.get("host-socket").isHost).toBe(true);
 
       // 2. Add players up to maximum
-      const playerNames = ["Player1", "Player2", "Player3", "Player4"];
+      const playerNames = Array.from({ length: 9 }, (_, i) => `Player${i + 1}`);
       for (let i = 0; i < playerNames.length; i++) {
-        const result = roomManager.joinRoom(
+        const result = await roomManager.joinRoom(
           roomCode,
           `player${i}-socket`,
           playerNames[i]
@@ -289,7 +311,7 @@ describe("Game Requirements Tests", () => {
       }
 
       // 3. Add spectator (6th player)
-      const spectatorResult = roomManager.joinRoom(
+      const spectatorResult = await roomManager.joinRoom(
         roomCode,
         "spectator-socket",
         "Spectator"
@@ -297,32 +319,44 @@ describe("Game Requirements Tests", () => {
       expect(spectatorResult.success).toBe(true);
       expect(spectatorResult.isSpectator).toBe(true);
 
-      // 4. Start game with 5 players
+      // 4. Start game with 10 players
       const allPlayerNames = ["Host", ...playerNames];
       const gameState = initializeGame(allPlayerNames);
 
       // 5. Verify card distribution
-      expect(gameState.playerHands).toHaveLength(5);
+      expect(gameState.playerHands).toHaveLength(10);
       gameState.playerHands.forEach((hand) => {
-        expect(hand).toHaveLength(getHandSize(5));
+        expect(hand).toHaveLength(getHandSize(10));
       });
 
       // 6. Simulate playing cards following rules
-      let currentState = { ...gameState };
+      let currentState = {
+        ...gameState,
+        playerHands: gameState.playerHands.map(() => [20, 30, 40, 50, 60, 70]),
+      };
 
-      // Host plays 2 cards to complete turn
-      currentState = playCard(currentState, 0, 0, 0); // Play on empty ascending pile
-      currentState = playCard(currentState, 0, 0, 1); // Play on empty ascending pile
+      const firstPlay = playCard(currentState, 20, 0);
+      expect(firstPlay.success).toBe(true);
+      currentState = firstPlay.gameState;
+      const secondPlay = playCard(currentState, 30, 1);
+      expect(secondPlay.success).toBe(true);
+      currentState = secondPlay.gameState;
       expect(currentState.turnComplete).toBe(true);
 
       // 7. End turn and verify turn order
-      currentState = endTurn(currentState);
+      const endTurnResult = endTurn({
+        ...currentState,
+        deck: [...currentState.deck],
+        playerHands: currentState.playerHands.map((hand) => [...hand]),
+      });
+      expect(endTurnResult.success).toBe(true);
+      currentState = endTurnResult.gameState;
       expect(currentState.currentPlayer).toBe(1); // Player1's turn
 
       // 8. Verify all requirements are met
-      const room = roomManager.getRoom(roomCode);
-      expect(room.players.size).toBe(5);
-      expect(room.spectators.size).toBe(1);
+      const updatedRoom = roomManager.getRoom(roomCode);
+      expect(updatedRoom.players.size).toBe(10);
+      expect(updatedRoom.spectators.size).toBe(1);
       expect(currentState.gameStarted).toBe(true);
     });
   });

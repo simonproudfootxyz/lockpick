@@ -15,8 +15,16 @@ const RoomManager = require("../roomManager");
 describe("RoomManager Basic Tests", () => {
   let roomManager;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    jest
+      .spyOn(RoomManager.prototype, "loadAllRooms")
+      .mockImplementation(async () => {});
     roomManager = new RoomManager();
+    await roomManager.loadAllRooms();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const reserveAndJoin = async (roomCode, socketId, playerName) => {

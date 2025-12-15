@@ -145,13 +145,15 @@ describe("Game Logic", () => {
       expect(gameState.cardsPlayedThisTurn).toBe(0);
 
       // After playing 1 card, turn should not be complete
-      const playResult1 = playCard(gameState, 0, 0, 0);
+      const firstCard = gameState.playerHands[0][0];
+      const playResult1 = playCard(gameState, firstCard, 0);
       expect(playResult1.success).toBe(true);
       const newGameState1 = playResult1.gameState;
       expect(newGameState1.turnComplete).toBe(false);
 
       // After playing 2 cards, turn should be complete
-      const playResult2 = playCard(newGameState1, 0, 0, 1);
+      const secondCard = newGameState1.playerHands[0][0];
+      const playResult2 = playCard(newGameState1, secondCard, 1);
       expect(playResult2.success).toBe(true);
       const newGameState2 = playResult2.gameState;
       expect(newGameState2.turnComplete).toBe(true);
@@ -164,7 +166,14 @@ describe("Game Logic", () => {
       expect(gameState.currentPlayer).toBe(0);
 
       // End turn for player 0
-      const endTurnResult = endTurn(gameState);
+      const readyState = {
+        ...gameState,
+        deck: [...gameState.deck],
+        playerHands: gameState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+      const endTurnResult = endTurn(readyState);
       expect(endTurnResult.success).toBe(true);
       const newGameState = endTurnResult.gameState;
       expect(newGameState.currentPlayer).toBe(1);
@@ -174,16 +183,27 @@ describe("Game Logic", () => {
 
     test("should wrap around to first player after last player", () => {
       const playerNames = ["Player1", "Player2"];
-      const gameState = initializeGame(playerNames);
+      const baseState = initializeGame(playerNames);
 
-      // End turn for player 0 (should go to player 1)
-      let endResult = endTurn(gameState);
+      let endResult = endTurn({
+        ...baseState,
+        deck: [...baseState.deck],
+        playerHands: baseState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      });
       expect(endResult.success).toBe(true);
       let newGameState = endResult.gameState;
       expect(newGameState.currentPlayer).toBe(1);
 
       // End turn for player 1 (should wrap to player 0)
-      endResult = endTurn(newGameState);
+      endResult = endTurn({
+        ...newGameState,
+        deck: [...newGameState.deck],
+        playerHands: newGameState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      });
       expect(endResult.success).toBe(true);
       newGameState = endResult.gameState;
       expect(newGameState.currentPlayer).toBe(0);
@@ -327,22 +347,43 @@ describe("Game Logic", () => {
   describe("Turn Order", () => {
     test("should maintain turn order based on player index", () => {
       const playerNames = ["Player1", "Player2", "Player3"];
-      const gameState = initializeGame(playerNames);
+      const baseState = initializeGame(playerNames);
 
       // Turn order should be 0, 1, 2, 0, 1, 2...
-      expect(gameState.currentPlayer).toBe(0);
+      expect(baseState.currentPlayer).toBe(0);
 
-      let endResult = endTurn(gameState);
+      let readyState = {
+        ...baseState,
+        deck: [...baseState.deck],
+        playerHands: baseState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+      let endResult = endTurn(readyState);
       expect(endResult.success).toBe(true);
       let currentState = endResult.gameState;
       expect(currentState.currentPlayer).toBe(1);
 
-      endResult = endTurn(currentState);
+      readyState = {
+        ...currentState,
+        deck: [...currentState.deck],
+        playerHands: currentState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+      endResult = endTurn(readyState);
       expect(endResult.success).toBe(true);
       currentState = endResult.gameState;
       expect(currentState.currentPlayer).toBe(2);
 
-      endResult = endTurn(currentState);
+      readyState = {
+        ...currentState,
+        deck: [...currentState.deck],
+        playerHands: currentState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+      endResult = endTurn(readyState);
       expect(endResult.success).toBe(true);
       currentState = endResult.gameState;
       expect(currentState.currentPlayer).toBe(0);
@@ -364,7 +405,11 @@ describe("Game Logic", () => {
       const canPlay = canPlayCard(cardToPlay, pile, "ascending");
 
       if (canPlay) {
-        const playResult = playCard(gameState, 0, 0, pileIndex);
+        const playResult = playCard(
+          gameState,
+          cardToPlay,
+          pileIndex
+        );
         expect(playResult.success).toBe(true);
         const newGameState = playResult.gameState;
         expect(newGameState.discardPiles[pileIndex]).toContain(cardToPlay);

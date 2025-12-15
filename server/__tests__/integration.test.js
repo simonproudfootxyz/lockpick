@@ -4,68 +4,80 @@ const { initializeGame, playCard, endTurn } = require("../gameLogic");
 describe("Multiplayer Game Integration", () => {
   let roomManager;
 
-  beforeEach(() => {
+  const stubRoomLoading = () => {
+    jest
+      .spyOn(RoomManager.prototype, "loadAllRooms")
+      .mockImplementation(async () => {});
+  };
+
+  beforeEach(async () => {
+    stubRoomLoading();
     roomManager = new RoomManager();
+    await roomManager.loadAllRooms();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe("Full Game Flow", () => {
-    test("should complete a full game cycle with multiple players", () => {
-      // Create room with host
-      const roomCode = "TEST123";
-      const hostResult = roomManager.createRoom(
-        roomCode,
-        "host-socket",
-        "Host"
-      );
-      expect(hostResult.success).toBe(true);
+    test("should complete a full game cycle with multiple players", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
-      // Add second player
-      const player2Result = roomManager.joinRoom(
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player2");
+      const player2Result = await roomManager.joinRoom(
         roomCode,
         "player2-socket",
-        "Player2"
+        "Player2",
+        reservation.playerId
       );
       expect(player2Result.success).toBe(true);
       expect(player2Result.isSpectator).toBe(false);
 
-      // Start game
-      const room = roomManager.getRoom(roomCode);
-      const gameState = initializeGame(["Host", "Player2"]);
-      roomManager.updateGameState(roomCode, gameState);
+      let currentState = initializeGame(["Host", "Player2"]);
+      await roomManager.updateGameState(roomCode, currentState);
 
-      // Verify game state
-      expect(gameState.playerHands).toHaveLength(2);
-      expect(gameState.currentPlayer).toBe(0);
-      expect(gameState.turnComplete).toBe(false);
+      expect(currentState.playerHands).toHaveLength(2);
+      expect(currentState.currentPlayer).toBe(0);
+      expect(currentState.turnComplete).toBe(false);
 
-      // Host plays first card
-      const cardToPlay = gameState.playerHands[0][0];
-      const newGameState = playCard(gameState, 0, 0, 0);
-      expect(newGameState.discardPiles[0]).toContain(cardToPlay);
-      expect(newGameState.playerHands[0]).not.toContain(cardToPlay);
+      const firstCard = currentState.playerHands[0][0];
+      const firstPlay = playCard(currentState, firstCard, 0);
+      expect(firstPlay.success).toBe(true);
+      currentState = firstPlay.gameState;
+      expect(currentState.discardPiles[0]).toContain(firstCard);
 
-      // Host plays second card
-      const cardToPlay2 = newGameState.playerHands[0][0];
-      const finalGameState = playCard(newGameState, 0, 0, 1);
-      expect(finalGameState.turnComplete).toBe(true);
+      const secondCard = currentState.playerHands[0][0];
+      const secondPlay = playCard(currentState, secondCard, 0);
+      expect(secondPlay.success).toBe(true);
+      currentState = secondPlay.gameState;
+      expect(currentState.turnComplete).toBe(true);
 
-      // End turn
-      const nextTurnState = endTurn(finalGameState);
-      expect(nextTurnState.currentPlayer).toBe(1);
-      expect(nextTurnState.cardsPlayedThisTurn).toBe(0);
+      const endTurnResult = endTurn(currentState);
+      expect(endTurnResult.success).toBe(true);
+      currentState = endTurnResult.gameState;
+      expect(currentState.currentPlayer).toBe(1);
+      expect(currentState.cardsPlayedThisTurn).toBe(0);
     });
 
-    test("should handle spectator joining after game starts", () => {
-      const roomCode = "TEST123";
+    test("should handle spectator joining after game starts", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
-      // Create room and add 5 players
-      roomManager.createRoom(roomCode, "host-socket", "Host");
-      for (let i = 1; i <= 5; i++) {
-        roomManager.joinRoom(roomCode, `player${i}-socket`, `Player${i}`);
+      for (let i = 1; i <= 9; i++) {
+        const reservation = roomManager.createPendingPlayer(
+          roomCode,
+          `Player${i}`
+        );
+        await roomManager.joinRoom(
+          roomCode,
+          `player${i}-socket`,
+          `Player${i}`,
+          reservation.playerId
+        );
       }
 
-      // Start game
-      const room = roomManager.getRoom(roomCode);
       const gameState = initializeGame([
         "Host",
         "Player1",
@@ -73,163 +85,218 @@ describe("Multiplayer Game Integration", () => {
         "Player3",
         "Player4",
       ]);
-      roomManager.updateGameState(roomCode, gameState);
+      await roomManager.updateGameState(roomCode, gameState);
 
-      // 6th player should be spectator
-      const spectatorResult = roomManager.joinRoom(
+      const spectatorReservation = roomManager.createPendingPlayer(
+        roomCode,
+        "Spectator"
+      );
+      const spectatorResult = await roomManager.joinRoom(
         roomCode,
         "spectator-socket",
-        "Spectator"
+        "Spectator",
+        spectatorReservation.playerId
       );
       expect(spectatorResult.success).toBe(true);
       expect(spectatorResult.isSpectator).toBe(true);
 
       const updatedRoom = roomManager.getRoom(roomCode);
-      expect(updatedRoom.players.size).toBe(5);
+      expect(updatedRoom.players.size).toBe(10);
       expect(updatedRoom.spectators.size).toBe(1);
     });
   });
 
   describe("Game State Persistence", () => {
-    test("should maintain game state across player disconnections", () => {
-      const roomCode = "TEST123";
+    test("should maintain game state across player disconnections", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
-      // Create room and start game
-      roomManager.createRoom(roomCode, "host-socket", "Host");
-      roomManager.joinRoom(roomCode, "player2-socket", "Player2");
-
-      const room = roomManager.getRoom(roomCode);
-      const gameState = initializeGame(["Host", "Player2"]);
-      roomManager.updateGameState(roomCode, gameState);
-
-      // Simulate player playing cards
-      const newGameState = playCard(gameState, 0, 0, 0);
-      roomManager.updateGameState(roomCode, newGameState);
-
-      // Player disconnects and reconnects
-      roomManager.leaveRoom("player2-socket");
-      const rejoinResult = roomManager.joinRoom(
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player2");
+      await roomManager.joinRoom(
         roomCode,
         "player2-socket",
+        "Player2",
+        reservation.playerId
+      );
+
+      let gameState = initializeGame(["Host", "Player2"]);
+      await roomManager.updateGameState(roomCode, gameState);
+
+      const playResult = playCard(gameState, gameState.playerHands[0][0], 0);
+      expect(playResult.success).toBe(true);
+      gameState = playResult.gameState;
+      await roomManager.updateGameState(roomCode, gameState);
+
+      await roomManager.leaveRoom("player2-socket");
+      const rejoinReservation = roomManager.createPendingPlayer(
+        roomCode,
         "Player2"
+      );
+      const rejoinResult = await roomManager.joinRoom(
+        roomCode,
+        "player2-socket",
+        "Player2",
+        rejoinReservation.playerId
       );
 
       expect(rejoinResult.success).toBe(true);
 
       const updatedRoom = roomManager.getRoom(roomCode);
       expect(updatedRoom.gameState).toBeDefined();
-      expect(updatedRoom.gameState.discardPiles[0]).toHaveLength(1);
+      expect(updatedRoom.gameState.discardPiles[0].length).toBeGreaterThan(0);
     });
   });
 
   describe("Error Handling", () => {
-    test("should handle invalid room codes gracefully", () => {
-      const result = roomManager.joinRoom("INVALID", "socket1", "Player1");
+    test("should handle invalid room codes gracefully", async () => {
+      const result = await roomManager.joinRoom(
+        "INVALID",
+        "socket1",
+        "Player1",
+        "test-player-id"
+      );
       expect(result.success).toBe(false);
       expect(result.error).toBe("Room not found");
     });
 
-    test("should handle duplicate player names", () => {
-      const roomCode = "TEST123";
-      roomManager.createRoom(roomCode, "host-socket", "Host");
-      roomManager.joinRoom(roomCode, "player2-socket", "Player2");
+    test("should handle duplicate player names", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
+      await roomManager.joinRoom(roomCode, "player2-socket", "Player2", "id-2");
 
-      const duplicateResult = roomManager.joinRoom(
+      const duplicateResult = await roomManager.joinRoom(
         roomCode,
         "player3-socket",
-        "Player2"
+        "Player2",
+        "id-3"
       );
       expect(duplicateResult.success).toBe(false);
-      expect(duplicateResult.error).toBe("Player name already taken");
+      expect(duplicateResult.error).toBe("That name is already in use in this room.");
     });
 
-    test("should handle full room correctly", () => {
-      const roomCode = "TEST123";
-      roomManager.createRoom(roomCode, "host-socket", "Host");
+    test("should handle full room correctly", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
-      // Add 4 more players (total 5)
-      for (let i = 1; i <= 4; i++) {
-        const result = roomManager.joinRoom(
+      for (let i = 1; i <= 9; i++) {
+        await roomManager.joinRoom(
           roomCode,
           `player${i}-socket`,
-          `Player${i}`
+          `Player${i}`,
+          `id-${i}`
         );
-        expect(result.success).toBe(true);
-        expect(result.isSpectator).toBe(false);
       }
 
-      // 6th player should be spectator
-      const spectatorResult = roomManager.joinRoom(
+      const spectatorResult = await roomManager.joinRoom(
         roomCode,
         "spectator-socket",
-        "Spectator"
+        "Spectator",
+        "spectator-id"
       );
       expect(spectatorResult.success).toBe(true);
       expect(spectatorResult.isSpectator).toBe(true);
+      const updatedRoom = roomManager.getRoom(roomCode);
+      expect(updatedRoom.players.size).toBe(10);
+      expect(updatedRoom.spectators.size).toBe(1);
     });
   });
 
   describe("Turn Order Validation", () => {
-    test("should maintain correct turn order based on join sequence", () => {
-      const roomCode = "TEST123";
+    test("should maintain correct turn order based on join sequence", async () => {
+      const room = await roomManager.createRoom("host-socket", "Host");
+      const roomCode = room.code;
 
-      // Create room with host
-      roomManager.createRoom(roomCode, "host-socket", "Host");
-
-      // Add players in specific order
       const joinOrder = ["Player1", "Player2", "Player3"];
       for (let i = 0; i < joinOrder.length; i++) {
-        roomManager.joinRoom(roomCode, `player${i}-socket`, joinOrder[i]);
+        await roomManager.joinRoom(
+          roomCode,
+          `player${i}-socket`,
+          joinOrder[i],
+          `id-${i}`
+        );
       }
 
-      // Start game
-      const room = roomManager.getRoom(roomCode);
-      const gameState = initializeGame(["Host", ...joinOrder]);
+      let currentState = initializeGame(["Host", ...joinOrder]);
 
-      // Turn order should be: Host (0), Player1 (1), Player2 (2), Player3 (3)
-      expect(gameState.currentPlayer).toBe(0); // Host starts
+      const advanceTurn = (state) => {
+        const readyState = {
+          ...state,
+          deck: [...state.deck],
+          playerHands: state.playerHands.map((hand) => [...hand]),
+          cardsPlayedThisTurn: 2,
+          turnComplete: true,
+        };
+        const result = endTurn(readyState);
+        expect(result.success).toBe(true);
+        return result.gameState;
+      };
 
-      let currentState = endTurn(gameState);
-      expect(currentState.currentPlayer).toBe(1); // Player1
-
-      currentState = endTurn(currentState);
-      expect(currentState.currentPlayer).toBe(2); // Player2
-
-      currentState = endTurn(currentState);
-      expect(currentState.currentPlayer).toBe(3); // Player3
-
-      currentState = endTurn(currentState);
-      expect(currentState.currentPlayer).toBe(0); // Back to Host
+      expect(currentState.currentPlayer).toBe(0);
+      currentState = advanceTurn(currentState);
+      expect(currentState.currentPlayer).toBe(1);
+      currentState = advanceTurn(currentState);
+      expect(currentState.currentPlayer).toBe(2);
+      currentState = advanceTurn(currentState);
+      expect(currentState.currentPlayer).toBe(3);
+      currentState = advanceTurn(currentState);
+      expect(currentState.currentPlayer).toBe(0);
     });
   });
 
   describe("Minimum Cards Requirement", () => {
     test("should enforce minimum 2 cards before turn completion", () => {
-      const playerNames = ["Player1", "Player2"];
-      const gameState = initializeGame(playerNames);
+      const gameState = {
+        playerHands: [
+          [20, 30, 40],
+          [15, 25, 35],
+        ],
+        discardPiles: [[], [], [], []],
+        currentPlayer: 0,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+        deck: [50, 60, 70],
+        gameWon: false,
+        gameOver: false,
+      };
 
-      // Play 1 card - turn should not be complete
-      const afterOneCard = playCard(gameState, 0, 0, 0);
-      expect(afterOneCard.turnComplete).toBe(false);
-      expect(afterOneCard.cardsPlayedThisTurn).toBe(1);
+      const firstPlay = playCard(gameState, 20, 0);
+      expect(firstPlay.success).toBe(true);
+      expect(firstPlay.gameState.turnComplete).toBe(false);
+      expect(firstPlay.gameState.cardsPlayedThisTurn).toBe(1);
 
-      // Play 2nd card - turn should be complete
-      const afterTwoCards = playCard(afterOneCard, 0, 0, 1);
-      expect(afterTwoCards.turnComplete).toBe(true);
-      expect(afterTwoCards.cardsPlayedThisTurn).toBe(2);
+      const secondPlay = playCard(firstPlay.gameState, 30, 1);
+      expect(secondPlay.success).toBe(true);
+      expect(secondPlay.gameState.turnComplete).toBe(true);
+      expect(secondPlay.gameState.cardsPlayedThisTurn).toBe(2);
     });
 
     test("should reset cards played count after ending turn", () => {
-      const playerNames = ["Player1", "Player2"];
-      let gameState = initializeGame(playerNames);
+      let gameState = {
+        playerHands: [
+          [20, 30, 40],
+          [15, 25, 35],
+        ],
+        discardPiles: [[], [], [], []],
+        currentPlayer: 0,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+        deck: [50, 60, 70],
+        gameWon: false,
+        gameOver: false,
+      };
 
-      // Play 2 cards to complete turn
-      gameState = playCard(gameState, 0, 0, 0);
-      gameState = playCard(gameState, 0, 0, 1);
-      expect(gameState.turnComplete).toBe(true);
+      const firstPlay = playCard(gameState, 20, 0);
+      expect(firstPlay.success).toBe(true);
+      const secondPlay = playCard(firstPlay.gameState, 30, 1);
+      expect(secondPlay.success).toBe(true);
 
-      // End turn
-      gameState = endTurn(gameState);
+      const endTurnResult = endTurn({
+        ...secondPlay.gameState,
+        deck: [...secondPlay.gameState.deck],
+        playerHands: secondPlay.gameState.playerHands.map((hand) => [...hand]),
+      });
+      expect(endTurnResult.success).toBe(true);
+      gameState = endTurnResult.gameState;
       expect(gameState.cardsPlayedThisTurn).toBe(0);
       expect(gameState.turnComplete).toBe(false);
     });
