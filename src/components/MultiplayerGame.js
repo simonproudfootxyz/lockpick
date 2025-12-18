@@ -31,8 +31,7 @@ const MultiplayerGame = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { socket, isConnected, error, emit, on, off, connectionQuality } =
-    useSocket();
+  const { socket, isConnected, error, emit, on, off } = useSocket();
 
   const socketId = socket?.id;
 
