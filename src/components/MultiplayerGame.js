@@ -583,16 +583,6 @@ const MultiplayerGame = () => {
         <button onClick={startNewGame} className="new-game-btn">
           Leave Room
         </button>
-        <ConnectionStatus isConnected={isConnected} error={error} />
-        <div className="connection-quality">
-          Connection:{" "}
-          {connectionQuality === "good"
-            ? "🟢"
-            : connectionQuality === "fair"
-            ? "🟡"
-            : "🔴"}{" "}
-          {connectionQuality}
-        </div>
         <div className="game-status">
           {gameStatus || "Waiting for game to start..."}
         </div>

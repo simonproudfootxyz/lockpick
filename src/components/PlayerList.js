@@ -23,7 +23,7 @@ const PlayerList = ({
             disabled={players.length < 2}
             title="Need at least 2 players"
           >
-            {players.length < 2 ? "Need 2 more players" : "Start Game"}
+            {players.length < 2 ? "Need more players" : "Start Game"}
           </button>
         )}
       </div>
@@ -42,9 +42,6 @@ const PlayerList = ({
                   {player.isHost && <span className="host-badge">Host</span>}
                   {isYou && <span className="you-badge">You</span>}
                   {isCurrentTurn && <span className="current-badge">Turn</span>}
-                </span>
-                <span className="player-role">
-                  {player.isHost ? "Host" : "Player"}
                 </span>
               </div>
             </div>

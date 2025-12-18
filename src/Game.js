@@ -353,7 +353,7 @@ const Game = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>Lockpick</h1>
+          <h1>lockpick</h1>
           <div className="game-status">Loading game...</div>
         </div>
       </div>
@@ -370,7 +370,7 @@ const Game = () => {
   return (
     <div className="game">
       <div className="game-header">
-        <h1>Lockpick</h1>
+        <h1>lockpick</h1>
         <div className="game-id">Game ID: {gameId}</div>
         <button onClick={startNewGame} className="new-game-btn">
           New Game
