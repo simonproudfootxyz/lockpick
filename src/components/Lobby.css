@@ -107,11 +107,13 @@
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .create-room-btn {
   background: #48bb78;
   color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .create-room-btn:hover:not(:disabled) {
@@ -123,6 +125,7 @@
 .join-room-btn {
   background: #4299e1;
   color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .join-room-btn:hover:not(:disabled) {
@@ -188,6 +191,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .copy-invite-btn:hover {

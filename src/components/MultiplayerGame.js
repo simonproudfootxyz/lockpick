@@ -578,6 +578,9 @@ const MultiplayerGame = () => {
     <div className="game">
       <div className="game-header">
         <h1>Lockpick Multiplayer</h1>
+        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
+          Copy Invite Link
+        </button>
         <div className="game-id">Room: {gameId}</div>
         <button onClick={startNewGame} className="new-game-btn">
           Leave Room
