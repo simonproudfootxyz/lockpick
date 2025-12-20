@@ -74,6 +74,25 @@ describe("RoomManager", () => {
       expect(room.players.size).toBe(10);
     });
 
+    test("should allow players to opt into spectator role before room is full", async () => {
+      const room = await roomManager.createRoom("socket1", "Player1");
+      const roomCode = room.code;
+
+      const reservation = roomManager.createPendingPlayer(roomCode, "Watcher");
+      const result = await roomManager.joinRoom(
+        roomCode,
+        "spectator-socket",
+        "Watcher",
+        reservation.playerId,
+        { joinAsPlayer: false }
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.isSpectator).toBe(true);
+      expect(room.players.size).toBe(1);
+      expect(room.spectators.has("spectator-socket")).toBe(true);
+    });
+
     test("should make next player a spectator once room is full", async () => {
       const room = await roomManager.createRoom("socket1", "Player1");
       const roomCode = room.code;
@@ -93,10 +112,7 @@ describe("RoomManager", () => {
       }
 
       // Next player should join as spectator
-      const reservation = roomManager.createPendingPlayer(
-        roomCode,
-        "Player11"
-      );
+      const reservation = roomManager.createPendingPlayer(roomCode, "Player11");
       const result = await roomManager.joinRoom(
         roomCode,
         "socket11",

@@ -50,11 +50,14 @@ const PlayerList = ({
       </div>
       {spectators.length > 0 && (
         <div className="spectators-section">
-          <h4>Spectators ({spectators.length})</h4>
-          <ul>
+          <h3>Spectators</h3>
+          <ul className="spectators-list">
             {spectators.map((spectator) => (
-              <li key={spectator.socketId || spectator.name}>
-                {spectator.name}
+              <li
+                className="spectators-list-item"
+                key={spectator.socketId || spectator.name}
+              >
+                <span className="spectator-name">{spectator.name}</span>
               </li>
             ))}
           </ul>

@@ -21,6 +21,10 @@ const Lobby = () => {
   const [pendingName, setPendingName] = useState("");
   const [isSubmittingName, setIsSubmittingName] = useState(false);
   const [nameError, setNameError] = useState("");
+  const [roomPreview, setRoomPreview] = useState(null);
+  const [pendingJoinAsPlayer, setPendingJoinAsPlayer] = useState(true);
+  const [canChooseJoinRole, setCanChooseJoinRole] = useState(true);
+  const [isFetchingPreview, setIsFetchingPreview] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -41,7 +45,14 @@ const Lobby = () => {
         `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
           effectivePlayerId
         )}`,
-        { replace: true, state: { playerId: effectivePlayerId, playerName } }
+        {
+          replace: true,
+          state: {
+            playerId: effectivePlayerId,
+            playerName,
+            joinAsPlayer: true,
+          },
+        }
       );
     };
 
@@ -60,7 +71,14 @@ const Lobby = () => {
         `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
           effectivePlayerId
         )}`,
-        { replace: true, state: { playerId: effectivePlayerId, playerName } }
+        {
+          replace: true,
+          state: {
+            playerId: effectivePlayerId,
+            playerName,
+            joinAsPlayer: !data.isSpectator,
+          },
+        }
       );
     };
 
@@ -89,6 +107,32 @@ const Lobby = () => {
     setPendingRoomCode(code);
     setPendingName(playerName.trim());
     setNameError("");
+    if (action === "join" && code) {
+      if (!socket || !isConnected) {
+        setNameError("Connection lost. Please try again.");
+        return;
+      }
+      setIsFetchingPreview(true);
+      socket.emit("room-preview", { roomCode: code }, (response) => {
+        setIsFetchingPreview(false);
+        if (!response?.ok) {
+          setRoomPreview(null);
+          setCanChooseJoinRole(true);
+          setPendingJoinAsPlayer(true);
+          setNameError(response?.error || "Unable to fetch room details.");
+        } else {
+          setRoomPreview(response);
+          setCanChooseJoinRole(response.canJoinAsPlayer);
+          setPendingJoinAsPlayer(response.canJoinAsPlayer);
+          setNameError("");
+        }
+        setIsNamePromptOpen(true);
+      });
+      return;
+    }
+    setRoomPreview(null);
+    setCanChooseJoinRole(true);
+    setPendingJoinAsPlayer(true);
     setIsNamePromptOpen(true);
   };
 
@@ -98,6 +142,10 @@ const Lobby = () => {
     setPendingAction(null);
     setPendingRoomCode("");
     setNameError("");
+    setRoomPreview(null);
+    setPendingJoinAsPlayer(true);
+    setCanChooseJoinRole(true);
+    setIsFetchingPreview(false);
   };
 
   const handleCreateRoomClick = (e) => {
@@ -122,8 +170,15 @@ const Lobby = () => {
     openNamePrompt("join", roomCode.trim().toUpperCase());
   };
 
-  const submitName = async (name) => {
-    const trimmedName = name.trim();
+  const submitName = async (submission) => {
+    const rawName =
+      typeof submission === "string" ? submission : submission?.name ?? "";
+    const requestedJoinFlag =
+      typeof submission === "object" && submission !== null
+        ? submission.joinAsPlayer
+        : undefined;
+
+    const trimmedName = rawName.trim();
     if (!trimmedName) {
       setNameError("Please enter your name");
       return;
@@ -139,6 +194,15 @@ const Lobby = () => {
     setPendingName(trimmedName);
 
     const action = pendingAction === "create" ? "create" : "join";
+    let requestedJoinAsPlayer = true;
+    if (action === "join") {
+      if (!canChooseJoinRole) {
+        requestedJoinAsPlayer = false;
+      } else if (requestedJoinFlag === false) {
+        requestedJoinAsPlayer = false;
+      }
+    }
+
     const payload = {
       action,
       playerName: trimmedName,
@@ -150,6 +214,7 @@ const Lobby = () => {
         return;
       }
       payload.roomCode = pendingRoomCode;
+      payload.joinAsPlayer = requestedJoinAsPlayer;
     }
 
     socket.emit("validate-name", payload, (response) => {
@@ -177,6 +242,16 @@ const Lobby = () => {
       setPlayerId(reservedPlayerId);
       storePlayerIdentity(reservedPlayerId, trimmedName);
 
+      let finalJoinAsPlayer = requestedJoinAsPlayer;
+      if (response.roomStatus) {
+        setRoomPreview(response.roomStatus);
+        setCanChooseJoinRole(response.roomStatus.canJoinAsPlayer);
+        if (!response.roomStatus.canJoinAsPlayer) {
+          finalJoinAsPlayer = false;
+        }
+      }
+      setPendingJoinAsPlayer(finalJoinAsPlayer);
+
       if (action === "create") {
         setIsCreating(true);
         emit("create-room", {
@@ -189,6 +264,7 @@ const Lobby = () => {
           roomCode: pendingRoomCode,
           playerName: trimmedName,
           playerId: reservedPlayerId,
+          joinAsPlayer: finalJoinAsPlayer,
         });
       }
 
@@ -196,6 +272,9 @@ const Lobby = () => {
       setIsNamePromptOpen(false);
       setPendingAction(null);
       setPendingRoomCode("");
+      setRoomPreview(null);
+      setPendingJoinAsPlayer(true);
+      setCanChooseJoinRole(true);
     });
   };
 
@@ -241,11 +320,6 @@ const Lobby = () => {
       <div className="lobby-container">
         <h1>Lockpick Multiplayer</h1>
 
-        <div className="connection-status">
-          <div className="status-indicator connected"></div>
-          <span>Connected to server</span>
-        </div>
-
         <div className="lobby-actions">
           <div className="create-room-section">
             <h3>Create New Room</h3>
@@ -273,10 +347,19 @@ const Lobby = () => {
               />
               <button
                 type="submit"
-                disabled={!roomCode.trim() || isCreating || isJoining}
+                disabled={
+                  !roomCode.trim() ||
+                  isCreating ||
+                  isJoining ||
+                  isFetchingPreview
+                }
                 className="join-room-btn"
               >
-                {isJoining ? "Joining..." : "Join Room"}
+                {isJoining
+                  ? "Joining..."
+                  : isFetchingPreview
+                  ? "Preparing..."
+                  : "Join Room"}
               </button>
             </form>
           </div>
@@ -310,12 +393,17 @@ const Lobby = () => {
       <NamePromptModal
         isOpen={isNamePromptOpen}
         initialValue={pendingName}
-        isSubmitting={isSubmittingName || isCreating || isJoining}
+        isSubmitting={
+          isSubmittingName || isCreating || isJoining || isFetchingPreview
+        }
         error={nameError}
         onSubmit={submitName}
         onCancel={closeNamePrompt}
         pendingAction={pendingAction}
         roomCode={pendingRoomCode}
+        canChooseRole={pendingAction === "join" && canChooseJoinRole}
+        initialJoinAsPlayer={pendingJoinAsPlayer}
+        onJoinModeChange={setPendingJoinAsPlayer}
       />
     </div>
   );

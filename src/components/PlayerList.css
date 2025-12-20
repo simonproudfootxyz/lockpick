@@ -50,14 +50,24 @@
   box-shadow: none;
 }
 
-.players-container {
+.players-container,
+.spectators-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.player-list-item {
+.spectators-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.player-list-item,
+.spectators-list-item {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   padding: 12px;
@@ -83,7 +93,8 @@
   align-items: center;
 }
 
-.player-name {
+.player-name,
+.spectator-name {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -141,10 +152,10 @@
   padding-top: 15px;
 }
 
-.spectators-section h4 {
+.spectators-section h3 {
   margin: 0 0 10px 0;
   color: white;
-  font-size: 1rem;
+  font-size: 1.2rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -172,15 +183,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.spectator-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .spectator-badge {

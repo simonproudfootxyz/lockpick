@@ -188,11 +188,16 @@ io.on("connection", (socket) => {
   // Join an existing room
   socket.on("join-room", async (data = {}) => {
     try {
-      const { roomCode, playerName, playerId } = data;
+      const {
+        roomCode,
+        playerName,
+        playerId,
+        joinAsPlayer = true,
+      } = data;
       console.log(
         `Attempting to join room: ${roomCode} by ${playerName} (${
           playerId || "no id"
-        })`
+        }) as ${joinAsPlayer ? "player" : "spectator"}`
       );
 
       if (!isValidRoomCode(roomCode) || !isValidPlayerName(playerName)) {
@@ -231,7 +236,8 @@ io.on("connection", (socket) => {
           normalizeRoomCode(roomCode),
           socket.id,
           sanitizeName(playerName),
-          playerId
+          playerId,
+          { joinAsPlayer }
         );
       }
 
@@ -675,6 +681,43 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("room-preview", (data = {}, callback = () => {}) => {
+    try {
+      const { roomCode } = data;
+      if (!isValidRoomCode(roomCode)) {
+        callback({ ok: false, error: "Room code is required" });
+        return;
+      }
+
+      const normalizedRoomCode = normalizeRoomCode(roomCode);
+      const room = roomManager.getRoom(normalizedRoomCode);
+
+      if (!room) {
+        callback({ ok: false, error: "Room not found" });
+        return;
+      }
+
+      const playerCount = room.players.size;
+      const spectatorCount = room.spectators.size;
+      const maxPlayers = room.maxPlayers;
+      const gameInProgress = !!room.gameState;
+      const canJoinAsPlayer = !gameInProgress && playerCount < maxPlayers;
+
+      callback({
+        ok: true,
+        roomCode: normalizedRoomCode,
+        playerCount,
+        spectatorCount,
+        maxPlayers,
+        gameInProgress,
+        canJoinAsPlayer,
+      });
+    } catch (error) {
+      console.error("Error handling room preview:", error);
+      callback({ ok: false, error: "Failed to fetch room info" });
+    }
+  });
+
   socket.on("validate-name", (data = {}, callback = () => {}) => {
     try {
       const { roomCode, playerName, action = "join" } = data;
@@ -733,11 +776,25 @@ io.on("connection", (socket) => {
         return;
       }
 
+      const playerCount = room.players.size;
+      const spectatorCount = room.spectators.size;
+      const maxPlayers = room.maxPlayers;
+      const gameInProgress = !!room.gameState;
+      const canJoinAsPlayer = !gameInProgress && playerCount < maxPlayers;
+
       callback({
         ok: true,
         isTaken: false,
         playerId: reservation.playerId,
         expiresAt: reservation.expiresAt,
+        roomStatus: {
+          roomCode: normalizedRoomCode,
+          playerCount,
+          spectatorCount,
+          maxPlayers,
+          gameInProgress,
+          canJoinAsPlayer,
+        },
       });
     } catch (error) {
       console.error("Error validating name:", error);

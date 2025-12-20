@@ -264,7 +264,13 @@ class RoomManager {
     return room;
   }
 
-  async joinRoom(roomCode, socketId, playerName, playerId = null) {
+  async joinRoom(
+    roomCode,
+    socketId,
+    playerName,
+    playerId = null,
+    options = {}
+  ) {
     const room = this.rooms.get(roomCode);
     if (!room) {
       return { success: false, error: "Room not found" };
@@ -364,6 +370,9 @@ class RoomManager {
     }
 
     const gameInProgress = !!room.gameState;
+    const joinAsPlayer =
+      options?.joinAsPlayer !== undefined ? !!options.joinAsPlayer : true;
+    const requestedSpectator = !joinAsPlayer;
 
     const claimReservation = () => {
       const claim = this.consumePendingPlayer(
@@ -405,8 +414,7 @@ class RoomManager {
       return { ok: true };
     };
 
-    // If game already started, add as spectator
-    if (gameInProgress) {
+    const addSpectator = async () => {
       const duplicateCheck = rejectForDuplicateName();
       if (!duplicateCheck.ok) {
         return { success: false, error: duplicateCheck.error };
@@ -431,36 +439,20 @@ class RoomManager {
       await this.saveRoom(roomCode, room);
 
       return { success: true, isSpectator: true, room };
+    };
+
+    // If game already started, add as spectator
+    if (gameInProgress) {
+      return addSpectator();
     }
 
     // Check if room is full before game starts
     if (room.players.size >= room.maxPlayers) {
-      // Add as spectator
-      const duplicateCheck = rejectForDuplicateName();
-      if (!duplicateCheck.ok) {
-        return { success: false, error: duplicateCheck.error };
-      }
+      return addSpectator();
+    }
 
-      const reservation = claimReservation();
-      if (!reservation.ok) {
-        return { success: false, error: reservation.error };
-      }
-
-      room.spectators.set(socketId, {
-        socketId: socketId,
-        playerId: normalizedPlayerId,
-        name: playerName,
-        isHost: false,
-        isConnected: true,
-        isSpectator: true,
-      });
-      this.playerRooms.set(socketId, roomCode);
-      room.lastActivity = Date.now();
-
-      // Save to disk
-      await this.saveRoom(roomCode, room);
-
-      return { success: true, isSpectator: true, room };
+    if (requestedSpectator) {
+      return addSpectator();
     }
 
     // Add as new player

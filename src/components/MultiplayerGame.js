@@ -72,6 +72,14 @@ const MultiplayerGame = () => {
     storedPlayerName ||
     "Anonymous";
 
+  const initialJoinPreference =
+    typeof location.state?.joinAsPlayer === "boolean"
+      ? !!location.state.joinAsPlayer
+      : true;
+  const [joinAsPlayerPreference, setJoinAsPlayerPreference] = useState(
+    initialJoinPreference
+  );
+
   const updateGameOverState = useCallback(
     (state, context = {}) => {
       if (!state) {
@@ -124,6 +132,7 @@ const MultiplayerGame = () => {
       setSpectators(data.spectators || []);
       setIsHost(data.isHost || false);
       setIsSpectator(data.isSpectator || false);
+      setJoinAsPlayerPreference(!data.isSpectator);
       hasJoinedRoom.current = true;
 
       if (playerId) {
@@ -143,7 +152,7 @@ const MultiplayerGame = () => {
         updateGameOverState(null);
       }
     },
-    [playerId, updateGameOverState]
+    [playerId, updateGameOverState, setJoinAsPlayerPreference]
   );
 
   useEffect(() => {
@@ -165,8 +174,9 @@ const MultiplayerGame = () => {
       );
       setIsHost(currentPlayer?.isHost || false);
       setIsSpectator(!!spectatorEntry);
+      setJoinAsPlayerPreference(!spectatorEntry);
     },
-    [socketId]
+    [socketId, setJoinAsPlayerPreference]
   );
 
   const handlePlayerLeft = useCallback(
@@ -281,8 +291,17 @@ const MultiplayerGame = () => {
       roomCode: gameId,
       playerName,
       playerId,
+      joinAsPlayer: joinAsPlayerPreference,
     });
-  }, [socket, isConnected, gameId, emit, playerName, playerId]);
+  }, [
+    socket,
+    isConnected,
+    gameId,
+    emit,
+    playerName,
+    playerId,
+    joinAsPlayerPreference,
+  ]);
 
   useEffect(() => {
     if (!socket) return;
@@ -526,7 +545,6 @@ const MultiplayerGame = () => {
       <div className="game">
         <div className="game-header">
           <h1>Lockpick Multiplayer</h1>
-          <ConnectionStatus isConnected={isConnected} error={error} />
         </div>
         <div className="reconnection-overlay">
           <div className="reconnection-message">
@@ -543,7 +561,6 @@ const MultiplayerGame = () => {
       <div className="game">
         <div className="game-header">
           <h1>Lockpick Multiplayer</h1>
-          <ConnectionStatus isConnected={isConnected} error={error} />
           <div className="game-status">Joining room...</div>
         </div>
       </div>

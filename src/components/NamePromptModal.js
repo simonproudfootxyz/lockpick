@@ -10,19 +10,24 @@ const NamePromptModal = ({
   onCancel,
   pendingAction,
   roomCode,
+  canChooseRole = true,
+  initialJoinAsPlayer = true,
+  onJoinModeChange,
 }) => {
   const [name, setName] = useState(initialValue);
+  const [joinAsPlayer, setJoinAsPlayer] = useState(initialJoinAsPlayer);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       setName(initialValue);
+      setJoinAsPlayer(initialJoinAsPlayer);
       requestAnimationFrame(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
       });
     }
-  }, [isOpen, initialValue]);
+  }, [isOpen, initialValue, initialJoinAsPlayer]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -40,7 +45,13 @@ const NamePromptModal = ({
   const handleSubmit = (event) => {
     event.preventDefault();
     if (isSubmitting) return;
-    onSubmit?.(name);
+    onSubmit?.({ name, joinAsPlayer: canChooseRole ? joinAsPlayer : false });
+  };
+
+  const handleJoinModeToggle = (event) => {
+    const nextValue = event.target.checked;
+    setJoinAsPlayer(nextValue);
+    onJoinModeChange?.(nextValue);
   };
 
   if (!isOpen) {
@@ -73,6 +84,33 @@ const NamePromptModal = ({
             onChange={(event) => setName(event.target.value)}
             data-testid="name-prompt-input"
           />
+          {pendingAction === "join" &&
+            (canChooseRole ? (
+              <label className="role-toggle">
+                <input
+                  type="checkbox"
+                  checked={joinAsPlayer}
+                  onChange={handleJoinModeToggle}
+                  disabled={isSubmitting}
+                  aria-label="Join as a player"
+                />
+                <div className="role-toggle-copy">
+                  <span className="role-toggle-label">
+                    {joinAsPlayer
+                      ? "Joining as a player"
+                      : "Joining as a spectator"}
+                  </span>
+                  <span className="role-toggle-hint">
+                    Switch off to watch without taking a player slot.
+                  </span>
+                </div>
+              </label>
+            ) : (
+              <p className="role-note">
+                This room already has the maximum number of players. You’ll join
+                as a spectator.
+              </p>
+            ))}
           {error && (
             <p className="error" role="alert">
               {error}

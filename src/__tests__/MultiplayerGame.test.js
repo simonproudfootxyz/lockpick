@@ -17,6 +17,12 @@ const mockSocket = {
   connected: true,
 };
 
+let mockLocationState = {
+  playerName: "FromState",
+  playerId: "StatePlayerId",
+  joinAsPlayer: true,
+};
+
 jest.mock("../hooks/useSocket", () => ({
   __esModule: true,
   default: () => ({
@@ -36,7 +42,7 @@ jest.mock("react-router-dom", () => ({
   useSearchParams: () => [new URLSearchParams("playerId=FromQueryId")],
   useNavigate: () => jest.fn(),
   useLocation: () => ({
-    state: { playerName: "FromState", playerId: "StatePlayerId" },
+    state: mockLocationState,
   }),
 }));
 
@@ -47,6 +53,11 @@ describe("MultiplayerGame", () => {
     mockOn.mockImplementation((event, handler) => {
       handlers[event] = handler;
     });
+    mockLocationState = {
+      playerName: "FromState",
+      playerId: "StatePlayerId",
+      joinAsPlayer: true,
+    };
   });
 
   const trigger = (event: string, payload?: any) => {
@@ -102,6 +113,24 @@ describe("MultiplayerGame", () => {
       expect.objectContaining({
         playerName: "FromState",
         playerId: "StatePlayerId",
+        joinAsPlayer: true,
+      })
+    );
+  });
+
+  test("respects spectator preference from navigation state", () => {
+    mockLocationState = {
+      playerName: "FromState",
+      playerId: "StatePlayerId",
+      joinAsPlayer: false,
+    };
+
+    render(<MultiplayerGame />);
+
+    expect(mockEmit).toHaveBeenCalledWith(
+      "join-room",
+      expect.objectContaining({
+        joinAsPlayer: false,
       })
     );
   });

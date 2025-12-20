@@ -18,6 +18,10 @@ const JoinViaLink = () => {
   const [isPromptOpen, setIsPromptOpen] = useState(true);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [canChooseRole, setCanChooseRole] = useState(true);
+  const [initialJoinAsPlayer, setInitialJoinAsPlayer] = useState(true);
+  const [pendingJoinAsPlayer, setPendingJoinAsPlayer] = useState(true);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   const handleCancel = useCallback(() => {
     if (isSubmitting) return;
@@ -26,8 +30,16 @@ const JoinViaLink = () => {
   }, [isSubmitting, navigate]);
 
   const handleSubmit = useCallback(
-    (name) => {
-      const trimmedName = name.trim();
+    (submission) => {
+      const rawName =
+        typeof submission === "string"
+          ? submission
+          : submission?.name ?? "";
+      const joinPreference =
+        typeof submission === "object" && submission !== null
+          ? submission.joinAsPlayer
+          : undefined;
+      const trimmedName = rawName.trim();
       if (!trimmedName) {
         setError("Please enter your name to join the room.");
         return;
@@ -41,6 +53,13 @@ const JoinViaLink = () => {
         return;
       }
 
+      let requestedJoinAsPlayer = true;
+      if (!canChooseRole) {
+        requestedJoinAsPlayer = false;
+      } else if (joinPreference === false) {
+        requestedJoinAsPlayer = false;
+      }
+
       setIsSubmitting(true);
       setError("");
       socket.emit(
@@ -49,6 +68,7 @@ const JoinViaLink = () => {
           action: "join",
           roomCode: normalizedRoomCode,
           playerName: trimmedName,
+          joinAsPlayer: requestedJoinAsPlayer,
         },
         (response) => {
           if (!response?.ok) {
@@ -72,6 +92,22 @@ const JoinViaLink = () => {
           }
 
           const playerId = response.playerId;
+          let finalJoinAsPlayer = requestedJoinAsPlayer;
+
+          if (response.roomStatus) {
+            const canJoin = response.roomStatus.canJoinAsPlayer;
+            setCanChooseRole(canJoin);
+            if (!canJoin) {
+              finalJoinAsPlayer = false;
+            } else {
+              finalJoinAsPlayer = finalJoinAsPlayer && canJoin;
+            }
+          }
+
+          setInitialJoinAsPlayer(finalJoinAsPlayer);
+          setPendingJoinAsPlayer(finalJoinAsPlayer);
+
+          setIsSubmitting(false);
           storePlayerIdentity(playerId, trimmedName);
 
           navigate(
@@ -80,14 +116,60 @@ const JoinViaLink = () => {
             )}`,
             {
               replace: true,
-              state: { playerId, playerName: trimmedName },
+              state: {
+                playerId,
+                playerName: trimmedName,
+                joinAsPlayer: finalJoinAsPlayer,
+              },
             }
           );
         }
       );
     },
-    [isConnected, socket, normalizedRoomCode, navigate]
+    [isConnected, socket, normalizedRoomCode, navigate, canChooseRole]
   );
+
+  useEffect(() => {
+    if (!normalizedRoomCode || !socket || !isConnected) {
+      return;
+    }
+
+    let cancelled = false;
+    setIsPreviewLoading(true);
+    socket.emit(
+      "room-preview",
+      { roomCode: normalizedRoomCode },
+      (response) => {
+        if (cancelled) {
+          return;
+        }
+
+        setIsPreviewLoading(false);
+
+        if (!response?.ok) {
+          setError(response?.error || "Unable to fetch room details.");
+          setCanChooseRole(true);
+          setInitialJoinAsPlayer(true);
+          setPendingJoinAsPlayer(true);
+          return;
+        }
+
+        const canJoin = response.canJoinAsPlayer;
+        setError("");
+        setCanChooseRole(canJoin);
+        setInitialJoinAsPlayer((prev) =>
+          prev === false && canJoin ? prev : canJoin
+        );
+        setPendingJoinAsPlayer((prev) =>
+          prev === false && canJoin ? prev : canJoin
+        );
+      }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedRoomCode, socket, isConnected]);
 
   useEffect(() => {
     if (!normalizedRoomCode) {
@@ -114,12 +196,15 @@ const JoinViaLink = () => {
       <NamePromptModal
         isOpen={isPromptOpen}
         initialValue=""
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || isPreviewLoading}
         error={error}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         pendingAction="join"
         roomCode={normalizedRoomCode}
+        canChooseRole={canChooseRole}
+        initialJoinAsPlayer={pendingJoinAsPlayer}
+        onJoinModeChange={setPendingJoinAsPlayer}
       />
     </div>
   );
