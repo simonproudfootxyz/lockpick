@@ -133,5 +133,57 @@ describe("MultiplayerGame", () => {
         joinAsPlayer: false,
       })
     );
+
+    trigger("room-joined", {
+      roomCode: "TEST123",
+      isHost: false,
+      isSpectator: true,
+      players: [
+        {
+          socketId: "player-1",
+          name: "Player One",
+          playerIndex: 0,
+        },
+        {
+          socketId: "player-2",
+          name: "Player Two",
+          playerIndex: 1,
+        },
+      ],
+      spectators: [
+        {
+          socketId: "test-socket-id",
+          name: "Spectator Me",
+          playerIndex: null,
+        },
+      ],
+      gameState: null,
+    });
+
+    trigger("player-joined", {
+      players: [
+        {
+          socketId: "player-1",
+          name: "Player One",
+          isHost: true,
+          playerIndex: 0,
+        },
+        {
+          socketId: "player-2",
+          name: "Player Two",
+          playerIndex: 1,
+        },
+      ],
+      spectators: [
+        {
+          socketId: "test-socket-id",
+          name: "Spectator Me",
+        },
+      ],
+    });
+
+    expect(
+      document.querySelector(".player-list .you-badge")
+    ).not.toBeInTheDocument();
   });
 });

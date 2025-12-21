@@ -499,14 +499,19 @@ const MultiplayerGame = () => {
   );
 
   const localPlayerIndex = useMemo(() => {
+    if (isSpectator) {
+      return -1;
+    }
+
     const entry = players.find((p) => p.socketId === socketId);
     if (typeof entry?.playerIndex === "number") {
       return entry.playerIndex;
     }
+
     return typeof players[0]?.playerIndex === "number"
       ? players[0].playerIndex
       : 0;
-  }, [players, socketId]);
+  }, [players, socketId, isSpectator]);
 
   const startNewGame = useCallback(() => {
     setGameOverInfo(null);
