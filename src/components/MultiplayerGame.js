@@ -15,7 +15,6 @@ import useSocket from "../hooks/useSocket";
 import DiscardPile from "../DiscardPile";
 import PlayerHand from "../PlayerHand";
 import PlayerList from "./PlayerList";
-import ConnectionStatus from "./ConnectionStatus";
 import PileViewModal from "../PileViewModal";
 import GameOverModal from "../GameOverModal";
 import RulesModal from "../RulesModal";
@@ -31,7 +30,7 @@ const MultiplayerGame = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { socket, isConnected, error, emit, on, off } = useSocket();
+  const { socket, isConnected, emit, on, off } = useSocket();
 
   const socketId = socket?.id;
 

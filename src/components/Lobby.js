@@ -21,7 +21,6 @@ const Lobby = () => {
   const [pendingName, setPendingName] = useState("");
   const [isSubmittingName, setIsSubmittingName] = useState(false);
   const [nameError, setNameError] = useState("");
-  const [roomPreview, setRoomPreview] = useState(null);
   const [pendingJoinAsPlayer, setPendingJoinAsPlayer] = useState(true);
   const [canChooseJoinRole, setCanChooseJoinRole] = useState(true);
   const [isFetchingPreview, setIsFetchingPreview] = useState(false);
@@ -116,12 +115,10 @@ const Lobby = () => {
       socket.emit("room-preview", { roomCode: code }, (response) => {
         setIsFetchingPreview(false);
         if (!response?.ok) {
-          setRoomPreview(null);
           setCanChooseJoinRole(true);
           setPendingJoinAsPlayer(true);
           setNameError(response?.error || "Unable to fetch room details.");
         } else {
-          setRoomPreview(response);
           setCanChooseJoinRole(response.canJoinAsPlayer);
           setPendingJoinAsPlayer(response.canJoinAsPlayer);
           setNameError("");
@@ -130,7 +127,6 @@ const Lobby = () => {
       });
       return;
     }
-    setRoomPreview(null);
     setCanChooseJoinRole(true);
     setPendingJoinAsPlayer(true);
     setIsNamePromptOpen(true);
@@ -142,7 +138,6 @@ const Lobby = () => {
     setPendingAction(null);
     setPendingRoomCode("");
     setNameError("");
-    setRoomPreview(null);
     setPendingJoinAsPlayer(true);
     setCanChooseJoinRole(true);
     setIsFetchingPreview(false);
@@ -244,7 +239,6 @@ const Lobby = () => {
 
       let finalJoinAsPlayer = requestedJoinAsPlayer;
       if (response.roomStatus) {
-        setRoomPreview(response.roomStatus);
         setCanChooseJoinRole(response.roomStatus.canJoinAsPlayer);
         if (!response.roomStatus.canJoinAsPlayer) {
           finalJoinAsPlayer = false;
@@ -272,7 +266,6 @@ const Lobby = () => {
       setIsNamePromptOpen(false);
       setPendingAction(null);
       setPendingRoomCode("");
-      setRoomPreview(null);
       setPendingJoinAsPlayer(true);
       setCanChooseJoinRole(true);
     });

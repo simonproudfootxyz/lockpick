@@ -19,7 +19,6 @@ const JoinViaLink = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canChooseRole, setCanChooseRole] = useState(true);
-  const [initialJoinAsPlayer, setInitialJoinAsPlayer] = useState(true);
   const [pendingJoinAsPlayer, setPendingJoinAsPlayer] = useState(true);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
@@ -32,9 +31,7 @@ const JoinViaLink = () => {
   const handleSubmit = useCallback(
     (submission) => {
       const rawName =
-        typeof submission === "string"
-          ? submission
-          : submission?.name ?? "";
+        typeof submission === "string" ? submission : submission?.name ?? "";
       const joinPreference =
         typeof submission === "object" && submission !== null
           ? submission.joinAsPlayer
@@ -104,7 +101,6 @@ const JoinViaLink = () => {
             }
           }
 
-          setInitialJoinAsPlayer(finalJoinAsPlayer);
           setPendingJoinAsPlayer(finalJoinAsPlayer);
 
           setIsSubmitting(false);
@@ -149,7 +145,6 @@ const JoinViaLink = () => {
         if (!response?.ok) {
           setError(response?.error || "Unable to fetch room details.");
           setCanChooseRole(true);
-          setInitialJoinAsPlayer(true);
           setPendingJoinAsPlayer(true);
           return;
         }
@@ -157,9 +152,6 @@ const JoinViaLink = () => {
         const canJoin = response.canJoinAsPlayer;
         setError("");
         setCanChooseRole(canJoin);
-        setInitialJoinAsPlayer((prev) =>
-          prev === false && canJoin ? prev : canJoin
-        );
         setPendingJoinAsPlayer((prev) =>
           prev === false && canJoin ? prev : canJoin
         );
