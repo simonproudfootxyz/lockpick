@@ -68,8 +68,7 @@ const RulesContent = ({ className = "" }) => {
             <li>1 player: 8 cards</li>
             <li>2 players: 7 cards each</li>
             <li>3–5 players: 6 cards each</li>
-            <li>6–8 players: 5 cards each</li>
-            <li>9–10 players: 4 cards each</li>
+            <li>6–10 players: 5 cards each</li>
           </ul>
         </div>
       </section>
@@ -149,4 +148,3 @@ const RulesContent = ({ className = "" }) => {
 };
 
 export default RulesContent;
-

@@ -40,14 +40,8 @@ export const shuffleDeck = (deck) => {
 export const getHandSize = (numPlayers) => {
   if (numPlayers === 1) return 8;
   if (numPlayers === 2) return 7;
-  if (numPlayers === 3) return 6;
-  if (numPlayers === 4) return 6;
-  if (numPlayers === 5) return 6;
-  if (numPlayers === 6) return 5;
-  if (numPlayers === 7) return 5;
-  if (numPlayers === 8) return 5;
-  if (numPlayers === 9) return 4;
-  if (numPlayers >= 10) return 4;
+  if (numPlayers <= 5) return 6;
+  if (numPlayers >= 6) return 5;
   return 6;
 };
 

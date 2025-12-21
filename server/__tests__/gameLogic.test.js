@@ -67,7 +67,7 @@ describe("Game Logic", () => {
       expect(getHandSize(3)).toBe(6);
       expect(getHandSize(5)).toBe(6);
       expect(getHandSize(7)).toBe(5);
-      expect(getHandSize(10)).toBe(4);
+      expect(getHandSize(10)).toBe(5);
     });
   });
 
@@ -395,26 +395,22 @@ describe("Game Logic", () => {
       const playerNames = ["Player1", "Player2"];
       const gameState = initializeGame(playerNames);
 
-      // Get a card from player's hand
       const playerHand = gameState.playerHands[0];
-      const cardToPlay = playerHand[0];
       const pileIndex = 0; // Ascending pile
+      const pileType = "ascending";
       const pile = gameState.discardPiles[pileIndex];
 
-      // Check if card can be played
-      const canPlay = canPlayCard(cardToPlay, pile, "ascending");
+      const playableCard = playerHand.find((card) =>
+        canPlayCard(card, pile, pileType)
+      );
 
-      if (canPlay) {
-        const playResult = playCard(
-          gameState,
-          cardToPlay,
-          pileIndex
-        );
-        expect(playResult.success).toBe(true);
-        const newGameState = playResult.gameState;
-        expect(newGameState.discardPiles[pileIndex]).toContain(cardToPlay);
-        expect(newGameState.playerHands[0]).not.toContain(cardToPlay);
-      }
+      expect(playableCard).toBeDefined();
+
+      const playResult = playCard(gameState, playableCard, pileIndex);
+      expect(playResult.success).toBe(true);
+      const newGameState = playResult.gameState;
+      expect(newGameState.discardPiles[pileIndex]).toContain(playableCard);
+      expect(newGameState.playerHands[0]).not.toContain(playableCard);
     });
   });
 

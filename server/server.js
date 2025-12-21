@@ -188,12 +188,7 @@ io.on("connection", (socket) => {
   // Join an existing room
   socket.on("join-room", async (data = {}) => {
     try {
-      const {
-        roomCode,
-        playerName,
-        playerId,
-        joinAsPlayer = true,
-      } = data;
+      const { roomCode, playerName, playerId, joinAsPlayer = true } = data;
       console.log(
         `Attempting to join room: ${roomCode} by ${playerName} (${
           playerId || "no id"

@@ -36,6 +36,7 @@ describe("Multiplayer Game Integration", () => {
       expect(player2Result.isSpectator).toBe(false);
 
       let currentState = initializeGame(["Host", "Player2"]);
+      currentState.playerHands[0].sort((a, b) => a - b);
       await roomManager.updateGameState(roomCode, currentState);
 
       expect(currentState.playerHands).toHaveLength(2);
@@ -171,7 +172,9 @@ describe("Multiplayer Game Integration", () => {
         "id-3"
       );
       expect(duplicateResult.success).toBe(false);
-      expect(duplicateResult.error).toBe("That name is already in use in this room.");
+      expect(duplicateResult.error).toBe(
+        "That name is already in use in this room."
+      );
     });
 
     test("should handle full room correctly", async () => {
@@ -302,13 +305,3 @@ describe("Multiplayer Game Integration", () => {
     });
   });
 });
-
-
-
-
-
-
-
-
-
-
