@@ -594,6 +594,8 @@ const MultiplayerGame = () => {
       isHost: p.isHost,
     })),
   });
+  const playerIsCurrentPlayer =
+    gameState && localPlayerIndex === gameState.currentPlayer;
 
   return (
     <div className="game">
@@ -717,7 +719,7 @@ const MultiplayerGame = () => {
                 <button
                   onClick={handleCantPlayCard}
                   className="cant-play-btn"
-                  disabled={isSpectator}
+                  disabled={isSpectator || !playerIsCurrentPlayer}
                 >
                   I can't play a card
                 </button>
