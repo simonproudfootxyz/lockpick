@@ -1,13 +1,14 @@
 import React from "react";
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import MultiplayerGame from "../components/MultiplayerGame";
-
-type HandlerMap = Record<string, (...args: any[]) => void>;
 
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
 const mockOff = jest.fn();
-let handlers: HandlerMap = {};
+
+/** @type {Record<string, (...args: any[]) => void>} */
+let handlers = {};
 
 const mockSocket = {
   id: "test-socket-id",
@@ -60,7 +61,7 @@ describe("MultiplayerGame", () => {
     };
   });
 
-  const trigger = (event: string, payload?: any) => {
+  const trigger = (event, payload) => {
     const handler = handlers[event];
     if (!handler) return;
     act(() => {
@@ -183,7 +184,88 @@ describe("MultiplayerGame", () => {
     });
 
     expect(
-      document.querySelector(".player-list .you-badge")
+      screen.queryByText("You", { selector: ".you-badge" })
     ).not.toBeInTheDocument();
+  });
+
+  test("asks for confirmation before emitting cant-play", async () => {
+    const user = userEvent.setup();
+    render(<MultiplayerGame />);
+
+    const baseGameState = {
+      currentPlayer: 0,
+      playerHands: [
+        [10, 20, 30, 40, 50],
+        [60, 70, 80, 90, 100],
+      ],
+      discardPiles: [[], [], [], []],
+      deck: [12, 13, 14],
+      gameWon: false,
+      gameOver: false,
+      cardsPlayedThisTurn: 0,
+      turnComplete: false,
+      totalCards: 98,
+      maxCard: 99,
+      descendingStart: 100,
+    };
+
+    trigger("room-joined", {
+      roomCode: "TEST123",
+      isHost: true,
+      isSpectator: false,
+      players: [
+        {
+          socketId: "test-socket-id",
+          name: "FromState",
+          isHost: true,
+          playerIndex: 0,
+        },
+        {
+          socketId: "player-2",
+          name: "Player Two",
+          playerIndex: 1,
+        },
+      ],
+      spectators: [],
+      gameState: baseGameState,
+    });
+
+    trigger("player-joined", {
+      players: [
+        {
+          socketId: "test-socket-id",
+          name: "FromState",
+          isHost: true,
+          playerIndex: 0,
+        },
+        {
+          socketId: "player-2",
+          name: "Player Two",
+          playerIndex: 1,
+        },
+      ],
+      spectators: [],
+    });
+
+    const cantPlayButton = await screen.findByRole("button", {
+      name: /i can't play a card/i,
+    });
+
+    await user.click(cantPlayButton);
+
+    expect(
+      screen.getByRole("heading", { name: /end the game/i })
+    ).toBeInTheDocument();
+    expect(mockEmit.mock.calls.some((call) => call[0] === "cant-play")).toBe(
+      false
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /yes, end the game/i })
+    );
+
+    expect(mockEmit).toHaveBeenCalledWith("cant-play", {
+      roomCode: "TEST123",
+    });
   });
 });

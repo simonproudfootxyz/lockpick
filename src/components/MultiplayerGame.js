@@ -52,6 +52,7 @@ const MultiplayerGame = () => {
   const [gameOverInfo, setGameOverInfo] = useState(null);
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState("asc");
+  const [showCantPlayConfirm, setShowCantPlayConfirm] = useState(false);
 
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
@@ -406,13 +407,26 @@ const MultiplayerGame = () => {
     });
   };
 
-  const handleCantPlayCard = () => {
+  const handleCantPlayClick = useCallback(() => {
     if (!gameState || isSpectator || gameState.gameOver) return;
+    setShowCantPlayConfirm(true);
+  }, [gameState, isSpectator]);
+
+  const confirmCantPlayCard = useCallback(() => {
+    if (!gameState || isSpectator || gameState.gameOver) {
+      setShowCantPlayConfirm(false);
+      return;
+    }
 
     emit("cant-play", {
       roomCode: gameId,
     });
-  };
+    setShowCantPlayConfirm(false);
+  }, [emit, gameId, gameState, isSpectator]);
+
+  const cancelCantPlayCard = useCallback(() => {
+    setShowCantPlayConfirm(false);
+  }, []);
 
   const handleStartGame = () => {
     console.log("Start game clicked:", {
@@ -717,7 +731,7 @@ const MultiplayerGame = () => {
                   End Turn & Draw Cards
                 </button>
                 <button
-                  onClick={handleCantPlayCard}
+                  onClick={handleCantPlayClick}
                   className="cant-play-btn"
                   disabled={isSpectator || !playerIsCurrentPlayer}
                 >
@@ -866,6 +880,35 @@ const MultiplayerGame = () => {
           Rules
         </button>
       </div>
+
+      {showCantPlayConfirm && (
+        <div
+          className="cant-play-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cant-play-modal-title"
+        >
+          <div className="cant-play-modal">
+            <h2 id="cant-play-modal-title">End the game?</h2>
+            <p>
+              Confirm you have no legal moves. Ending now will mark the run as
+              failed for everyone in the room.
+            </p>
+            <div className="cant-play-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={cancelCantPlayCard}
+              >
+                Keep playing
+              </button>
+              <button type="button" onClick={confirmCantPlayCard}>
+                Yes, end the game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {viewingPile && (
         <PileViewModal
