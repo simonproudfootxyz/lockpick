@@ -417,6 +417,23 @@
   gap: 8px;
 }
 
+.game-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.game-info .new-game-btn {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  align-self: flex-start;
+}
+
 .game-info div {
   margin-bottom: 0;
 }

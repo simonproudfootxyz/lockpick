@@ -618,10 +618,6 @@ const MultiplayerGame = () => {
         <button onClick={handleCopyInviteLink} className="copy-invite-floating">
           Copy Invite Link
         </button>
-        <div className="game-id">Room: {gameId}</div>
-        <button onClick={startNewGame} className="new-game-btn">
-          Leave Room
-        </button>
         <div className="game-status">
           {gameStatus || "Waiting for game to start..."}
         </div>
@@ -839,6 +835,10 @@ const MultiplayerGame = () => {
       </div>
 
       <div className="game-info">
+        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
+          Copy Invite Link
+        </button>
+        <div className="game-id">Room: {gameId}</div>
         <div>Cards in deck: {gameState?.deck?.length || 0}</div>
         <div>
           Current player hand:{" "}
@@ -853,9 +853,7 @@ const MultiplayerGame = () => {
           ) || 0}
           /{totalCardsTarget}
         </div>
-        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
-          Copy Invite Link
-        </button>
+
         {copySuccess && (
           <div className="copy-feedback-floating">{copySuccess}</div>
         )}
@@ -878,6 +876,9 @@ const MultiplayerGame = () => {
         )}
         <button onClick={openRulesModal} className="rules-btn-floating">
           Rules
+        </button>
+        <button onClick={startNewGame} className="new-game-btn">
+          Leave Room
         </button>
       </div>
 
