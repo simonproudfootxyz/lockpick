@@ -332,7 +332,15 @@ const Game = () => {
     setViewingPile(null);
   };
 
-  const handleCantPlayCard = () => {
+  const [showCantPlayConfirm, setShowCantPlayConfirm] = useState(false);
+
+  const handleCantPlayClick = () => {
+    if (!gameState?.gameOver) {
+      setShowCantPlayConfirm(true);
+    }
+  };
+
+  const confirmCantPlayCard = () => {
     setGameOverInfo({
       type: "cant-play",
       title: "Game Over!",
@@ -340,6 +348,11 @@ const Game = () => {
       summaryItems: buildGameSummary(gameState),
     });
     setShowGameOverModal(true);
+    setShowCantPlayConfirm(false);
+  };
+
+  const cancelCantPlayCard = () => {
+    setShowCantPlayConfirm(false);
   };
 
   const startNewGame = () => {
@@ -393,6 +406,12 @@ const Game = () => {
         </button>
         <div className="game-status">{status}</div>
         <div className="game-controls"></div>
+      </div>
+
+      <div className="cant-play-container">
+        <button onClick={handleCantPlayClick} className="cant-play-btn">
+          I can't play a card
+        </button>
       </div>
 
       <div className="discard-piles">
@@ -463,9 +482,6 @@ const Game = () => {
           className="end-turn-btn"
         >
           End Turn & Draw Cards
-        </button>
-        <button onClick={handleCantPlayCard} className="cant-play-btn">
-          I can't play a card
         </button>
       </div>
 
@@ -570,6 +586,34 @@ const Game = () => {
         onAction={startNewGame}
         summaryItems={gameOverInfo?.summaryItems}
       />
+      {showCantPlayConfirm && (
+        <div
+          className="cant-play-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="single-cant-play-title"
+        >
+          <div className="cant-play-modal">
+            <h2 id="single-cant-play-title">End the game?</h2>
+            <p>
+              Confirm you have no legal moves available. Ending now will finish
+              this run.
+            </p>
+            <div className="cant-play-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={cancelCantPlayCard}
+              >
+                Keep playing
+              </button>
+              <button type="button" onClick={confirmCantPlayCard}>
+                Yes, end the game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
     </div>

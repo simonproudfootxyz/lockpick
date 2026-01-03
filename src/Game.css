@@ -274,6 +274,16 @@
   box-shadow: none;
 }
 
+.cant-play-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.cant-play-container .cant-play-btn {
+  margin: 0;
+}
+
 .pile-assignment {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 15px;

@@ -659,6 +659,15 @@ const MultiplayerGame = () => {
 
           {gameState && (
             <>
+              <div className="cant-play-container">
+                <button
+                  onClick={handleCantPlayClick}
+                  className="cant-play-btn"
+                  disabled={isSpectator || !playerIsCurrentPlayer}
+                >
+                  I can't play a card
+                </button>
+              </div>
               <div className="discard-piles">
                 <div className="pile-group">
                   <h3>Ascending (1)</h3>
@@ -741,13 +750,6 @@ const MultiplayerGame = () => {
                   }
                 >
                   End Turn & Draw Cards
-                </button>
-                <button
-                  onClick={handleCantPlayClick}
-                  className="cant-play-btn"
-                  disabled={isSpectator || !playerIsCurrentPlayer}
-                >
-                  I can't play a card
                 </button>
               </div>
 
