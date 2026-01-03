@@ -126,6 +126,20 @@ const Game = () => {
     }
   }, [gameId, numPlayers, gameState, loadGameState, initializeGame]);
 
+  const buildGameSummary = useCallback((state) => {
+    if (!state) {
+      return [];
+    }
+    const deckCount = Array.isArray(state.deck) ? state.deck.length : 0;
+    const totalCardsPlayed = Array.isArray(state.discardPiles)
+      ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
+      : 0;
+    return [
+      { label: "Total cards played", value: totalCardsPlayed },
+      { label: "Cards remaining in deck", value: deckCount },
+    ];
+  }, []);
+
   useEffect(() => {
     if (gameState?.gameWon) {
       const totalCards =
@@ -136,13 +150,14 @@ const Game = () => {
         type: "win",
         title: "Congratulations!",
         message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
+        summaryItems: buildGameSummary(gameState),
       });
       setShowGameOverModal(true);
     } else if (gameOverInfo?.type === "win") {
       setGameOverInfo(null);
       setShowGameOverModal(false);
     }
-  }, [gameState, gameOverInfo, numPlayers]);
+  }, [gameState, gameOverInfo, numPlayers, buildGameSummary]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -322,6 +337,7 @@ const Game = () => {
       type: "cant-play",
       title: "Game Over!",
       message: "No more moves are available. Start a new game to try again!",
+      summaryItems: buildGameSummary(gameState),
     });
     setShowGameOverModal(true);
   };
@@ -552,6 +568,7 @@ const Game = () => {
         message={gameOverInfo?.message}
         actionLabel="Start New Game"
         onAction={startNewGame}
+        summaryItems={gameOverInfo?.summaryItems}
       />
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />

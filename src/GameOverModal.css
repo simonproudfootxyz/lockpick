@@ -46,6 +46,46 @@
   line-height: 1.5;
 }
 
+.game-over-summary {
+  text-align: left;
+  margin-bottom: 1.5rem;
+  background: #f7fafc;
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.game-over-summary h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+.game-over-summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-over-summary li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.game-over-summary .summary-label {
+  font-weight: 600;
+}
+
+.game-over-summary .summary-value {
+  font-weight: 600;
+  color: #1a202c;
+}
+
 .game-over-actions {
   display: flex;
   gap: 1rem;

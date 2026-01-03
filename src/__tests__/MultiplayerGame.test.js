@@ -189,7 +189,6 @@ describe("MultiplayerGame", () => {
   });
 
   test("asks for confirmation before emitting cant-play", async () => {
-    const user = userEvent.setup();
     render(<MultiplayerGame />);
 
     const baseGameState = {
@@ -251,7 +250,7 @@ describe("MultiplayerGame", () => {
       name: /i can't play a card/i,
     });
 
-    await user.click(cantPlayButton);
+    await userEvent.click(cantPlayButton);
 
     expect(
       screen.getByRole("heading", { name: /end the game/i })
@@ -260,7 +259,7 @@ describe("MultiplayerGame", () => {
       false
     );
 
-    await user.click(
+    await userEvent.click(
       screen.getByRole("button", { name: /yes, end the game/i })
     );
 

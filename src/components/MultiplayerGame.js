@@ -80,6 +80,20 @@ const MultiplayerGame = () => {
     initialJoinPreference
   );
 
+  const buildGameSummary = useCallback((state) => {
+    if (!state) {
+      return [];
+    }
+    const deckCount = Array.isArray(state.deck) ? state.deck.length : 0;
+    const totalCardsPlayed = Array.isArray(state.discardPiles)
+      ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
+      : 0;
+    return [
+      { label: "Total cards played", value: totalCardsPlayed },
+      { label: "Cards remaining in deck", value: deckCount },
+    ];
+  }, []);
+
   const updateGameOverState = useCallback(
     (state, context = {}) => {
       if (!state) {
@@ -96,6 +110,7 @@ const MultiplayerGame = () => {
         setGameOverInfo({
           title: "Congratulations!",
           message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
+          summaryItems: buildGameSummary(state),
         });
         setShowGameOverModal(true);
         return;
@@ -113,6 +128,7 @@ const MultiplayerGame = () => {
         setGameOverInfo({
           title: "Game Over!",
           message: `${displayName} couldn't play a card. The game has ended.`,
+          summaryItems: buildGameSummary(state),
         });
         setShowGameOverModal(true);
         return;
@@ -121,7 +137,7 @@ const MultiplayerGame = () => {
       setGameOverInfo(null);
       setShowGameOverModal(false);
     },
-    [players]
+    [players, buildGameSummary]
   );
 
   const handleRoomJoined = useCallback(
@@ -926,6 +942,7 @@ const MultiplayerGame = () => {
         message={gameOverInfo?.message}
         actionLabel="Start New Game"
         onAction={startNewGame}
+        summaryItems={gameOverInfo?.summaryItems}
       />
 
       <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
