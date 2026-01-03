@@ -21,13 +21,18 @@ const NamePromptModal = ({
   useEffect(() => {
     if (isOpen) {
       setName(initialValue);
-      setJoinAsPlayer(initialJoinAsPlayer);
       requestAnimationFrame(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
       });
     }
-  }, [isOpen, initialValue, initialJoinAsPlayer]);
+  }, [isOpen, initialValue]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setJoinAsPlayer(initialJoinAsPlayer);
+    }
+  }, [isOpen, initialJoinAsPlayer]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -99,9 +104,6 @@ const NamePromptModal = ({
                     {joinAsPlayer
                       ? "Joining as a player"
                       : "Joining as a spectator"}
-                  </span>
-                  <span className="role-toggle-hint">
-                    Switch off to watch without taking a player slot.
                   </span>
                 </div>
               </label>
