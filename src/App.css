@@ -1,5 +1,18 @@
+:root {
+  --black: #1c1924;
+  --black--light: #2c2a33;
+  --black--light-2: #8a8784;
+  --white: #e9e1e1;
+  --yellow: #ffff25;
+  --red: #f85438;
+  --yellow-light: #ffffb7;
+  --primary-color: #ffff25;
+  --secondary-color: #f85438;
+}
+
 .App {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background: var(--black);
 }

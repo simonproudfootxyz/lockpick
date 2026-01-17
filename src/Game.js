@@ -408,15 +408,9 @@ const Game = () => {
         <div className="game-controls"></div>
       </div>
 
-      <div className="cant-play-container">
-        <button onClick={handleCantPlayClick} className="cant-play-btn">
-          I can't play a card
-        </button>
-      </div>
-
       <div className="discard-piles">
         <div className="pile-group">
-          <h3>Ascending (1)</h3>
+          <h3>Ascending</h3>
           <div className="piles-row">
             <DiscardPile
               pile={gameState.discardPiles[0]}
@@ -445,7 +439,7 @@ const Game = () => {
           </div>
         </div>
         <div className="pile-group">
-          <h3>Descending ({descendingStart})</h3>
+          <h3>Descending</h3>
           <div className="piles-row">
             <DiscardPile
               pile={gameState.discardPiles[2]}
@@ -473,16 +467,6 @@ const Game = () => {
             />
           </div>
         </div>
-      </div>
-
-      <div className="play-card-section">
-        <button
-          onClick={endTurn}
-          disabled={!gameState.turnComplete}
-          className="end-turn-btn"
-        >
-          End Turn & Draw Cards
-        </button>
       </div>
 
       <div className="player-section">
@@ -530,6 +514,21 @@ const Game = () => {
             />
           </div>
         ))}
+      </div>
+
+      <div className="play-card-section">
+        <button
+          onClick={endTurn}
+          disabled={!gameState.turnComplete}
+          className="end-turn-btn"
+        >
+          End Turn & Draw Cards
+        </button>
+        <div className="cant-play-container">
+          <button onClick={handleCantPlayClick} className="cant-play-btn">
+            I can't play a card
+          </button>
+        </div>
       </div>
 
       <div className="game-info">

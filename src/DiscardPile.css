@@ -4,8 +4,7 @@
   align-items: center;
   min-width: 80px;
   min-height: 120px;
-  background: #f7fafc;
-  border: 2px dashed #cbd5e0;
+  border: 2px dashed var(--white);
   border-radius: 8px;
   padding: 1rem;
   margin: 5px;

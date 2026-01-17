@@ -659,18 +659,9 @@ const MultiplayerGame = () => {
 
           {gameState && (
             <>
-              <div className="cant-play-container">
-                <button
-                  onClick={handleCantPlayClick}
-                  className="cant-play-btn"
-                  disabled={isSpectator || !playerIsCurrentPlayer}
-                >
-                  I can't play a card
-                </button>
-              </div>
               <div className="discard-piles">
                 <div className="pile-group">
-                  <h3>Ascending (1)</h3>
+                  <h3>Ascending</h3>
                   <div className="piles-row">
                     <DiscardPile
                       pile={gameState.discardPiles[0]}
@@ -699,7 +690,7 @@ const MultiplayerGame = () => {
                   </div>
                 </div>
                 <div className="pile-group">
-                  <h3>Descending ({descendingStart})</h3>
+                  <h3>Descending</h3>
                   <div className="piles-row">
                     <DiscardPile
                       pile={gameState.discardPiles[2]}
@@ -727,30 +718,6 @@ const MultiplayerGame = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="play-card-section">
-                <button
-                  onClick={handleEndTurn}
-                  disabled={
-                    !gameState ||
-                    isSpectator ||
-                    localPlayerIndex !== gameState.currentPlayer ||
-                    !gameState.turnComplete
-                  }
-                  className="end-turn-btn"
-                  title={
-                    !gameState || isSpectator
-                      ? "Only active players can end the turn"
-                      : localPlayerIndex !== gameState.currentPlayer
-                      ? "Wait for your turn"
-                      : !gameState.turnComplete
-                      ? "Play the required number of cards first"
-                      : undefined
-                  }
-                >
-                  End Turn & Draw Cards
-                </button>
               </div>
 
               {!isSpectator && (
@@ -828,6 +795,38 @@ const MultiplayerGame = () => {
                   <p>You are watching the game as a spectator.</p>
                 </div>
               )}
+              <div className="play-card-section">
+                <button
+                  onClick={handleEndTurn}
+                  disabled={
+                    !gameState ||
+                    isSpectator ||
+                    localPlayerIndex !== gameState.currentPlayer ||
+                    !gameState.turnComplete
+                  }
+                  className="end-turn-btn"
+                  title={
+                    !gameState || isSpectator
+                      ? "Only active players can end the turn"
+                      : localPlayerIndex !== gameState.currentPlayer
+                      ? "Wait for your turn"
+                      : !gameState.turnComplete
+                      ? "Play the required number of cards first"
+                      : undefined
+                  }
+                >
+                  End Turn & Draw Cards
+                </button>
+                <div className="cant-play-container">
+                  <button
+                    onClick={handleCantPlayClick}
+                    className="cant-play-btn"
+                    disabled={isSpectator || !playerIsCurrentPlayer}
+                  >
+                    I can't play a card
+                  </button>
+                </div>
+              </div>
             </>
           )}
 
