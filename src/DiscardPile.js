@@ -112,11 +112,18 @@ const DiscardPile = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="pile-header">
-        <div className="pile-label">{getPileLabel()}</div>
-      </div>
+      <button
+        className={`view-pile-btn ${pile.length === 0 && "disabled"}`}
+        onClick={() => onViewPile(pile, pileType, pileNumber)}
+        title="View all cards in this pile"
+        disabled={pile.length === 0}
+      >
+        {pile.length} cards
+      </button>
       <div className="pile-cards">
-        <div className="pile-display">
+        <div
+          className={`pile-display ${pile.length > 1 ? "pile--multiple" : ""}`}
+        >
           {/* Show starting card for empty piles */}
           {pile.length === 0 && (
             <div className="starting-card">
@@ -129,26 +136,22 @@ const DiscardPile = ({
                     : 100
                 }
                 isClickable={false}
+                discardPile={true}
               />
             </div>
           )}
           {/* Show only the last played card */}
           {pile.length > 0 && (
-            <div className="last-card">
-              <Card value={pile[pile.length - 1]} isClickable={false} />
-            </div>
+            <Card
+              value={pile[pile.length - 1]}
+              isClickable={false}
+              lastCard
+              discardPile={true}
+              hasMultipleInPile={pile.length > 1}
+            />
           )}
         </div>
       </div>
-      <div className="pile-count">{pile.length} cards</div>
-      <button
-        className={`view-pile-btn ${pile.length === 0 && "disabled"}`}
-        onClick={() => onViewPile(pile, pileType, pileNumber)}
-        title="View all cards in this pile"
-        disabled={pile.length === 0}
-      >
-        View
-      </button>
       <button
         className={`select-pile-btn ${isSelected ? "selected" : ""} ${
           !isSelectable ? "disabled" : ""

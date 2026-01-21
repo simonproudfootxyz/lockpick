@@ -25,7 +25,6 @@
 }
 
 .card-container.dragging {
-  opacity: 0.5;
   transform: rotate(5deg) scale(1.05);
   z-index: 1000;
 }
