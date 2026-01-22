@@ -24,6 +24,7 @@ import {
   getStoredPlayerName,
   storePlayerIdentity,
 } from "../utils/playerIdentity";
+import Button, { InvertButton } from "./Button";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -631,12 +632,6 @@ const MultiplayerGame = () => {
     <div className="game">
       <div className="game-header">
         <h1>Lockpick Multiplayer</h1>
-        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
-          Copy Invite Link
-        </button>
-        <div className="game-status">
-          {gameStatus || "Waiting for game to start..."}
-        </div>
       </div>
 
       <div className="game-layout">
@@ -729,49 +724,13 @@ const MultiplayerGame = () => {
                         : ""
                     }`}
                   >
-                    <h3>
-                      {getPlayerName(localPlayerIndex)}
+                    <h3 className="player-section__player-name">
                       {localPlayerIndex === gameState.currentPlayer
-                        ? " (Your Turn)"
-                        : ""}
+                        ? " Your turn,"
+                        : ""}{" "}
+                      {getPlayerName(localPlayerIndex)}
                     </h3>
-                    <div className="sort-controls">
-                      <div className="sort-buttons">
-                        <button
-                          onClick={() =>
-                            handleSortHand(localPlayerIndex, "asc")
-                          }
-                          className="sort-hand-btn"
-                          disabled={
-                            localPlayerIndex !== gameState.currentPlayer ||
-                            isSpectator
-                          }
-                        >
-                          Sort Hand Ascending
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleSortHand(localPlayerIndex, "desc")
-                          }
-                          className="sort-hand-btn"
-                          disabled={
-                            localPlayerIndex !== gameState.currentPlayer ||
-                            isSpectator
-                          }
-                        >
-                          Sort Hand Descending
-                        </button>
-                      </div>
-                      <label className="auto-sort-toggle">
-                        <input
-                          type="checkbox"
-                          checked={autoSortEnabled}
-                          onChange={handleAutoSortToggle}
-                          disabled={isSpectator}
-                        />
-                        Auto-Sort
-                      </label>
-                    </div>
+
                     <PlayerHand
                       hand={gameState.playerHands[localPlayerIndex] || []}
                       selectedCard={selectedCard}
@@ -785,6 +744,43 @@ const MultiplayerGame = () => {
                       }
                       discardPiles={gameState.discardPiles}
                     />
+                    <div className="sort-controls">
+                      <label className="auto-sort-toggle">
+                        <input
+                          type="checkbox"
+                          checked={autoSortEnabled}
+                          onChange={handleAutoSortToggle}
+                          disabled={isSpectator}
+                        />
+                        Auto-Sort
+                      </label>
+                      <div className="sort-buttons">
+                        <InvertButton
+                          onClick={() =>
+                            handleSortHand(localPlayerIndex, "asc")
+                          }
+                          disabled={
+                            localPlayerIndex !== gameState.currentPlayer ||
+                            isSpectator
+                          }
+                          mini
+                        >
+                          Sort Ascending
+                        </InvertButton>
+                        <InvertButton
+                          onClick={() =>
+                            handleSortHand(localPlayerIndex, "desc")
+                          }
+                          disabled={
+                            localPlayerIndex !== gameState.currentPlayer ||
+                            isSpectator
+                          }
+                          mini
+                        >
+                          Sort Descending
+                        </InvertButton>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -796,7 +792,22 @@ const MultiplayerGame = () => {
                 </div>
               )}
               <div className="play-card-section">
-                <button
+                {gameState && localPlayerIndex === gameState.currentPlayer && (
+                  <div className="turn-progress">
+                    {!gameState.turnComplete && (
+                      <span className="cards-remaining">
+                        Play{" "}
+                        {Math.max(
+                          0,
+                          (gameState.deck.length === 0 ? 1 : 2) -
+                            gameState.cardsPlayedThisTurn
+                        )}{" "}
+                        more
+                      </span>
+                    )}
+                  </div>
+                )}
+                <Button
                   onClick={handleEndTurn}
                   disabled={
                     !gameState ||
@@ -804,7 +815,6 @@ const MultiplayerGame = () => {
                     localPlayerIndex !== gameState.currentPlayer ||
                     !gameState.turnComplete
                   }
-                  className="end-turn-btn"
                   title={
                     !gameState || isSpectator
                       ? "Only active players can end the turn"
@@ -814,17 +824,18 @@ const MultiplayerGame = () => {
                       ? "Play the required number of cards first"
                       : undefined
                   }
+                  fullWidth
                 >
                   End Turn & Draw Cards
-                </button>
+                </Button>
                 <div className="cant-play-container">
-                  <button
+                  <InvertButton
                     onClick={handleCantPlayClick}
-                    className="cant-play-btn"
                     disabled={isSpectator || !playerIsCurrentPlayer}
+                    fullWidth
                   >
                     I can't play a card
-                  </button>
+                  </InvertButton>
                 </div>
               </div>
             </>
@@ -852,9 +863,9 @@ const MultiplayerGame = () => {
       </div>
 
       <div className="game-info">
-        <button onClick={handleCopyInviteLink} className="copy-invite-floating">
+        <Button onClick={handleCopyInviteLink} mini>
           Copy Invite Link
-        </button>
+        </Button>
         <div className="game-id">Room: {gameId}</div>
         <div>Cards in deck: {gameState?.deck?.length || 0}</div>
         <div>
@@ -874,29 +885,13 @@ const MultiplayerGame = () => {
         {copySuccess && (
           <div className="copy-feedback-floating">{copySuccess}</div>
         )}
-        {gameState && (
-          <div className="turn-progress">
-            Cards played this turn: {gameState.cardsPlayedThisTurn}
-            {!gameState.turnComplete && (
-              <span className="cards-remaining">
-                {" "}
-                (need{" "}
-                {Math.max(
-                  0,
-                  (gameState.deck.length === 0 ? 1 : 2) -
-                    gameState.cardsPlayedThisTurn
-                )}{" "}
-                more)
-              </span>
-            )}
-          </div>
-        )}
-        <button onClick={openRulesModal} className="rules-btn-floating">
+
+        <InvertButton onClick={openRulesModal} mini>
           Rules
-        </button>
-        <button onClick={startNewGame} className="new-game-btn">
+        </InvertButton>
+        <InvertButton onClick={startNewGame} mini>
           Leave Room
-        </button>
+        </InvertButton>
       </div>
 
       {showCantPlayConfirm && (
@@ -913,16 +908,10 @@ const MultiplayerGame = () => {
               failed for everyone in the room.
             </p>
             <div className="cant-play-actions">
-              <button
-                type="button"
-                className="secondary"
-                onClick={cancelCantPlayCard}
-              >
+              <InvertButton onClick={cancelCantPlayCard}>
                 Keep playing
-              </button>
-              <button type="button" onClick={confirmCantPlayCard}>
-                Yes, end the game
-              </button>
+              </InvertButton>
+              <Button onClick={confirmCantPlayCard}>Yes, end the game</Button>
             </div>
           </div>
         </div>

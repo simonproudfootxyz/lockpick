@@ -1,0 +1,60 @@
+.button {
+  background: var(--white);
+  font-size: 1rem;
+  color: var(--black);
+  font-family: var(--jost);
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--white);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.button:hover,
+.button:focus {
+  background: var(--black--light);
+  color: var(--white);
+  cursor: pointer;
+}
+
+.button.disabled,
+.button[disabled] {
+  background: var(--black--light);
+  border-color: var(--black--light);
+  color: var(--black);
+  cursor: not-allowed;
+}
+
+.button--mini {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.button--invert {
+  background: var(--black);
+  color: var(--white);
+}
+
+.button--invert:hover,
+.button--invert:focus {
+  background: var(--white);
+  color: var(--black);
+}
+
+.button--invert.disabled,
+.button--invert[disabled] {
+  background: var(--black);
+  border-color: var(--black--light);
+  color: var(--black--light);
+  cursor: not-allowed;
+}
+
+.button--invert.disabled {
+  background: var(--black);
+  border-color: var(--black--light);
+  color: var(--black--light);
+}
+
+.button--full-width {
+  width: 100%;
+}

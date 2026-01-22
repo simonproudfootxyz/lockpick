@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import Card from "./Card";
 import "./DiscardPile.css";
+import Button, { InvertButton } from "./components/Button";
 
 const DiscardPile = ({
   pile,
@@ -112,14 +113,15 @@ const DiscardPile = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <button
-        className={`view-pile-btn ${pile.length === 0 && "disabled"}`}
+      <InvertButton
+        className={`${pile.length === 0 && "disabled"}`}
         onClick={() => onViewPile(pile, pileType, pileNumber)}
         title="View all cards in this pile"
         disabled={pile.length === 0}
+        mini
       >
-        {pile.length} cards
-      </button>
+        {pile.length} {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
+      </InvertButton>
       <div className="pile-cards">
         <div
           className={`pile-display ${pile.length > 1 ? "pile--multiple" : ""}`}
@@ -152,7 +154,17 @@ const DiscardPile = ({
           )}
         </div>
       </div>
-      <button
+      <InvertButton
+        className={`${isSelected ? "selected" : ""} ${
+          !isSelectable ? "disabled" : ""
+        }`}
+        onClick={() => onPlayCard(pileNumber - 1)}
+        disabled={!isSelectable}
+        mini
+      >
+        Play
+      </InvertButton>
+      {/* <button
         className={`select-pile-btn ${isSelected ? "selected" : ""} ${
           !isSelectable ? "disabled" : ""
         }`}
@@ -160,7 +172,7 @@ const DiscardPile = ({
         disabled={!isSelectable}
       >
         Play
-      </button>
+      </button> */}
     </div>
   );
 };

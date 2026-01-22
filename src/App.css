@@ -5,10 +5,14 @@
   --black--light-3: #2e2e33;
   --white: #e9e1e1;
   --yellow: #ffff25;
+  --yellow--light: #ffffb7;
   --red: #f85438;
-  --yellow-light: #ffffb7;
   --primary-color: #ffff25;
   --secondary-color: #f85438;
+
+  /* font family */
+  --jost: "Jost", sans-serif;
+  --league-gothic: "League Gothic", sans-serif;
 }
 
 .App {
@@ -17,4 +21,5 @@
   padding: 0;
   min-height: 100vh;
   background: var(--black);
+  color: var(--white);
 }

@@ -126,17 +126,6 @@ const PlayerHand = ({
           </div>
         ))}
       </div>
-      <div className="hand-info">
-        {hand.length} cards in hand
-        {isCurrentPlayer && (
-          <div className="selection-info">
-            {selectedCard
-              ? `Card ${selectedCard} selected`
-              : "No card selected"}
-            <div className="reorder-hint">Drag cards to reorder</div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

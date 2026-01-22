@@ -68,17 +68,14 @@
 
 .player-list-item,
 .spectators-list-item {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 12px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   transition: all 0.2s;
 }
 
 .player-list-item.current {
-  background: rgba(72, 187, 120, 0.3);
-  border-color: #48bb78;
-  box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
+  border-color: var(--yellow);
 }
 
 .player-list-item.disconnected {

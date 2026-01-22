@@ -16,6 +16,7 @@ import PileViewModal from "./PileViewModal";
 import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
 import "./Game.css";
+import Button, { InvertButton } from "./components/Button";
 
 const Game = () => {
   const { gameId } = useParams();
@@ -400,11 +401,7 @@ const Game = () => {
     <div className="game">
       <div className="game-header">
         <h1>lockpick</h1>
-        <div className="game-id">Game ID: {gameId}</div>
-        <button onClick={startNewGame} className="new-game-btn">
-          New Game
-        </button>
-        <div className="game-status">{status}</div>
+        {/* <div className="game-status">{status}</div> */}
         <div className="game-controls"></div>
       </div>
 
@@ -481,29 +478,7 @@ const Game = () => {
               Player {index + 1}{" "}
               {index === gameState.currentPlayer ? "(Your Turn)" : ""}
             </h3>
-            {index === gameState.currentPlayer && (
-              <div className="sort-controls">
-                <div className="sort-buttons">
-                  <button onClick={sortHandAscending} className="sort-hand-btn">
-                    Sort Hand Ascending
-                  </button>
-                  <button
-                    onClick={sortHandDescending}
-                    className="sort-hand-btn"
-                  >
-                    Sort Hand Descending
-                  </button>
-                </div>
-                <label className="auto-sort-toggle">
-                  <input
-                    type="checkbox"
-                    checked={autoSortEnabled}
-                    onChange={handleAutoSortToggle}
-                  />
-                  Auto-Sort
-                </label>
-              </div>
-            )}
+
             <PlayerHand
               hand={hand}
               selectedCard={selectedCard}
@@ -512,26 +487,65 @@ const Game = () => {
               isCurrentPlayer={index === gameState.currentPlayer}
               discardPiles={gameState.discardPiles}
             />
+            {index === gameState.currentPlayer && (
+              <div className="sort-controls">
+                <label className="auto-sort-toggle">
+                  <input
+                    type="checkbox"
+                    checked={autoSortEnabled}
+                    onChange={handleAutoSortToggle}
+                  />
+                  Auto-Sort
+                </label>
+                <div className="sort-buttons">
+                  <InvertButton onClick={sortHandAscending} mini>
+                    Sort Ascending
+                  </InvertButton>
+                  <InvertButton onClick={sortHandDescending} mini>
+                    Sort Descending
+                  </InvertButton>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
       <div className="play-card-section">
-        <button
+        <div className="turn-progress">
+          {!gameState.turnComplete && (
+            <span className="cards-remaining">
+              Play{" "}
+              {Math.max(
+                0,
+                (gameState.deck.length === 0 ? 1 : 2) -
+                  gameState.cardsPlayedThisTurn
+              )}{" "}
+              more cards
+            </span>
+          )}
+        </div>
+        <Button
           onClick={endTurn}
           disabled={!gameState.turnComplete}
           className="end-turn-btn"
+          fullWidth
         >
           End Turn & Draw Cards
-        </button>
+        </Button>
         <div className="cant-play-container">
-          <button onClick={handleCantPlayClick} className="cant-play-btn">
+          <InvertButton
+            onClick={handleCantPlayClick}
+            className="cant-play-btn"
+            fullWidth
+          >
             I can't play a card
-          </button>
+          </InvertButton>
         </div>
       </div>
 
       <div className="game-info">
+        <div className="game-id">Game ID: {gameId}</div>
         <div>Cards in deck: {gameState.deck.length}</div>
         <div>
           Current player hand:{" "}
@@ -543,24 +557,9 @@ const Game = () => {
           {gameState.totalCards ||
             getTotalCardCount(gameState.playerHands.length)}
         </div>
-        <div className="turn-progress">
-          Cards played this turn: {gameState.cardsPlayedThisTurn}
-          {!gameState.turnComplete && (
-            <span className="cards-remaining">
-              {" "}
-              (need{" "}
-              {Math.max(
-                0,
-                (gameState.deck.length === 0 ? 1 : 2) -
-                  gameState.cardsPlayedThisTurn
-              )}{" "}
-              more)
-            </span>
-          )}
-        </div>
-        <button onClick={openRulesModal} className="rules-btn-floating">
+        <Button mini fullWidth onClick={openRulesModal}>
           Rules
-        </button>
+        </Button>
         {lastSaved && (
           <div className="save-indicator">
             Saved: {lastSaved.toLocaleTimeString()}
@@ -599,16 +598,10 @@ const Game = () => {
               this run.
             </p>
             <div className="cant-play-actions">
-              <button
-                type="button"
-                className="secondary"
-                onClick={cancelCantPlayCard}
-              >
+              <InvertButton onClick={cancelCantPlayCard}>
                 Keep playing
-              </button>
-              <button type="button" onClick={confirmCantPlayCard}>
-                Yes, end the game
-              </button>
+              </InvertButton>
+              <Button onClick={confirmCantPlayCard}>Yes, end the game</Button>
             </div>
           </div>
         </div>
