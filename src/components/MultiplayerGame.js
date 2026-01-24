@@ -551,22 +551,6 @@ const MultiplayerGame = () => {
     navigate("/");
   }, [navigate]);
 
-  const buildInviteLink = () => {
-    const origin = window.location.origin;
-    return `${origin}/join/${gameId}`;
-  };
-
-  const handleCopyInviteLink = async () => {
-    try {
-      await navigator.clipboard.writeText(buildInviteLink());
-      setCopySuccess("Invite link copied!");
-      setTimeout(() => setCopySuccess(""), 3000);
-    } catch (err) {
-      console.error("Failed to copy invite link", err);
-      setCopySuccess("Copy failed. Please copy manually: " + buildInviteLink());
-    }
-  };
-
   const openRulesModal = () => {
     setShowRulesModal(true);
   };
@@ -579,7 +563,7 @@ const MultiplayerGame = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>Lockpick Multiplayer</h1>
+          <h1>lockpick</h1>
         </div>
         <div className="reconnection-overlay">
           <div className="reconnection-message">
@@ -595,7 +579,7 @@ const MultiplayerGame = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>Lockpick Multiplayer</h1>
+          <h1>lockpick</h1>
           <div className="game-status">Joining room...</div>
         </div>
       </div>
@@ -631,10 +615,21 @@ const MultiplayerGame = () => {
   return (
     <div className="game">
       <div className="game-header">
-        <h1>Lockpick Multiplayer</h1>
+        <h1>lockpick</h1>
       </div>
 
       <div className="game-layout">
+        <div className="game-sidebar">
+          <PlayerList
+            players={players}
+            spectators={spectators}
+            currentPlayerIndex={gameState?.currentPlayer ?? 0}
+            localPlayerIndex={localPlayerIndex}
+            isHost={isHost}
+            onStartGame={handleStartGame}
+            gameStarted={gameStarted}
+          />
+        </div>
         <div className="game-main">
           {isHost && !gameStarted && (
             <div className="start-game-section">
@@ -724,12 +719,29 @@ const MultiplayerGame = () => {
                         : ""
                     }`}
                   >
-                    <h3 className="player-section__player-name">
-                      {localPlayerIndex === gameState.currentPlayer
-                        ? " Your turn,"
-                        : ""}{" "}
-                      {getPlayerName(localPlayerIndex)}
-                    </h3>
+                    <div className="player__instructions">
+                      <h3
+                        className={`player-section__player-name ${
+                          localPlayerIndex !== gameState.currentPlayer
+                            ? "player-section__player-name--disabled"
+                            : ""
+                        }`}
+                      >
+                        {localPlayerIndex === gameState.currentPlayer
+                          ? ` Your turn, ${getPlayerName(localPlayerIndex)}`
+                          : "Not your turn"}
+                      </h3>
+                      <p
+                        className={`${
+                          localPlayerIndex !== gameState.currentPlayer
+                            ? "disabled"
+                            : ""
+                        }`}
+                      >
+                        Drag cards to a pile, or select a card & click “play” on
+                        the intended pile.
+                      </p>
+                    </div>
 
                     <PlayerHand
                       hand={gameState.playerHands[localPlayerIndex] || []}
@@ -792,21 +804,19 @@ const MultiplayerGame = () => {
                 </div>
               )}
               <div className="play-card-section">
-                {gameState && localPlayerIndex === gameState.currentPlayer && (
-                  <div className="turn-progress">
-                    {!gameState.turnComplete && (
-                      <span className="cards-remaining">
-                        Play{" "}
-                        {Math.max(
-                          0,
-                          (gameState.deck.length === 0 ? 1 : 2) -
-                            gameState.cardsPlayedThisTurn
-                        )}{" "}
-                        more
-                      </span>
-                    )}
-                  </div>
-                )}
+                {gameState &&
+                  localPlayerIndex === gameState.currentPlayer &&
+                  !gameState.turnComplete && (
+                    <p className="turn-progress">
+                      Play{" "}
+                      {Math.max(
+                        0,
+                        (gameState.deck.length === 0 ? 1 : 2) -
+                          gameState.cardsPlayedThisTurn
+                      )}{" "}
+                      more
+                    </p>
+                  )}
                 <Button
                   onClick={handleEndTurn}
                   disabled={
@@ -848,24 +858,9 @@ const MultiplayerGame = () => {
             </div>
           )}
         </div>
-
-        <div className="game-sidebar">
-          <PlayerList
-            players={players}
-            spectators={spectators}
-            currentPlayerIndex={gameState?.currentPlayer ?? 0}
-            localPlayerIndex={localPlayerIndex}
-            isHost={isHost}
-            onStartGame={handleStartGame}
-            gameStarted={gameStarted}
-          />
-        </div>
       </div>
 
       <div className="game-info">
-        <Button onClick={handleCopyInviteLink} mini>
-          Copy Invite Link
-        </Button>
         <div className="game-id">Room: {gameId}</div>
         <div>Cards in deck: {gameState?.deck?.length || 0}</div>
         <div>
@@ -881,10 +876,10 @@ const MultiplayerGame = () => {
           ) || 0}
           /{totalCardsTarget}
         </div>
-
+        {/* 
         {copySuccess && (
           <div className="copy-feedback-floating">{copySuccess}</div>
-        )}
+        )} */}
 
         <InvertButton onClick={openRulesModal} mini>
           Rules

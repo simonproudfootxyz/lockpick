@@ -474,10 +474,12 @@ const Game = () => {
               index === gameState.currentPlayer ? "current" : ""
             }`}
           >
-            <h3>
-              Player {index + 1}{" "}
-              {index === gameState.currentPlayer ? "(Your Turn)" : ""}
-            </h3>
+            <div className="player__instructions">
+              <p>
+                Drag cards to a pile, or select a card & click “play” on the
+                intended pile.
+              </p>
+            </div>
 
             <PlayerHand
               hand={hand}
@@ -512,19 +514,17 @@ const Game = () => {
       </div>
 
       <div className="play-card-section">
-        <div className="turn-progress">
-          {!gameState.turnComplete && (
-            <span className="cards-remaining">
-              Play{" "}
-              {Math.max(
-                0,
-                (gameState.deck.length === 0 ? 1 : 2) -
-                  gameState.cardsPlayedThisTurn
-              )}{" "}
-              more cards
-            </span>
-          )}
-        </div>
+        {!gameState.turnComplete && (
+          <p className="turn-progress">
+            Play{" "}
+            {Math.max(
+              0,
+              (gameState.deck.length === 0 ? 1 : 2) -
+                gameState.cardsPlayedThisTurn
+            )}{" "}
+            more cards
+          </p>
+        )}
         <Button
           onClick={endTurn}
           disabled={!gameState.turnComplete}

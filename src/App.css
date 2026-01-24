@@ -23,3 +23,7 @@
   background: var(--black);
   color: var(--white);
 }
+
+.disabled {
+  color: var(--black--light-3);
+}

@@ -304,12 +304,20 @@
 .player .player-section__player-name {
   background: var(--yellow--light);
   display: inline-block;
-  margin: 0 auto 0.25rem;
+  margin: 0 auto 0.5rem;
   text-align: center;
   color: var(--black);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
+}
+
+.player .player-section__player-name--disabled {
+  background: var(--black--light-3);
+}
+
+.player .player__instructions {
+  margin: 2rem 0;
 }
 
 .game-info {
@@ -349,9 +357,6 @@
 
 .turn-progress {
   margin-bottom: 0.5rem;
-}
-
-.cards-remaining {
   color: var(--red);
 }
 
@@ -409,9 +414,8 @@
 }
 
 .copy-feedback-floating {
-  margin-top: 6px;
-  color: #68d391;
-  font-weight: 600;
+  margin-top: 0.5rem;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
@@ -450,7 +454,6 @@
   flex-direction: column;
   gap: 20px;
   justify-content: center;
-  margin-top: 20px;
 }
 
 .player-section .player {
@@ -472,8 +475,8 @@
 .game-layout {
   display: flex;
   gap: 20px;
-  max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 }
 
 .game-main {
@@ -482,8 +485,11 @@
 }
 
 .game-sidebar {
-  width: 300px;
+  width: 185px;
   flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .waiting-for-game {
@@ -623,6 +629,7 @@
 
   .game-sidebar {
     width: 100%;
-    order: -1;
+    order: 1;
+    position: static;
   }
 }
