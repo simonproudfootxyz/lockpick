@@ -529,20 +529,16 @@ const Game = () => {
             more cards
           </p>
         )}
-        <Button
-          onClick={endTurn}
-          disabled={!gameState.turnComplete}
-          className="end-turn-btn"
-          fullWidth
-        >
-          End Turn & Draw Cards
-        </Button>
+
         <div className="cant-play-container">
-          <InvertButton
-            onClick={handleCantPlayClick}
-            className="cant-play-btn"
-            fullWidth
+          <Button
+            onClick={endTurn}
+            disabled={!gameState.turnComplete}
+            className="end-turn-btn"
           >
+            End Turn & Draw Cards
+          </Button>
+          <InvertButton onClick={handleCantPlayClick} className="cant-play-btn">
             I can't play a card
           </InvertButton>
         </div>

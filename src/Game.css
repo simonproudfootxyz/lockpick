@@ -182,12 +182,14 @@
 
 .play-card-section {
   margin: 20px auto;
-  max-width: 220px;
   text-align: center;
 }
 
 .cant-play-container {
-  margin-top: 0.5rem;
+  margin: 0.5rem auto;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
 .cant-play-container .cant-play-btn {

@@ -824,32 +824,31 @@ const MultiplayerGame = () => {
                       more
                     </p>
                   )}
-                <Button
-                  onClick={handleEndTurn}
-                  disabled={
-                    !gameState ||
-                    isSpectator ||
-                    localPlayerIndex !== gameState.currentPlayer ||
-                    !gameState.turnComplete
-                  }
-                  title={
-                    !gameState || isSpectator
-                      ? "Only active players can end the turn"
-                      : localPlayerIndex !== gameState.currentPlayer
-                      ? "Wait for your turn"
-                      : !gameState.turnComplete
-                      ? "Play the required number of cards first"
-                      : undefined
-                  }
-                  fullWidth
-                >
-                  End Turn & Draw Cards
-                </Button>
+
                 <div className="cant-play-container">
+                  <Button
+                    onClick={handleEndTurn}
+                    disabled={
+                      !gameState ||
+                      isSpectator ||
+                      localPlayerIndex !== gameState.currentPlayer ||
+                      !gameState.turnComplete
+                    }
+                    title={
+                      !gameState || isSpectator
+                        ? "Only active players can end the turn"
+                        : localPlayerIndex !== gameState.currentPlayer
+                        ? "Wait for your turn"
+                        : !gameState.turnComplete
+                        ? "Play the required number of cards first"
+                        : undefined
+                    }
+                  >
+                    End Turn & Draw Cards
+                  </Button>
                   <InvertButton
                     onClick={handleCantPlayClick}
                     disabled={isSpectator || !playerIsCurrentPlayer}
-                    fullWidth
                   >
                     I can't play a card
                   </InvertButton>
