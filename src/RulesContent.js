@@ -63,7 +63,7 @@ const RulesContent = ({ className = "" }) => {
           </li>
         </ul>
         <div className="hand-sizes">
-          <h4>Starting hand sizes</h4>
+          <h3>Starting hand sizes</h3>
           <ul>
             <li>1 player: 8 cards</li>
             <li>2 players: 7 cards each</li>

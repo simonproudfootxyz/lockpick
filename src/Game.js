@@ -17,6 +17,7 @@ import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
 import "./Game.css";
 import Button, { InvertButton } from "./components/Button";
+import LockpickLogo from "./assets/LockpickLogo.svg";
 
 const Game = () => {
   const { gameId } = useParams();
@@ -383,7 +384,9 @@ const Game = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>lockpick</h1>
+          <h1>
+            <img src={LockpickLogo} alt="Lockpick" />
+          </h1>
           <div className="game-status">Loading game...</div>
         </div>
       </div>
@@ -400,8 +403,9 @@ const Game = () => {
   return (
     <div className="game">
       <div className="game-header">
-        <h1>lockpick</h1>
-        {/* <div className="game-status">{status}</div> */}
+        <h1>
+          <img src={LockpickLogo} alt="Lockpick" />
+        </h1>
         <div className="game-controls"></div>
       </div>
 

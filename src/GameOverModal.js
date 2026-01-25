@@ -1,5 +1,6 @@
 import React from "react";
 import "./GameOverModal.css";
+import Button, { InvertButton } from "./components/Button";
 
 const GameOverModal = ({
   isOpen,
@@ -30,9 +31,7 @@ const GameOverModal = ({
           </div>
         )}
         <div className="game-over-actions">
-          <button onClick={onAction} className="new-game-btn">
-            {actionLabel}
-          </button>
+          <Button onClick={onAction}>{actionLabel}</Button>
         </div>
       </div>
     </div>

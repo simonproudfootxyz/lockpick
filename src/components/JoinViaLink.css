@@ -1,6 +1,5 @@
 .join-link {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,7 +7,7 @@
 }
 
 .join-link-container {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--white);
   border-radius: 20px;
   padding: 40px;
   max-width: 420px;
@@ -35,7 +34,7 @@
 .join-link-error {
   display: inline-block;
   margin-top: 10px;
-  color: #e53e3e;
+  color: var(--red);
   background: #fed7d7;
   padding: 10px 14px;
   border-radius: 8px;

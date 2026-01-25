@@ -25,6 +25,7 @@ import {
   storePlayerIdentity,
 } from "../utils/playerIdentity";
 import Button, { InvertButton } from "./Button";
+import LockpickLogo from "../assets/LockpickLogo.svg";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -563,7 +564,9 @@ const MultiplayerGame = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>lockpick</h1>
+          <h1>
+            <img src={LockpickLogo} alt="Lockpick" />
+          </h1>
         </div>
         <div className="reconnection-overlay">
           <div className="reconnection-message">
@@ -579,7 +582,9 @@ const MultiplayerGame = () => {
     return (
       <div className="game">
         <div className="game-header">
-          <h1>lockpick</h1>
+          <h1>
+            <img src={LockpickLogo} alt="Lockpick" />
+          </h1>
           <div className="game-status">Joining room...</div>
         </div>
       </div>
@@ -615,7 +620,9 @@ const MultiplayerGame = () => {
   return (
     <div className="game">
       <div className="game-header">
-        <h1>lockpick</h1>
+        <h1>
+          <img src={LockpickLogo} alt="Lockpick" />
+        </h1>
       </div>
 
       <div className="game-layout">

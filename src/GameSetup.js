@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSetup.css";
 import RulesContent from "./RulesContent";
+import Button from "./components/Button";
+import LockpickLogo from "./assets/LockpickLogo.svg";
 
 const DEFAULT_PLAYER_COUNT = 1;
 
@@ -20,22 +22,19 @@ const GameSetup = () => {
   return (
     <div className="game-setup">
       <div className="setup-container">
-        <h1>Lockpick Card Game</h1>
+        <h1>
+          <img src={LockpickLogo} alt="Multiplayer" />
+        </h1>
 
         <div className="setup-options">
-          <button className="start-game-btn" onClick={handleStartGame}>
-            Start Single Player Game
-          </button>
+          <Button onClick={handleStartGame}>Start Single Player Game</Button>
 
           <div className="multiplayer-section">
             <h3>Multiplayer</h3>
-            <p>Play with friends online!</p>
-            <button
-              className="multiplayer-btn"
-              onClick={() => navigate("/lobby")}
-            >
+            <Button onClick={() => navigate("/lobby")}>
               Join Multiplayer Lobby
-            </button>
+            </Button>
+            <p>Play with friends online!</p>
           </div>
         </div>
         <div className="rules-summary">
