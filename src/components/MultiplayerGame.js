@@ -640,17 +640,13 @@ const MultiplayerGame = () => {
         <div className="game-main">
           {isHost && !gameStarted && (
             <div className="start-game-section">
-              <button
-                onClick={handleStartGame}
-                disabled={players.length < 2}
-                className="start-game-main-btn"
-              >
+              <Button onClick={handleStartGame} disabled={players.length < 2}>
                 {players.length < 2
                   ? `Need ${2 - players.length} more player${
                       2 - players.length === 1 ? "" : "s"
                     } to start`
                   : "Start Game"}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -783,7 +779,8 @@ const MultiplayerGame = () => {
                             }
                             mini
                           >
-                            Sort Ascending
+                            Sort Asc
+                            <span className="hidden--tablet-down">ending</span>
                           </InvertButton>
                           <InvertButton
                             onClick={() =>
@@ -795,7 +792,8 @@ const MultiplayerGame = () => {
                             }
                             mini
                           >
-                            Sort Descending
+                            Sort Desc
+                            <span className="hidden--tablet-down">ending</span>
                           </InvertButton>
                         </div>
                       </div>
@@ -806,6 +804,10 @@ const MultiplayerGame = () => {
                   <div className="waiting-for-game spectator-view">
                     <h2>Spectator Mode</h2>
                     <p>You are watching the game as a spectator.</p>
+                    <p>
+                      Need {2 - players.length} more player
+                      {2 - players.length === 1 ? "" : "s"} to start
+                    </p>
                   </div>
                 )}
                 <div className="play-card-section">
@@ -860,12 +862,16 @@ const MultiplayerGame = () => {
             <div className="waiting-for-game">
               <h2>Waiting for game to start...</h2>
               <p>The host needs to start the game.</p>
+              <p>
+                Need {2 - players.length} more player
+                {2 - players.length === 1 ? "" : "s"} to start
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="game-info hidden--tablet-down">
+      <div className="game-info">
         <div className="game-id">Room: {gameId}</div>
         <div>Cards in deck: {gameState?.deck?.length || 0}</div>
         <div>

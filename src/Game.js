@@ -506,10 +506,12 @@ const Game = () => {
                   </label>
                   <div className="sort-buttons">
                     <InvertButton onClick={sortHandAscending} mini>
-                      Sort Ascending
+                      Sort Asc
+                      <span className="hidden--tablet-down">ending</span>
                     </InvertButton>
                     <InvertButton onClick={sortHandDescending} mini>
-                      Sort Descending
+                      Sort Desc
+                      <span className="hidden--tablet-down">ending</span>
                     </InvertButton>
                   </div>
                 </div>
@@ -551,7 +553,7 @@ const Game = () => {
         </div>
       </div>
 
-      <div className="game-info hidden--tablet-down">
+      <div className="game-info">
         <div className="game-id">Game ID: {gameId}</div>
         <div>Cards in deck: {gameState.deck.length}</div>
         <div>
