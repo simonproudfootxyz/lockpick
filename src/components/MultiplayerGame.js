@@ -716,142 +716,141 @@ const MultiplayerGame = () => {
                   </div>
                 </div>
               </div>
-
-              {!isSpectator && (
-                <div className="player-section">
-                  <div
-                    className={`player ${
-                      localPlayerIndex === gameState.currentPlayer
-                        ? "current"
-                        : ""
-                    }`}
-                  >
-                    <div className="player__instructions">
-                      <h3
-                        className={`player-section__player-name ${
-                          localPlayerIndex !== gameState.currentPlayer
-                            ? "player-section__player-name--disabled"
-                            : ""
-                        }`}
-                      >
-                        {localPlayerIndex === gameState.currentPlayer
-                          ? ` Your turn, ${getPlayerName(localPlayerIndex)}`
-                          : "Not your turn"}
-                      </h3>
-                      <p
-                        className={`${
-                          localPlayerIndex !== gameState.currentPlayer
-                            ? "disabled"
-                            : ""
-                        }`}
-                      >
-                        Drag cards to a pile, or select a card & click “play” on
-                        the intended pile.
-                      </p>
-                    </div>
-
-                    <PlayerHand
-                      hand={gameState.playerHands[localPlayerIndex] || []}
-                      selectedCard={selectedCard}
-                      onCardSelect={(card) =>
-                        handleCardSelect(card, localPlayerIndex)
-                      }
-                      onHandReorder={handleHandReorder}
-                      isCurrentPlayer={
-                        localPlayerIndex === gameState.currentPlayer &&
-                        !isSpectator
-                      }
-                      discardPiles={gameState.discardPiles}
-                    />
-                    <div className="sort-controls">
-                      <label className="auto-sort-toggle">
-                        <input
-                          type="checkbox"
-                          checked={autoSortEnabled}
-                          onChange={handleAutoSortToggle}
-                          disabled={isSpectator}
-                        />
-                        Auto-Sort
-                      </label>
-                      <div className="sort-buttons">
-                        <InvertButton
-                          onClick={() =>
-                            handleSortHand(localPlayerIndex, "asc")
-                          }
-                          disabled={
-                            localPlayerIndex !== gameState.currentPlayer ||
-                            isSpectator
-                          }
-                          mini
+              <div className="player-actions-container">
+                {!isSpectator && (
+                  <div className="player-section">
+                    <div
+                      className={`player ${
+                        localPlayerIndex === gameState.currentPlayer
+                          ? "current"
+                          : ""
+                      }`}
+                    >
+                      <div className="player__instructions">
+                        <h3
+                          className={`player-section__player-name ${
+                            localPlayerIndex !== gameState.currentPlayer
+                              ? "player-section__player-name--disabled"
+                              : ""
+                          }`}
                         >
-                          Sort Ascending
-                        </InvertButton>
-                        <InvertButton
-                          onClick={() =>
-                            handleSortHand(localPlayerIndex, "desc")
-                          }
-                          disabled={
-                            localPlayerIndex !== gameState.currentPlayer ||
-                            isSpectator
-                          }
-                          mini
+                          {localPlayerIndex === gameState.currentPlayer
+                            ? ` Your turn, ${getPlayerName(localPlayerIndex)}`
+                            : "Not your turn"}
+                        </h3>
+                        <p
+                          className={`player__instructions ${
+                            localPlayerIndex !== gameState.currentPlayer
+                              ? "disabled"
+                              : ""
+                          }`}
                         >
-                          Sort Descending
-                        </InvertButton>
+                          Drag cards to a pile, or select a card & click "play"
+                        </p>
+                      </div>
+
+                      <PlayerHand
+                        hand={gameState.playerHands[localPlayerIndex] || []}
+                        selectedCard={selectedCard}
+                        onCardSelect={(card) =>
+                          handleCardSelect(card, localPlayerIndex)
+                        }
+                        onHandReorder={handleHandReorder}
+                        isCurrentPlayer={
+                          localPlayerIndex === gameState.currentPlayer &&
+                          !isSpectator
+                        }
+                        discardPiles={gameState.discardPiles}
+                      />
+                      <div className="sort-controls">
+                        <label className="auto-sort-toggle">
+                          <input
+                            type="checkbox"
+                            checked={autoSortEnabled}
+                            onChange={handleAutoSortToggle}
+                            disabled={isSpectator}
+                          />
+                          Auto-Sort
+                        </label>
+                        <div className="sort-buttons">
+                          <InvertButton
+                            onClick={() =>
+                              handleSortHand(localPlayerIndex, "asc")
+                            }
+                            disabled={
+                              localPlayerIndex !== gameState.currentPlayer ||
+                              isSpectator
+                            }
+                            mini
+                          >
+                            Sort Ascending
+                          </InvertButton>
+                          <InvertButton
+                            onClick={() =>
+                              handleSortHand(localPlayerIndex, "desc")
+                            }
+                            disabled={
+                              localPlayerIndex !== gameState.currentPlayer ||
+                              isSpectator
+                            }
+                            mini
+                          >
+                            Sort Descending
+                          </InvertButton>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+                {isSpectator && (
+                  <div className="waiting-for-game spectator-view">
+                    <h2>Spectator Mode</h2>
+                    <p>You are watching the game as a spectator.</p>
+                  </div>
+                )}
+                <div className="play-card-section">
+                  {gameState &&
+                    localPlayerIndex === gameState.currentPlayer &&
+                    !gameState.turnComplete && (
+                      <p className="turn-progress">
+                        Play{" "}
+                        {Math.max(
+                          0,
+                          (gameState.deck.length === 0 ? 1 : 2) -
+                            gameState.cardsPlayedThisTurn
+                        )}{" "}
+                        more
+                      </p>
+                    )}
 
-              {isSpectator && (
-                <div className="waiting-for-game spectator-view">
-                  <h2>Spectator Mode</h2>
-                  <p>You are watching the game as a spectator.</p>
-                </div>
-              )}
-              <div className="play-card-section">
-                {gameState &&
-                  localPlayerIndex === gameState.currentPlayer &&
-                  !gameState.turnComplete && (
-                    <p className="turn-progress">
-                      Play{" "}
-                      {Math.max(
-                        0,
-                        (gameState.deck.length === 0 ? 1 : 2) -
-                          gameState.cardsPlayedThisTurn
-                      )}{" "}
-                      more
-                    </p>
-                  )}
-
-                <div className="cant-play-container">
-                  <Button
-                    onClick={handleEndTurn}
-                    disabled={
-                      !gameState ||
-                      isSpectator ||
-                      localPlayerIndex !== gameState.currentPlayer ||
-                      !gameState.turnComplete
-                    }
-                    title={
-                      !gameState || isSpectator
-                        ? "Only active players can end the turn"
-                        : localPlayerIndex !== gameState.currentPlayer
-                        ? "Wait for your turn"
-                        : !gameState.turnComplete
-                        ? "Play the required number of cards first"
-                        : undefined
-                    }
-                  >
-                    End Turn & Draw Cards
-                  </Button>
-                  <InvertButton
-                    onClick={handleCantPlayClick}
-                    disabled={isSpectator || !playerIsCurrentPlayer}
-                  >
-                    I can't play a card
-                  </InvertButton>
+                  <div className="cant-play-container">
+                    <Button
+                      onClick={handleEndTurn}
+                      disabled={
+                        !gameState ||
+                        isSpectator ||
+                        localPlayerIndex !== gameState.currentPlayer ||
+                        !gameState.turnComplete
+                      }
+                      title={
+                        !gameState || isSpectator
+                          ? "Only active players can end the turn"
+                          : localPlayerIndex !== gameState.currentPlayer
+                          ? "Wait for your turn"
+                          : !gameState.turnComplete
+                          ? "Play the required number of cards first"
+                          : undefined
+                      }
+                    >
+                      End Turn & Draw Cards
+                    </Button>
+                    <InvertButton
+                      onClick={handleCantPlayClick}
+                      disabled={isSpectator || !playerIsCurrentPlayer}
+                    >
+                      I can't play a card
+                    </InvertButton>
+                  </div>
                 </div>
               </div>
             </>
@@ -866,7 +865,7 @@ const MultiplayerGame = () => {
         </div>
       </div>
 
-      <div className="game-info">
+      <div className="game-info hidden--tablet-down">
         <div className="game-id">Room: {gameId}</div>
         <div>Cards in deck: {gameState?.deck?.length || 0}</div>
         <div>

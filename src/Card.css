@@ -73,7 +73,9 @@
   .card-value {
     font-size: 2rem;
   }
+}
 
+@media (max-width: 680px) {
   .card.card--discard {
     width: 50px;
     height: 83px;

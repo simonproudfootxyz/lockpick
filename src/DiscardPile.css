@@ -153,14 +153,29 @@
 }
 
 @media (max-width: 768px) {
+  /* Discard Pile */
   .discard-pile {
     flex-direction: row;
     min-height: auto;
   }
 
   .tablet-button-container {
-    display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  /*  Player Actions Container */
+  .player-actions-container {
+    /* position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: var(--black--light);
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+    z-index: 10; */
+
+    padding: 1rem 0;
   }
 }

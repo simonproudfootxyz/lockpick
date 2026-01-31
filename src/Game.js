@@ -18,6 +18,7 @@ import RulesModal from "./RulesModal";
 import "./Game.css";
 import Button, { InvertButton } from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
+import useWindowSize from "./hooks/useWindowSize";
 
 const Game = () => {
   const { gameId } = useParams();
@@ -379,6 +380,9 @@ const Game = () => {
   const closeRulesModal = () => {
     setShowRulesModal(false);
   };
+  const windowSize = useWindowSize();
+  const isMobile = windowSize?.width < 768;
+  console.log({ isMobile });
 
   if (!gameState) {
     return (
@@ -470,81 +474,85 @@ const Game = () => {
         </div>
       </div>
 
-      <div className="player-section">
-        {gameState.playerHands.map((hand, index) => (
-          <div
-            key={index}
-            className={`player ${
-              index === gameState.currentPlayer ? "current" : ""
-            }`}
-          >
-            <div className="player__instructions">
-              <p>
-                Drag cards to a pile, or select a card & click “play” on the
-                intended pile.
+      <div className="player-actions-container">
+        <div className="player-section">
+          {gameState.playerHands.map((hand, index) => (
+            <div
+              key={index}
+              className={`player ${
+                index === gameState.currentPlayer ? "current" : ""
+              }`}
+            >
+              <p className="player__instructions">
+                Drag cards to a pile, or select a card & click “play”
               </p>
-            </div>
 
-            <PlayerHand
-              hand={hand}
-              selectedCard={selectedCard}
-              onCardSelect={(card) => handleCardSelect(card, index)}
-              onHandReorder={handleHandReorder}
-              isCurrentPlayer={index === gameState.currentPlayer}
-              discardPiles={gameState.discardPiles}
-            />
-            {index === gameState.currentPlayer && (
-              <div className="sort-controls">
-                <label className="auto-sort-toggle">
-                  <input
-                    type="checkbox"
-                    checked={autoSortEnabled}
-                    onChange={handleAutoSortToggle}
-                  />
-                  Auto-Sort
-                </label>
-                <div className="sort-buttons">
-                  <InvertButton onClick={sortHandAscending} mini>
-                    Sort Ascending
-                  </InvertButton>
-                  <InvertButton onClick={sortHandDescending} mini>
-                    Sort Descending
-                  </InvertButton>
+              <PlayerHand
+                hand={hand}
+                selectedCard={selectedCard}
+                onCardSelect={(card) => handleCardSelect(card, index)}
+                onHandReorder={handleHandReorder}
+                isCurrentPlayer={index === gameState.currentPlayer}
+                discardPiles={gameState.discardPiles}
+              />
+              {index === gameState.currentPlayer && (
+                <div className="sort-controls">
+                  <label className="auto-sort-toggle">
+                    <input
+                      type="checkbox"
+                      checked={autoSortEnabled}
+                      onChange={handleAutoSortToggle}
+                    />
+                    Auto-Sort
+                  </label>
+                  <div className="sort-buttons">
+                    <InvertButton onClick={sortHandAscending} mini>
+                      Sort Ascending
+                    </InvertButton>
+                    <InvertButton onClick={sortHandDescending} mini>
+                      Sort Descending
+                    </InvertButton>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="play-card-section">
+          {!gameState.turnComplete && (
+            <p className="turn-progress">
+              Play{" "}
+              {Math.max(
+                0,
+                (gameState.deck.length === 0 ? 1 : 2) -
+                  gameState.cardsPlayedThisTurn
+              )}{" "}
+              more cards
+            </p>
+          )}
+
+          <div className="cant-play-container">
+            <Button
+              onClick={endTurn}
+              disabled={!gameState.turnComplete}
+              className="end-turn-btn"
+              mini={isMobile}
+            >
+              End Turn & Draw Cards
+            </Button>
+            <InvertButton
+              onClick={handleCantPlayClick}
+              className="cant-play-btn"
+              mini={isMobile}
+            >
+              I can't play a card
+            </InvertButton>
           </div>
-        ))}
-      </div>
-
-      <div className="play-card-section">
-        {!gameState.turnComplete && (
-          <p className="turn-progress">
-            Play{" "}
-            {Math.max(
-              0,
-              (gameState.deck.length === 0 ? 1 : 2) -
-                gameState.cardsPlayedThisTurn
-            )}{" "}
-            more cards
-          </p>
-        )}
-
-        <div className="cant-play-container">
-          <Button
-            onClick={endTurn}
-            disabled={!gameState.turnComplete}
-            className="end-turn-btn"
-          >
-            End Turn & Draw Cards
-          </Button>
-          <InvertButton onClick={handleCantPlayClick} className="cant-play-btn">
-            I can't play a card
-          </InvertButton>
         </div>
       </div>
 
-      <div className="game-info">
+      <div className="game-info hidden--tablet-down">
         <div className="game-id">Game ID: {gameId}</div>
         <div>Cards in deck: {gameState.deck.length}</div>
         <div>

@@ -54,6 +54,10 @@
 
 /* Global Phone */
 @media (max-width: 640px) {
+  p {
+    font-size: 0.75rem;
+  }
+
   .hidden--phone-down {
     display: none;
   }
