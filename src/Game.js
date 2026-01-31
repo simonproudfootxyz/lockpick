@@ -381,7 +381,7 @@ const Game = () => {
     setShowRulesModal(false);
   };
   const windowSize = useWindowSize();
-  const isMobile = windowSize?.width < 768;
+  const isTabletDown = windowSize?.width < 768;
 
   if (!gameState) {
     return (
@@ -536,14 +536,14 @@ const Game = () => {
               onClick={endTurn}
               disabled={!gameState.turnComplete}
               className="end-turn-btn"
-              mini={isMobile}
+              mini={isTabletDown}
             >
               End Turn & Draw Cards
             </Button>
             <InvertButton
               onClick={handleCantPlayClick}
               className="cant-play-btn"
-              mini={isMobile}
+              mini={isTabletDown}
             >
               I can't play a card
             </InvertButton>
