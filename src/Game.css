@@ -1,11 +1,10 @@
 .game {
   min-height: 100vh;
-  padding: 20px;
+  padding: 1.5rem;
 }
 
 .game-header {
   text-align: center;
-  margin-bottom: 30px;
   color: white;
 }
 
@@ -422,7 +421,7 @@
 
 @media (max-width: 768px) {
   .game {
-    padding: 10px;
+    padding: 1rem;
   }
 
   .game-header h1 {
@@ -431,11 +430,6 @@
 
   .discard-piles {
     gap: 20px;
-  }
-
-  .piles-row {
-    flex-direction: column;
-    align-items: center;
   }
 
   .game-controls {
@@ -447,6 +441,15 @@
     position: static;
     margin-top: 20px;
     text-align: center;
+  }
+
+  .pile-group {
+    width: 100%;
+  }
+
+  .pile-group h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -633,5 +636,18 @@
     width: 100%;
     order: 1;
     position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Piles */
+  .piles-row {
+    padding: 0;
+    border: none;
+  }
+
+  /* Player */
+  .player .player__instructions {
+    margin: 0.75rem 0;
   }
 }

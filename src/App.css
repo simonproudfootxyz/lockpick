@@ -4,10 +4,10 @@
   --black--light-2: #8a8784;
   --black--light-3: #2e2e33;
   --white: #e9e1e1;
-  --yellow: #ffff25;
+  --yellow: #ffff4f;
   --yellow--light: #ffffb7;
   --red: #f85438;
-  --primary-color: #ffff25;
+  --primary-color: #ffff4f;
   --secondary-color: #f85438;
 
   /* font family */
@@ -26,4 +26,39 @@
 
 .disabled {
   color: var(--black--light-3);
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: flex;
+}
+
+.visible--tablet-down,
+.visible--phone-down {
+  display: none;
+}
+
+/* Global Tablet */
+@media (max-width: 768px) {
+  .hidden--tablet-down {
+    display: none;
+  }
+
+  .visible--tablet-down {
+    display: flex;
+  }
+}
+
+/* Global Phone */
+@media (max-width: 640px) {
+  .hidden--phone-down {
+    display: none;
+  }
+
+  .visible--phone-down {
+    display: block;
+  }
 }

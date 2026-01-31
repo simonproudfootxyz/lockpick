@@ -113,8 +113,9 @@ const DiscardPile = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Desktop View Pile button */}
       <InvertButton
-        className={`${pile.length === 0 && "disabled"}`}
+        className={`hidden--tablet-down ${pile.length === 0 && "disabled"}`}
         onClick={() => onViewPile(pile, pileType, pileNumber)}
         title="View all cards in this pile"
         disabled={pile.length === 0}
@@ -122,6 +123,7 @@ const DiscardPile = ({
       >
         {pile.length} {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
       </InvertButton>
+      {/* End Desktop View Pile button */}
       <div className="pile-cards">
         <div
           className={`pile-display ${pile.length > 1 ? "pile--multiple" : ""}`}
@@ -154,8 +156,33 @@ const DiscardPile = ({
           )}
         </div>
       </div>
+      {/* Tablet Button Container */}
+      <div className="tablet-button-container visible--tablet-down">
+        <InvertButton
+          className={`${pile.length === 0 && "disabled"}`}
+          onClick={() => onViewPile(pile, pileType, pileNumber)}
+          title="View all cards in this pile"
+          disabled={pile.length === 0}
+          mini
+        >
+          {pile.length}{" "}
+          {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
+        </InvertButton>
+        <InvertButton
+          className={`${isSelected ? "selected" : ""} ${
+            !isSelectable ? "disabled" : ""
+          }`}
+          onClick={() => onPlayCard(pileNumber - 1)}
+          disabled={!isSelectable}
+          mini
+        >
+          Play
+        </InvertButton>
+      </div>
+      {/* End Tablet Button Container */}
+      {/* Desktop Play button */}
       <InvertButton
-        className={`${isSelected ? "selected" : ""} ${
+        className={`hidden--tablet-down ${isSelected ? "selected" : ""} ${
           !isSelectable ? "disabled" : ""
         }`}
         onClick={() => onPlayCard(pileNumber - 1)}
@@ -164,15 +191,7 @@ const DiscardPile = ({
       >
         Play
       </InvertButton>
-      {/* <button
-        className={`select-pile-btn ${isSelected ? "selected" : ""} ${
-          !isSelectable ? "disabled" : ""
-        }`}
-        onClick={() => onPlayCard(pileNumber - 1)}
-        disabled={!isSelectable}
-      >
-        Play
-      </button> */}
+      {/* End Desktop Play button */}
     </div>
   );
 };
