@@ -644,6 +644,7 @@
   .piles-row {
     padding: 0;
     border: none;
+    justify-content: space-evenly;
   }
 
   /* Player */

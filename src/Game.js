@@ -382,7 +382,6 @@ const Game = () => {
   };
   const windowSize = useWindowSize();
   const isMobile = windowSize?.width < 768;
-  console.log({ isMobile });
 
   if (!gameState) {
     return (
