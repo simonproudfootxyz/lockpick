@@ -13,14 +13,14 @@
 }
 
 .pile-view-modal {
-  background: #2d3748;
+  background: var(--black--light-3);
   border-radius: 15px;
   padding: 20px;
   max-width: 80vw;
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  border: 2px solid #4299e1;
+  border: 2px solid var(--grey-300);
 }
 
 .pile-view-header {
@@ -32,33 +32,16 @@
   border-bottom: 2px solid #4a5568;
 }
 
-.pile-view-header h3 {
-  margin: 0;
-  color: #4299e1;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
 .close-btn {
-  background: #e53e3e;
-  color: white;
-  border: none;
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  cursor: pointer;
+  padding: 0;
   font-size: 16px;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.close-btn:hover {
-  background: #c53030;
-  transform: scale(1.1);
 }
 
 .pile-view-content {
@@ -100,21 +83,6 @@
   border: 1px solid rgba(66, 153, 225, 0.3);
   min-width: 200px;
   height: fit-content;
-}
-
-.pile-summary p {
-  margin: 0 0 10px 0;
-  color: #e2e8f0;
-  font-size: 14px;
-}
-
-.pile-summary p:last-child {
-  margin-bottom: 0;
-}
-
-.pile-summary p:first-child {
-  font-weight: bold;
-  color: #4299e1;
 }
 
 /* Scrollbar styling */

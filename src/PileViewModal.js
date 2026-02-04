@@ -1,6 +1,7 @@
 import React from "react";
 import Card from "./Card";
 import "./PileViewModal.css";
+import Button from "./components/Button";
 
 const PileViewModal = ({ pile, pileType, pileNumber, onClose }) => {
   if (!pile || pile.length === 0) return null;
@@ -14,10 +15,10 @@ const PileViewModal = ({ pile, pileType, pileNumber, onClose }) => {
     <div className="pile-view-overlay" onClick={onClose}>
       <div className="pile-view-modal" onClick={(e) => e.stopPropagation()}>
         <div className="pile-view-header">
-          <h3>{getPileTitle()}</h3>
-          <button className="close-btn" onClick={onClose}>
+          <h2>{getPileTitle()}</h2>
+          <Button className="close-btn" onClick={onClose}>
             ✕
-          </button>
+          </Button>
         </div>
         <div className="pile-view-content">
           <div className="pile-cards-list">
@@ -29,7 +30,9 @@ const PileViewModal = ({ pile, pileType, pileNumber, onClose }) => {
             ))}
           </div>
           <div className="pile-summary">
-            <p>Total cards: {pile.length}</p>
+            <p>
+              <strong>Total cards:</strong> {pile.length}
+            </p>
             <p>Top card: {pile[pile.length - 1]}</p>
             <p>Bottom card: {pile[0]}</p>
           </div>
