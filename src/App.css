@@ -1,13 +1,25 @@
 :root {
+  /* BLACK */
   --black: #1c1924;
   --black--light: #2c2a33;
   --black--light-2: #8a8784;
   --black--light-3: #2e2e33;
+
+  /* GREYS */
+  --grey-300: #faf9ff;
+  --grey-400: #e7e5f4;
+  --grey-450: #d2d1e2;
+
+  /* COLORS */
   --white: #e9e1e1;
   --yellow: #ffff4f;
   --yellow--light: #ffffb7;
   --red: #f85438;
+
+  /* PALETTE COLORS */
   --primary-color: #ffff4f;
+  --primary-color--hover: #ffff90;
+  --primary-color--pressed: #efef4a;
   --secondary-color: #f85438;
 
   /* font family */

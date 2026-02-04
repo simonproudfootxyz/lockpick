@@ -48,4 +48,50 @@ export const InvertButton = ({
   );
 };
 
+export const PrimaryButton = ({
+  className = "",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}) => {
+  return (
+    <Button
+      className={`button button--primary ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const PrimaryInvertButton = ({
+  className = "",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}) => {
+  return (
+    <Button
+      className={`button button--primary-invert ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
 export default Button;

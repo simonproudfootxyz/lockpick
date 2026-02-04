@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import Card from "./Card";
 import "./DiscardPile.css";
 import Button, { InvertButton } from "./components/Button";
+import useWindowSize from "./hooks/useWindowSize";
 
 const DiscardPile = ({
   pile,
@@ -105,6 +106,9 @@ const DiscardPile = ({
     [canAcceptDrag, onCardDrop, pileNumber]
   );
 
+  const windowSize = useWindowSize();
+  const isMobiletDown = windowSize?.width < 680;
+
   return (
     <div
       className={`discard-pile ${isDragOver ? "drag-over" : ""}`}
@@ -163,7 +167,7 @@ const DiscardPile = ({
           onClick={() => onViewPile(pile, pileType, pileNumber)}
           title="View all cards in this pile"
           disabled={pile.length === 0}
-          mini
+          mini={isMobiletDown}
         >
           {pile.length}{" "}
           {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
@@ -174,7 +178,7 @@ const DiscardPile = ({
           }`}
           onClick={() => onPlayCard(pileNumber - 1)}
           disabled={!isSelectable}
-          mini
+          mini={isMobiletDown}
         >
           Play
         </InvertButton>
@@ -182,9 +186,7 @@ const DiscardPile = ({
       {/* End Tablet Button Container */}
       {/* Desktop Play button */}
       <InvertButton
-        className={`hidden--tablet-down ${isSelected ? "selected" : ""} ${
-          !isSelectable ? "disabled" : ""
-        }`}
+        className={`hidden--tablet-down ${isSelected ? "selected" : ""}`}
         onClick={() => onPlayCard(pileNumber - 1)}
         disabled={!isSelectable}
         mini

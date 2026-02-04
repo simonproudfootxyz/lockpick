@@ -24,7 +24,7 @@ import {
   getStoredPlayerName,
   storePlayerIdentity,
 } from "../utils/playerIdentity";
-import Button, { InvertButton } from "./Button";
+import Button, { InvertButton, PrimaryButton } from "./Button";
 import LockpickLogo from "../assets/LockpickLogo.svg";
 
 const MultiplayerGame = () => {
@@ -827,6 +827,12 @@ const MultiplayerGame = () => {
 
                   <div className="cant-play-container">
                     <Button
+                      onClick={handleCantPlayClick}
+                      disabled={isSpectator || !playerIsCurrentPlayer}
+                    >
+                      I can't play a card
+                    </Button>
+                    <PrimaryButton
                       onClick={handleEndTurn}
                       disabled={
                         !gameState ||
@@ -845,13 +851,7 @@ const MultiplayerGame = () => {
                       }
                     >
                       End Turn & Draw Cards
-                    </Button>
-                    <InvertButton
-                      onClick={handleCantPlayClick}
-                      disabled={isSpectator || !playerIsCurrentPlayer}
-                    >
-                      I can't play a card
-                    </InvertButton>
+                    </PrimaryButton>
                   </div>
                 </div>
               </div>

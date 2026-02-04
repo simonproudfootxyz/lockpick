@@ -16,7 +16,7 @@ import PileViewModal from "./PileViewModal";
 import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
 import "./Game.css";
-import Button, { InvertButton } from "./components/Button";
+import Button, { InvertButton, PrimaryButton } from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import useWindowSize from "./hooks/useWindowSize";
 
@@ -535,20 +535,20 @@ const Game = () => {
 
           <div className="cant-play-container">
             <Button
+              onClick={handleCantPlayClick}
+              className="cant-play-btn"
+              mini={isTabletDown}
+            >
+              I can't play a card
+            </Button>
+            <PrimaryButton
               onClick={endTurn}
               disabled={!gameState.turnComplete}
               className="end-turn-btn"
               mini={isTabletDown}
             >
               End Turn & Draw Cards
-            </Button>
-            <InvertButton
-              onClick={handleCantPlayClick}
-              className="cant-play-btn"
-              mini={isTabletDown}
-            >
-              I can't play a card
-            </InvertButton>
+            </PrimaryButton>
           </div>
         </div>
       </div>

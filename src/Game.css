@@ -609,8 +609,10 @@
   }
 
   /* Player */
-  .player-section .player {
-    min-width: auto;
+  .player-section {
+    .player {
+      min-width: auto;
+    }
   }
 
   .player .player__instructions {
