@@ -682,6 +682,7 @@ const MultiplayerGame = () => {
                     />
                   </div>
                 </div>
+                <div className="pile-separator visible--tablet-down"></div>
                 <div className="pile-group">
                   <h3>Descending</h3>
                   <div className="piles-row">
@@ -830,7 +831,7 @@ const MultiplayerGame = () => {
                       onClick={handleCantPlayClick}
                       disabled={isSpectator || !playerIsCurrentPlayer}
                     >
-                      I can't play a card
+                      I Can't Play A Card
                     </Button>
                     <PrimaryButton
                       onClick={handleEndTurn}

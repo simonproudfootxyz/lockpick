@@ -442,6 +442,7 @@ const Game = () => {
             />
           </div>
         </div>
+        <div className="pile-separator visible--tablet-down"></div>
         <div className="pile-group">
           <h3>Descending</h3>
           <div className="piles-row">
@@ -482,8 +483,11 @@ const Game = () => {
                 index === gameState.currentPlayer ? "current" : ""
               }`}
             >
-              <p className="player__instructions">
+              <p className="player__instructions hidden--tablet-down">
                 Drag cards to a pile, or select a card & click “play”
+              </p>
+              <p className="player__instructions visible--tablet-down">
+                Select a card & tap “play” on the intended pile.
               </p>
 
               <PlayerHand
@@ -534,18 +538,13 @@ const Game = () => {
           )}
 
           <div className="cant-play-container">
-            <Button
-              onClick={handleCantPlayClick}
-              className="cant-play-btn"
-              mini={isTabletDown}
-            >
-              I can't play a card
+            <Button onClick={handleCantPlayClick} className="cant-play-btn">
+              I Can't Play A Card
             </Button>
             <PrimaryButton
               onClick={endTurn}
               disabled={!gameState.turnComplete}
               className="end-turn-btn"
-              mini={isTabletDown}
             >
               End Turn & Draw Cards
             </PrimaryButton>

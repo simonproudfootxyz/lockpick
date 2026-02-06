@@ -119,7 +119,6 @@ const DiscardPile = ({
     >
       {/* Desktop View Pile button */}
       <InvertButton
-        className={`hidden--tablet-down`}
         onClick={() => onViewPile(pile, pileType, pileNumber)}
         title="View all cards in this pile"
         disabled={pile.length === 0}
@@ -160,32 +159,9 @@ const DiscardPile = ({
           )}
         </div>
       </div>
-      {/* Tablet Button Container */}
-      <div className="tablet-button-container visible--tablet-down">
-        <InvertButton
-          onClick={() => onViewPile(pile, pileType, pileNumber)}
-          title="View all cards in this pile"
-          disabled={pile.length === 0}
-          mini={isMobiletDown}
-        >
-          {pile.length}{" "}
-          {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
-        </InvertButton>
-        <InvertButton
-          className={`${isSelected ? "selected" : ""} ${
-            !isSelectable ? "disabled" : ""
-          }`}
-          onClick={() => onPlayCard(pileNumber - 1)}
-          disabled={!isSelectable}
-          mini={isMobiletDown}
-        >
-          Play
-        </InvertButton>
-      </div>
-      {/* End Tablet Button Container */}
       {/* Desktop Play button */}
       <InvertButton
-        className={`hidden--tablet-down ${isSelected ? "selected" : ""}`}
+        className={`${isSelected ? "selected" : ""}`}
         onClick={() => onPlayCard(pileNumber - 1)}
         disabled={!isSelectable}
         mini

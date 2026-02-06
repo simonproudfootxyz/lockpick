@@ -153,17 +153,6 @@
 }
 
 @media (max-width: 768px) {
-  /* Discard Pile */
-  .discard-pile {
-    flex-direction: row;
-    min-height: auto;
-  }
-
-  .tablet-button-container {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
   /*  Player Actions Container */
   .player-actions-container {
     /* position: absolute;

@@ -149,13 +149,22 @@
 
 .play-card-section {
   text-align: center;
+  max-width: 325px;
+  margin: 0 auto;
 }
 
 .cant-play-container {
   margin: 0.5rem auto;
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   justify-content: center;
+
+  .button {
+    width: 170px;
+    @media (max-width: 768px) {
+      width: 50%;
+    }
+  }
 }
 
 .cant-play-container .cant-play-btn {
@@ -239,6 +248,11 @@
   justify-content: center;
   gap: 40px;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+  }
 }
 
 .pile-group {
@@ -251,14 +265,28 @@
   font-size: 1.5rem;
 }
 
+.pile-separator {
+  background-image: linear-gradient(var(--black) 33%, var(--grey-450) 0%);
+  background-position: right;
+  background-size: 6px 11px;
+  background-repeat: repeat-y;
+  width: 1px;
+}
+
 .piles-row {
   display: flex;
-  gap: 10px;
   justify-content: center;
   border: 2px dashed var(--white);
   border-radius: 2rem;
   padding: 1rem;
-  gap: 1rem;
+  gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    padding: 0;
+    border: none;
+    justify-content: space-evenly;
+    gap: 0;
+  }
 }
 
 .players {
@@ -286,6 +314,7 @@
 
 .player .player__instructions {
   margin: 1.5rem 0;
+  text-align: center;
 }
 
 .game-info {
@@ -300,6 +329,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  @media (max-width: 768px) {
+    position: static;
+    margin-top: 20px;
+    text-align: center;
+    max-width: 325px;
+    margin: 0 auto;
+  }
 }
 
 .game-info-header {
@@ -395,23 +432,9 @@
     font-size: 2rem;
   }
 
-  .discard-piles {
-    gap: 20px;
-  }
-
   .game-controls {
     flex-direction: column;
     align-items: center;
-  }
-
-  .game-info {
-    position: static;
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  .pile-group {
-    width: 100%;
   }
 
   .pile-group h3 {
@@ -601,12 +624,6 @@
     order: 1;
     position: static;
   }
-  /* Piles */
-  .piles-row {
-    padding: 0;
-    border: none;
-    justify-content: space-evenly;
-  }
 
   /* Player */
   .player-section {
@@ -617,5 +634,6 @@
 
   .player .player__instructions {
     margin: 0 0 0.75rem;
+    justify-content: center;
   }
 }
