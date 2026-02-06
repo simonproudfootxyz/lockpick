@@ -149,8 +149,11 @@
 
 .play-card-section {
   text-align: center;
-  max-width: 325px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    max-width: 325px;
+  }
 }
 
 .cant-play-container {
@@ -279,7 +282,7 @@
   border: 2px dashed var(--white);
   border-radius: 2rem;
   padding: 1rem;
-  gap: 0.75rem;
+  gap: 1.25rem;
 
   @media (max-width: 768px) {
     padding: 0;
@@ -452,10 +455,14 @@
 }
 
 .player-section .player {
-  max-width: 600px;
-  min-width: 350px;
   margin: 0 auto;
   text-align: center;
+
+  @media (max-width: 768px) {
+    max-width: 325px;
+    margin: 0 auto;
+    width: 100%;
+  }
 }
 
 .spectator-view {
@@ -485,6 +492,14 @@
   position: absolute;
   top: 0;
   left: 0;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 325px;
+    margin: 0 auto;
+    order: 1;
+    position: static;
+  }
 }
 
 .waiting-for-game {
@@ -619,17 +634,8 @@
     flex-direction: column;
   }
 
-  .game-sidebar {
-    width: 100%;
-    order: 1;
-    position: static;
-  }
-
   /* Player */
   .player-section {
-    .player {
-      min-width: auto;
-    }
   }
 
   .player .player__instructions {
