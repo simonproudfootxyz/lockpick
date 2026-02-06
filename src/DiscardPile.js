@@ -119,7 +119,7 @@ const DiscardPile = ({
     >
       {/* Desktop View Pile button */}
       <InvertButton
-        className={`hidden--tablet-down ${pile.length === 0 && "disabled"}`}
+        className={`hidden--tablet-down`}
         onClick={() => onViewPile(pile, pileType, pileNumber)}
         title="View all cards in this pile"
         disabled={pile.length === 0}
@@ -163,7 +163,6 @@ const DiscardPile = ({
       {/* Tablet Button Container */}
       <div className="tablet-button-container visible--tablet-down">
         <InvertButton
-          className={`${pile.length === 0 && "disabled"}`}
           onClick={() => onViewPile(pile, pileType, pileNumber)}
           title="View all cards in this pile"
           disabled={pile.length === 0}
