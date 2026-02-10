@@ -4,6 +4,7 @@ import NamePromptModal from "./NamePromptModal";
 import useSocket from "../hooks/useSocket";
 import "./Lobby.css";
 import { storePlayerIdentity } from "../utils/playerIdentity";
+import Button from "./Button";
 
 const Lobby = () => {
   const navigate = useNavigate();
@@ -317,13 +318,13 @@ const Lobby = () => {
           <div className="create-room-section">
             <h3>Create New Room</h3>
             <form onSubmit={handleCreateRoomClick}>
-              <button
+              <Button
                 type="submit"
                 disabled={isCreating || isJoining}
                 className="create-room-btn"
               >
                 {isCreating ? "Creating..." : "Create Room"}
-              </button>
+              </Button>
             </form>
           </div>
 
@@ -338,7 +339,7 @@ const Lobby = () => {
                 maxLength={6}
                 disabled={isCreating || isJoining}
               />
-              <button
+              <Button
                 type="submit"
                 disabled={
                   !roomCode.trim() ||
@@ -353,7 +354,7 @@ const Lobby = () => {
                   : isFetchingPreview
                   ? "Preparing..."
                   : "Join Room"}
-              </button>
+              </Button>
             </form>
           </div>
         </div>

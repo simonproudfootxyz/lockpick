@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./NamePromptModal.css";
+import Button, { InvertButton } from "./Button";
 
 const NamePromptModal = ({
   isOpen,
@@ -119,17 +120,16 @@ const NamePromptModal = ({
             </p>
           )}
           <div className="actions">
-            <button
-              type="button"
+            <Button
               className="secondary"
               onClick={onCancel}
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting || !name.trim()}>
+            </Button>
+            <InvertButton type="submit" disabled={isSubmitting || !name.trim()}>
               {isSubmitting ? "Submitting..." : "Continue"}
-            </button>
+            </InvertButton>
           </div>
         </form>
       </div>

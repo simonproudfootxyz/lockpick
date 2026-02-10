@@ -80,21 +80,7 @@
 
 .name-prompt-modal label {
   font-weight: 600;
-  color: #2d3748;
-}
-
-.name-prompt-modal input[type="text"] {
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 2px solid #e2e8f0;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.name-prompt-modal input[type="text"]:focus {
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-  outline: none;
+  color: var(--black);
 }
 
 .name-prompt-modal .error {
@@ -108,48 +94,6 @@
   justify-content: flex-end;
   gap: 12px;
   margin-top: 8px;
-}
-
-.name-prompt-modal button {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.name-prompt-modal button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-}
-
-.name-prompt-modal button:disabled {
-  background: #cbd5f5;
-  color: #ffffff;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-.name-prompt-modal button.secondary {
-  background: transparent;
-  color: #4a5568;
-  border: 1px solid #cbd5f5;
-}
-
-.name-prompt-modal button.secondary:hover:not(:disabled) {
-  background: #f7fafc;
-}
-
-.name-prompt-modal button[type="submit"] {
-  background: #4299e1;
-  color: #ffffff;
-}
-
-.name-prompt-modal button[type="submit"]:hover:not(:disabled) {
-  background: #3182ce;
 }
 
 @keyframes fadeIn {

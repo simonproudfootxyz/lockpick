@@ -3,6 +3,7 @@ import "./Button.css";
 
 const Button = ({
   className = "",
+  type = "button",
   onClick,
   title,
   disabled = false,
@@ -12,7 +13,7 @@ const Button = ({
 }) => {
   return (
     <button
-      type="button"
+      type={type}
       className={`button ${mini ? "button--mini " : ""} ${
         fullWidth ? "button--full-width" : ""
       } ${className}`}
@@ -27,6 +28,7 @@ const Button = ({
 
 export const InvertButton = ({
   className = "",
+  type = "button",
   onClick,
   title,
   disabled = false,
@@ -36,6 +38,7 @@ export const InvertButton = ({
 }) => {
   return (
     <Button
+      type={type}
       className={`button button--invert ${mini ? "button--mini " : ""} ${
         fullWidth ? "button--full-width" : ""
       } ${className}`}
@@ -50,6 +53,7 @@ export const InvertButton = ({
 
 export const PrimaryButton = ({
   className = "",
+  type = "button",
   onClick,
   title,
   disabled = false,
@@ -59,6 +63,7 @@ export const PrimaryButton = ({
 }) => {
   return (
     <Button
+      type={type}
       className={`button button--primary ${className}`}
       mini={mini}
       fullWidth={fullWidth}
@@ -73,6 +78,7 @@ export const PrimaryButton = ({
 
 export const PrimaryInvertButton = ({
   className = "",
+  type = "button",
   onClick,
   title,
   disabled = false,
@@ -82,6 +88,7 @@ export const PrimaryInvertButton = ({
 }) => {
   return (
     <Button
+      type={type}
       className={`button button--primary-invert ${className}`}
       mini={mini}
       fullWidth={fullWidth}
