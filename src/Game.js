@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   createDeck,
@@ -16,7 +16,7 @@ import PileViewModal from "./PileViewModal";
 import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
 import "./Game.css";
-import Button, { InvertButton, PrimaryButton } from "./components/Button";
+import Button, { InvertButton, PrimaryButton, TextButton, TextContrastButton } from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import useWindowSize from "./hooks/useWindowSize";
 
@@ -34,8 +34,72 @@ const Game = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState("asc");
+  const [isKonamiMode, setIsKonamiMode] = useState(false);
+  const [showKonamiToast, setShowKonamiToast] = useState(false);
+  const konamiToastTimeoutRef = useRef(null);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
+
+  useEffect(() => {
+    if (numPlayers !== 1) {
+      setIsKonamiMode(false);
+      setShowKonamiToast(false);
+      if (konamiToastTimeoutRef.current) {
+        clearTimeout(konamiToastTimeoutRef.current);
+        konamiToastTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const konamiSequence = [
+      "ArrowUp",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowLeft",
+      "ArrowRight",
+      "KeyB",
+      "KeyA",
+    ];
+
+    let sequenceIndex = 0;
+
+    const handleKeyDown = (event) => {
+      const expectedKey = konamiSequence[sequenceIndex];
+      if (event.code === expectedKey) {
+        sequenceIndex += 1;
+        if (sequenceIndex === konamiSequence.length) {
+          setIsKonamiMode(true);
+          if (konamiToastTimeoutRef.current) {
+            clearTimeout(konamiToastTimeoutRef.current);
+          }
+          setShowKonamiToast(true);
+          konamiToastTimeoutRef.current = setTimeout(() => {
+            setShowKonamiToast(false);
+            konamiToastTimeoutRef.current = null;
+          }, 2500);
+          sequenceIndex = 0;
+        }
+        return;
+      }
+
+      sequenceIndex = event.code === konamiSequence[0] ? 1 : 0;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      setIsKonamiMode(false);
+      setShowKonamiToast(false);
+      if (konamiToastTimeoutRef.current) {
+        clearTimeout(konamiToastTimeoutRef.current);
+        konamiToastTimeoutRef.current = null;
+      }
+    };
+  }, [numPlayers]);
 
   // Game state persistence functions
   const saveGameState = useCallback(
@@ -190,7 +254,11 @@ const Game = () => {
     const pileType = pileIndex < 2 ? "ascending" : "descending";
 
     // Validate card can be played on selected pile
-    if (!canPlayCard(cardValue, pile, pileType)) {
+    if (
+      !canPlayCard(cardValue, pile, pileType, {
+        allowMultiplesOfTenReverse: isKonamiMode,
+      })
+    ) {
       alert(`Card ${cardValue} cannot be played on this ${pileType} pile!`);
       return;
     }
@@ -370,6 +438,12 @@ const Game = () => {
     setGameOverInfo(null);
     setAutoSortEnabled(false);
     setLastSortOrder("asc");
+    setIsKonamiMode(false);
+    setShowKonamiToast(false);
+    if (konamiToastTimeoutRef.current) {
+      clearTimeout(konamiToastTimeoutRef.current);
+      konamiToastTimeoutRef.current = null;
+    }
     navigate("/");
   };
 
@@ -382,6 +456,8 @@ const Game = () => {
   };
   const windowSize = useWindowSize();
   const isTabletDown = windowSize?.width < 768;
+
+  console.log({ isKonamiMode });
 
   if (!gameState) {
     return (
@@ -405,6 +481,11 @@ const Game = () => {
 
   return (
     <div className="game">
+      {showKonamiToast && (
+        <div className="toast toast--konami" role="status" aria-live="polite">
+          Chat Code Activated
+        </div>
+      )}
       <div className="game-header">
         <h1>
           <img src={LockpickLogo} alt="Lockpick" />
@@ -497,6 +578,7 @@ const Game = () => {
                 onHandReorder={handleHandReorder}
                 isCurrentPlayer={index === gameState.currentPlayer}
                 discardPiles={gameState.discardPiles}
+                allowMultiplesOfTenReverse={isKonamiMode}
               />
               {index === gameState.currentPlayer && (
                 <div className="sort-controls">

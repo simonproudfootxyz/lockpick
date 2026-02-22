@@ -46,7 +46,9 @@ export const getHandSize = (numPlayers) => {
 };
 
 // Check if a card can be played on a discard pile
-export const canPlayCard = (card, pile, pileType) => {
+export const canPlayCard = (card, pile, pileType, options = {}) => {
+  const { allowMultiplesOfTenReverse = false } = options;
+
   if (pile.length === 0) {
     // Empty pile - can play any card
     return true;
@@ -57,16 +59,32 @@ export const canPlayCard = (card, pile, pileType) => {
   if (pileType === "ascending") {
     // Ascending pile - card must be higher than top card
     // OR exactly 10 less than top card (reverse order exception)
-    return card > topCard || card === topCard - 10;
+    if (card > topCard) {
+      return true;
+    }
+
+    if (allowMultiplesOfTenReverse && card < topCard) {
+      return (topCard - card) % 10 === 0;
+    }
+
+    return card === topCard - 10;
   } else {
     // Descending pile - card must be lower than top card
     // OR exactly 10 greater than top card (reverse order exception)
-    return card < topCard || card === topCard + 10;
+    if (card < topCard) {
+      return true;
+    }
+
+    if (allowMultiplesOfTenReverse && card > topCard) {
+      return (card - topCard) % 10 === 0;
+    }
+
+    return card === topCard + 10;
   }
 };
 
 // Check if a set of cards can be played on discard piles
-export const canPlayCards = (cards, discardPiles) => {
+export const canPlayCards = (cards, discardPiles, options = {}) => {
   const validPlays = [];
 
   for (const card of cards) {
@@ -77,7 +95,7 @@ export const canPlayCards = (cards, discardPiles) => {
       const pile = discardPiles[i];
       const pileType = i < 2 ? "ascending" : "descending"; // First two are ascending, last two are descending
 
-      if (canPlayCard(card, pile, pileType)) {
+      if (canPlayCard(card, pile, pileType, options)) {
         canPlay = true;
         targetPile = i;
         break;

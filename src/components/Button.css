@@ -117,6 +117,54 @@
   }
 }
 
+/* TEXT BUTTON */
+.button--text {
+  background: none;
+  color: var(--grey-550);
+  border: none;
+  padding: 0;
+  height: auto;
+  font-weight: normal;
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    border: none;
+    color: var(--white);
+    text-decoration: underline;
+  }
+
+  &:not(.disabled, [disabled]):active {
+    border-color: var(--primary-color--pressed);
+    color: var(--primary-color--pressed);
+    background: var(--black);
+  }  
+}
+
+/* TEXT BUTTON CONTRAST */
+.button--text-contrast {
+  background: none;
+  color: var(--white);
+  border: none;
+  padding: 0;
+  height: auto;
+  font-weight: normal;
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    text-decoration: underline;
+  }
+
+  &:not(.disabled, [disabled]):active {
+    border-color: var(--primary-color--pressed);
+    color: var(--primary-color--pressed);
+    background: var(--black);
+  }  
+}
+
 /* BUTTON MODDIFIERS */
 .button--full-width {
   width: 100%;

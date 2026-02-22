@@ -9,6 +9,7 @@
   --grey-300: #faf9ff;
   --grey-400: #e7e5f4;
   --grey-450: #d2d1e2;
+  --grey-550: #A3A0B4;
 
   /* COLORS */
   --white: #e9e1e1;
@@ -91,5 +92,39 @@ input[type="text"] {
 
   .visible--phone-down {
     display: block;
+  }
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--white);
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  z-index: 1100;
+  pointer-events: none;
+  animation: toast-pop 200ms ease-out;
+}
+
+.toast--konami {
+  background: linear-gradient(135deg, #ff6ec7, #7358ff, #00f5d4);
+  color: var(--black);
+}
+
+@keyframes toast-pop {
+  from {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
   }
 }

@@ -10,6 +10,7 @@ const PlayerHand = ({
   onHandReorder,
   isCurrentPlayer,
   discardPiles = [],
+  allowMultiplesOfTenReverse = false,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -21,7 +22,11 @@ const PlayerHand = ({
     for (let i = 0; i < discardPiles.length; i++) {
       const pile = discardPiles[i];
       const pileType = i < 2 ? "ascending" : "descending";
-      if (canPlayCard(card, pile, pileType)) {
+      if (
+        canPlayCard(card, pile, pileType, {
+          allowMultiplesOfTenReverse,
+        })
+      ) {
         return true;
       }
     }

@@ -101,4 +101,47 @@ export const PrimaryInvertButton = ({
   );
 };
 
+export const TextButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--text ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const TextContrastButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--text-contrast ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+    >
+      {children}
+    </Button>
+  );
+};
 export default Button;
