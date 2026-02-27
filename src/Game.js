@@ -618,6 +618,7 @@ const Game = () => {
               more cards
             </p>
           )}
+          
 
           <div className="cant-play-container">
             <Button onClick={handleCantPlayClick} className="cant-play-btn">
