@@ -483,7 +483,7 @@ const Game = () => {
     <div className="game">
       {showKonamiToast && (
         <div className="toast toast--konami" role="status" aria-live="polite">
-          Chat Code Activated
+          Cheat Code Activated
         </div>
       )}
       <div className="game-header">
@@ -618,7 +618,6 @@ const Game = () => {
               more cards
             </p>
           )}
-          
 
           <div className="cant-play-container">
             <Button onClick={handleCantPlayClick} className="cant-play-btn">
