@@ -16,7 +16,12 @@ import PileViewModal from "./PileViewModal";
 import GameOverModal from "./GameOverModal";
 import RulesModal from "./RulesModal";
 import "./Game.css";
-import Button, { InvertButton, PrimaryButton, TextButton, TextContrastButton } from "./components/Button";
+import Button, {
+  InvertButton,
+  PrimaryButton,
+  TextButton,
+  TextContrastButton,
+} from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import useWindowSize from "./hooks/useWindowSize";
 
@@ -113,12 +118,12 @@ const Game = () => {
         };
         localStorage.setItem(
           `lockpick_game_${gameId}`,
-          JSON.stringify(gameData)
+          JSON.stringify(gameData),
         );
         setLastSaved(new Date());
       }
     },
-    [gameId, numPlayers]
+    [gameId, numPlayers],
   );
 
   const loadGameState = useCallback(() => {
@@ -176,7 +181,7 @@ const Game = () => {
       setGameState(newGameState);
       saveGameState(newGameState);
     },
-    [saveGameState]
+    [saveGameState],
   );
 
   // Initialize game when component mounts
@@ -295,7 +300,7 @@ const Game = () => {
       gameWon: isGameWon(
         newDiscardPiles,
         gameState.totalCards,
-        gameState.playerHands.length
+        gameState.playerHands.length,
       ),
     };
 
@@ -323,7 +328,7 @@ const Game = () => {
   const updateSortedHand = (order, shouldPersistOrder = false) => {
     const comparator = order === "desc" ? (a, b) => b - a : (a, b) => a - b;
     const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
-      comparator
+      comparator,
     );
     const newPlayerHands = [...gameState.playerHands];
     newPlayerHands[gameState.currentPlayer] = sortedHand;
@@ -613,7 +618,7 @@ const Game = () => {
               {Math.max(
                 0,
                 (gameState.deck.length === 0 ? 1 : 2) -
-                  gameState.cardsPlayedThisTurn
+                  gameState.cardsPlayedThisTurn,
               )}{" "}
               more cards
             </p>
