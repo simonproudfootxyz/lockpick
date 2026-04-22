@@ -7,6 +7,16 @@
   border-radius: 8px;
   position: relative;
   gap: 0.75rem;
+
+  .discard-pile__view-pile-button {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .discard-pile__play-button {
+    text-transform: lowercase;
+  }
 }
 
 .pile-header {
@@ -43,6 +53,14 @@
   justify-content: center;
   min-height: 60px;
   transition: all 0.2s ease;
+  position: relative;
+
+  .discard-pile__direction-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+  }
 }
 
 .discard-pile.drag-over .pile-cards {
@@ -93,7 +111,7 @@
   width: 100%;
   height: 100%;
   border-radius: 10px;
-  background: var(--white);
+  background: var(--grey-500);
   border: 1px solid var(--black--light-2);
   transform: rotate(-5deg);
 }
@@ -104,6 +122,9 @@
 }
 
 .starting-card {
+  .card-value {
+    color: var(--grey-500);
+  }
 }
 
 .pile-count {

@@ -99,37 +99,30 @@
 
 .sort-buttons {
   display: flex;
-  gap: 10px;
+  gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-}
 
-.sort-hand-btn {
-  background: #ed8936;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  margin: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
+  .sort-hand-btn {
+    &:last-of-type {
+      position: relative;
+      &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: -0.5rem;
+        width: 1px;
+        height: 100%;
+        background: var(--grey-600);
+        margin: 0 auto;
+      }
+    }
+  }
 
-.sort-hand-btn:hover:not(:disabled) {
-  background: #dd6b20;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.sort-hand-btn:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  .sort-hand-btn__icon {
+    padding-right: 0.5rem;
+  }
 }
 
 .auto-sort-toggle {
@@ -262,14 +255,16 @@
   text-align: center;
 }
 
-.pile-group h3 {
+.pile-group__title {
+  display: inline-flex;
+  gap: 0.75rem;
   color: white;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   font-size: 1.5rem;
 }
 
 .pile-separator {
-  background-image: linear-gradient(var(--black) 33%, var(--grey-450) 0%);
+  background-image: linear-gradient(var(--black) 33%, var(--grey-800) 0%);
   background-position: right;
   background-size: 6px 11px;
   background-repeat: repeat-y;
@@ -279,7 +274,7 @@
 .piles-row {
   display: flex;
   justify-content: center;
-  border: 2px dashed var(--white);
+  border: 2px dashed var(--grey-800);
   border-radius: 2rem;
   padding: 1rem;
   gap: 1.25rem;
@@ -301,7 +296,7 @@
 }
 
 .player .player-section__player-name {
-  background: var(--yellow--light);
+  background: var(--primary-color);
   display: inline-block;
   margin: 0 auto 0.5rem;
   text-align: center;
@@ -440,8 +435,8 @@
     align-items: center;
   }
 
-  .pile-group h3 {
-    font-size: 1.2rem;
+  .pile-group__title {
+    font-size: 1rem;
     margin-bottom: 0.5rem;
   }
 }

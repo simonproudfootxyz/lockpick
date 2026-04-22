@@ -24,8 +24,13 @@ import {
   getStoredPlayerName,
   storePlayerIdentity,
 } from "../utils/playerIdentity";
-import Button, { InvertButton, PrimaryButton } from "./Button";
+import Button, { InvertButton, PrimaryButton, TextButton } from "./Button";
 import LockpickLogo from "../assets/LockpickLogo.svg";
+import BlockArrowUp from "../assets/BlockArrowUp.svg";
+import BlockArrowDown from "../assets/BlockArrowDown.svg";
+import ThinArrowUp from "../assets/ThinArrowUp.svg";
+import ThinArrowDown from "../assets/ThinArrowDown.svg";
+import ArrowDown from "../assets/ArrowDown.svg";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -67,7 +72,7 @@ const MultiplayerGame = () => {
     "";
   const storedPlayerName = useMemo(
     () => getStoredPlayerName(playerId),
-    [playerId]
+    [playerId],
   );
   const playerName =
     (locationStateName && locationStateName.trim()) ||
@@ -79,7 +84,7 @@ const MultiplayerGame = () => {
       ? !!location.state.joinAsPlayer
       : true;
   const [joinAsPlayerPreference, setJoinAsPlayerPreference] = useState(
-    initialJoinPreference
+    initialJoinPreference,
   );
 
   const buildGameSummary = useCallback((state) => {
@@ -122,7 +127,7 @@ const MultiplayerGame = () => {
         const failedPlayer =
           typeof state.endedByPlayer === "number"
             ? state.endedByPlayer
-            : state.currentPlayer ?? 0;
+            : (state.currentPlayer ?? 0);
         const displayName =
           context.playerName ||
           players.find((p) => p.playerIndex === failedPlayer)?.name ||
@@ -139,7 +144,7 @@ const MultiplayerGame = () => {
       setGameOverInfo(null);
       setShowGameOverModal(false);
     },
-    [players, buildGameSummary]
+    [players, buildGameSummary],
   );
 
   const handleRoomJoined = useCallback(
@@ -170,7 +175,7 @@ const MultiplayerGame = () => {
         updateGameOverState(null);
       }
     },
-    [playerId, updateGameOverState, setJoinAsPlayerPreference]
+    [playerId, updateGameOverState, setJoinAsPlayerPreference],
   );
 
   useEffect(() => {
@@ -185,16 +190,16 @@ const MultiplayerGame = () => {
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socketId
+        (p) => p.socketId === socketId,
       );
       const spectatorEntry = (data.spectators || []).find(
-        (s) => s.socketId === socketId
+        (s) => s.socketId === socketId,
       );
       setIsHost(currentPlayer?.isHost || false);
       setIsSpectator(!!spectatorEntry);
       setJoinAsPlayerPreference(!spectatorEntry);
     },
-    [socketId, setJoinAsPlayerPreference]
+    [socketId, setJoinAsPlayerPreference],
   );
 
   const handlePlayerLeft = useCallback(
@@ -203,11 +208,11 @@ const MultiplayerGame = () => {
       setPlayers(data.players || []);
       setSpectators(data.spectators || []);
       const currentPlayer = (data.players || []).find(
-        (p) => p.socketId === socketId
+        (p) => p.socketId === socketId,
       );
       setIsHost(currentPlayer?.isHost || false);
     },
-    [socketId]
+    [socketId],
   );
 
   const handleGameStarted = useCallback(
@@ -219,13 +224,13 @@ const MultiplayerGame = () => {
       updateGameOverState(data.gameState);
       // If we joined after the game started, ensure spectator state aligns with current roster
       const spectatorEntry = (data.players || []).find(
-        (p) => p.socketId === socketId && p.isSpectator
+        (p) => p.socketId === socketId && p.isSpectator,
       );
       if (spectatorEntry) {
         setIsSpectator(true);
       }
     },
-    [socketId, updateGameOverState]
+    [socketId, updateGameOverState],
   );
 
   const handleCardPlayed = useCallback(
@@ -237,7 +242,7 @@ const MultiplayerGame = () => {
       setSelectedPile(null);
       updateGameOverState(data.gameState);
     },
-    [updateGameOverState]
+    [updateGameOverState],
   );
 
   const handleHandSorted = useCallback(
@@ -247,7 +252,7 @@ const MultiplayerGame = () => {
       setGameStatus(data.status);
       updateGameOverState(data.gameState);
     },
-    [updateGameOverState]
+    [updateGameOverState],
   );
 
   const handleHandReordered = useCallback(
@@ -257,7 +262,7 @@ const MultiplayerGame = () => {
       setGameStatus(data.status);
       updateGameOverState(data.gameState);
     },
-    [updateGameOverState]
+    [updateGameOverState],
   );
 
   const handleTurnEnded = useCallback(
@@ -269,7 +274,7 @@ const MultiplayerGame = () => {
       setSelectedPile(null);
       updateGameOverState(data.gameState);
     },
-    [updateGameOverState]
+    [updateGameOverState],
   );
 
   const handleCantPlay = useCallback(
@@ -279,7 +284,7 @@ const MultiplayerGame = () => {
       setGameStatus(data.status);
       updateGameOverState(data.gameState, { playerName: data.playerName });
     },
-    [updateGameOverState]
+    [updateGameOverState],
   );
 
   const handleError = useCallback((data) => {
@@ -526,7 +531,7 @@ const MultiplayerGame = () => {
       const player = players.find((p) => p.playerIndex === playerIndex);
       return player?.name || `Player ${playerIndex + 1}`;
     },
-    [players]
+    [players],
   );
 
   const localPlayerIndex = useMemo(() => {
@@ -654,7 +659,10 @@ const MultiplayerGame = () => {
             <>
               <div className="discard-piles">
                 <div className="pile-group">
-                  <h3>Ascending</h3>
+                  <h3 className="pile-group__title">
+                    <img src={BlockArrowUp} alt="Ascending Pile" />
+                    Ascending
+                  </h3>
                   <div className="piles-row">
                     <DiscardPile
                       pile={gameState.discardPiles[0]}
@@ -684,7 +692,10 @@ const MultiplayerGame = () => {
                 </div>
                 <div className="pile-separator visible--tablet-down"></div>
                 <div className="pile-group">
-                  <h3>Descending</h3>
+                  <h3 className="pile-group__title">
+                    <img src={BlockArrowDown} alt="Descending Pile" />
+                    Descending
+                  </h3>
                   <div className="piles-row">
                     <DiscardPile
                       pile={gameState.discardPiles[2]}
@@ -770,7 +781,7 @@ const MultiplayerGame = () => {
                           Auto-Sort
                         </label>
                         <div className="sort-buttons">
-                          <InvertButton
+                          <TextButton
                             onClick={() =>
                               handleSortHand(localPlayerIndex, "asc")
                             }
@@ -779,11 +790,17 @@ const MultiplayerGame = () => {
                               isSpectator
                             }
                             mini
+                            className="sort-hand-btn"
                           >
+                            <img
+                              className="sort-hand-btn__icon"
+                              src={ThinArrowUp}
+                              alt="Sort Ascending"
+                            />
                             Sort Asc
                             <span className="hidden--tablet-down">ending</span>
-                          </InvertButton>
-                          <InvertButton
+                          </TextButton>
+                          <TextButton
                             onClick={() =>
                               handleSortHand(localPlayerIndex, "desc")
                             }
@@ -792,10 +809,16 @@ const MultiplayerGame = () => {
                               isSpectator
                             }
                             mini
+                            className="sort-hand-btn"
                           >
+                            <img
+                              className="sort-hand-btn__icon"
+                              src={ThinArrowDown}
+                              alt="Sort Ascending"
+                            />
                             Sort Desc
                             <span className="hidden--tablet-down">ending</span>
-                          </InvertButton>
+                          </TextButton>
                         </div>
                       </div>
                     </div>
@@ -820,7 +843,7 @@ const MultiplayerGame = () => {
                         {Math.max(
                           0,
                           (gameState.deck.length === 0 ? 1 : 2) -
-                            gameState.cardsPlayedThisTurn
+                            gameState.cardsPlayedThisTurn,
                         )}{" "}
                         more
                       </p>
@@ -845,10 +868,10 @@ const MultiplayerGame = () => {
                         !gameState || isSpectator
                           ? "Only active players can end the turn"
                           : localPlayerIndex !== gameState.currentPlayer
-                          ? "Wait for your turn"
-                          : !gameState.turnComplete
-                          ? "Play the required number of cards first"
-                          : undefined
+                            ? "Wait for your turn"
+                            : !gameState.turnComplete
+                              ? "Play the required number of cards first"
+                              : undefined
                       }
                     >
                       End Turn & Draw Cards
@@ -884,7 +907,7 @@ const MultiplayerGame = () => {
           Total cards played:{" "}
           {gameState?.discardPiles?.reduce(
             (sum, pile) => sum + pile.length,
-            0
+            0,
           ) || 0}
           /{totalCardsTarget}
         </div>

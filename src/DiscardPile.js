@@ -1,9 +1,15 @@
 import React, { useState, useCallback } from "react";
 import Card from "./Card";
 import "./DiscardPile.css";
-import Button, { InvertButton } from "./components/Button";
+import Button, {
+  InvertButton,
+  PrimaryInvertButton,
+  TextButton,
+} from "./components/Button";
 import useWindowSize from "./hooks/useWindowSize";
-
+import MagnifyingGlass from "./assets/MagnifyingGlass.svg";
+import ArrowUp from "./assets/ArrowUp.svg";
+import ArrowDown from "./assets/ArrowDown.svg";
 const DiscardPile = ({
   pile,
   pileType,
@@ -40,7 +46,7 @@ const DiscardPile = ({
         types.includes("text")
       );
     },
-    [onCardDrop]
+    [onCardDrop],
   );
 
   const handleDragOver = useCallback(
@@ -51,7 +57,7 @@ const DiscardPile = ({
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
     },
-    [canAcceptDrag]
+    [canAcceptDrag],
   );
 
   const handleDragEnter = useCallback(
@@ -62,7 +68,7 @@ const DiscardPile = ({
       event.preventDefault();
       setIsDragOver(true);
     },
-    [canAcceptDrag]
+    [canAcceptDrag],
   );
 
   const handleDragLeave = useCallback(() => {
@@ -103,7 +109,7 @@ const DiscardPile = ({
         onCardDrop(cardValue, pileNumber - 1);
       }
     },
-    [canAcceptDrag, onCardDrop, pileNumber]
+    [canAcceptDrag, onCardDrop, pileNumber],
   );
 
   const windowSize = useWindowSize();
@@ -118,16 +124,31 @@ const DiscardPile = ({
       onDrop={handleDrop}
     >
       {/* Desktop View Pile button */}
-      <InvertButton
+      <TextButton
         onClick={() => onViewPile(pile, pileType, pileNumber)}
+        className="discard-pile__view-pile-button"
         title="View all cards in this pile"
         disabled={pile.length === 0}
         mini
       >
         {pile.length} {pile.length > 1 || pile.length === 0 ? "Cards" : "Card"}
-      </InvertButton>
+        <img
+          className="discard-pile__view-pile-icon"
+          height={10}
+          width={10}
+          src={MagnifyingGlass}
+          alt="View Pile"
+        />
+      </TextButton>
       {/* End Desktop View Pile button */}
       <div className="pile-cards">
+        <img
+          className="discard-pile__direction-icon"
+          height={13}
+          width={12}
+          src={pileType === "ascending" ? ArrowUp : ArrowDown}
+          alt="View Pile"
+        />
         <div
           className={`pile-display ${pile.length > 1 ? "pile--multiple" : ""}`}
         >
@@ -139,8 +160,8 @@ const DiscardPile = ({
                   pileType === "ascending"
                     ? 1
                     : maxCard && maxCard > 100
-                    ? maxCard
-                    : 100
+                      ? maxCard
+                      : 100
                 }
                 isClickable={false}
                 discardPile={true}
@@ -160,14 +181,14 @@ const DiscardPile = ({
         </div>
       </div>
       {/* Desktop Play button */}
-      <InvertButton
-        className={`${isSelected ? "selected" : ""}`}
+      <PrimaryInvertButton
+        className={`discard-pile__play-button ${isSelected ? "selected" : ""}`}
         onClick={() => onPlayCard(pileNumber - 1)}
         disabled={!isSelectable}
         mini
       >
         Play
-      </InvertButton>
+      </PrimaryInvertButton>
       {/* End Desktop Play button */}
     </div>
   );

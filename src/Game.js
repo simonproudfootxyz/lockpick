@@ -23,6 +23,10 @@ import Button, {
   TextContrastButton,
 } from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
+import BlockArrowUp from "./assets/BlockArrowUp.svg";
+import BlockArrowDown from "./assets/BlockArrowDown.svg";
+import ThinArrowUp from "./assets/ThinArrowUp.svg";
+import ThinArrowDown from "./assets/ThinArrowDown.svg";
 import useWindowSize from "./hooks/useWindowSize";
 
 const Game = () => {
@@ -500,7 +504,10 @@ const Game = () => {
 
       <div className="discard-piles">
         <div className="pile-group">
-          <h3>Ascending</h3>
+          <h3 className="pile-group__title">
+            <img src={BlockArrowUp} alt="Ascending Pile" />
+            Ascending
+          </h3>
           <div className="piles-row">
             <DiscardPile
               pile={gameState.discardPiles[0]}
@@ -530,7 +537,10 @@ const Game = () => {
         </div>
         <div className="pile-separator visible--tablet-down"></div>
         <div className="pile-group">
-          <h3>Descending</h3>
+          <h3 className="pile-group__title">
+            <img src={BlockArrowDown} alt="Descending Pile" />
+            Descending
+          </h3>
           <div className="piles-row">
             <DiscardPile
               pile={gameState.discardPiles[2]}
@@ -596,14 +606,32 @@ const Game = () => {
                     Auto-Sort
                   </label>
                   <div className="sort-buttons">
-                    <InvertButton onClick={sortHandAscending} mini>
+                    <TextButton
+                      onClick={sortHandAscending}
+                      mini
+                      className="sort-hand-btn"
+                    >
+                      <img
+                        className="sort-hand-btn__icon"
+                        src={ThinArrowUp}
+                        alt="Sort Ascending"
+                      />
                       Sort Asc
                       <span className="hidden--tablet-down">ending</span>
-                    </InvertButton>
-                    <InvertButton onClick={sortHandDescending} mini>
+                    </TextButton>
+                    <TextButton
+                      onClick={sortHandDescending}
+                      mini
+                      className="sort-hand-btn"
+                    >
+                      <img
+                        className="sort-hand-btn__icon"
+                        src={ThinArrowDown}
+                        alt="Sort Descending"
+                      />
                       Sort Desc
                       <span className="hidden--tablet-down">ending</span>
-                    </InvertButton>
+                    </TextButton>
                   </div>
                 </div>
               )}

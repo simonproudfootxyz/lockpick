@@ -1,7 +1,7 @@
 .card {
   width: 60px;
   height: 100px;
-  border: 2px solid var(--white);
+  border: 1px solid var(--grey-100);
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -9,17 +9,19 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  background: var(--black);
+  background: var(--grey-950);
   z-index: 1;
+
+  &.selected,
+  &:hover,
+  &:focus {
+    transform: translateY(-2px);
+  }
 
   @media (max-width: 768px) {
     width: 36px;
     height: 60px;
   }
-}
-
-.card:hover {
-  transform: translateY(-2px);
 }
 
 .card.disabled {
@@ -50,7 +52,7 @@
 .card.card--discard {
   width: 120px;
   height: 200px;
-  background: var(--black--light);
+  background: var(--grey-900);
   border: none;
   border-radius: 10px;
 
@@ -70,12 +72,12 @@
 
 /* Cards on top of discard piles */
 .card.card--discard.card--last {
-  background: var(--white);
-  border: 1px solid var(--black--light-2);
+  background: var(--grey-100);
+  border: 1px solid var(--grey-600);
 }
 
 .card.card--discard.card--last .card-value {
-  color: var(--black);
+  color: var(--grey-950);
 }
 
 @media (max-width: 768px) {

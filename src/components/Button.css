@@ -138,7 +138,7 @@
     border-color: var(--primary-color--pressed);
     color: var(--primary-color--pressed);
     background: var(--black);
-  }  
+  }
 }
 
 /* TEXT BUTTON CONTRAST */
@@ -162,7 +162,7 @@
     border-color: var(--primary-color--pressed);
     color: var(--primary-color--pressed);
     background: var(--black);
-  }  
+  }
 }
 
 /* BUTTON MODDIFIERS */
