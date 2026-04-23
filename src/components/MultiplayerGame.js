@@ -625,12 +625,6 @@ const MultiplayerGame = () => {
 
   return (
     <div className="game">
-      <div className="game-header">
-        <h1>
-          <img src={LockpickLogo} alt="Lockpick" />
-        </h1>
-      </div>
-
       <div className="game-layout">
         <div className="game-sidebar">
           <PlayerList
@@ -644,6 +638,11 @@ const MultiplayerGame = () => {
           />
         </div>
         <div className="game-main">
+          <div className="game-header">
+            <h1>
+              <img src={LockpickLogo} alt="Lockpick" />
+            </h1>
+          </div>
           {isHost && !gameStarted && (
             <div className="start-game-section">
               <Button onClick={handleStartGame} disabled={players.length < 2}>

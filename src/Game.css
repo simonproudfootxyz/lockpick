@@ -319,11 +319,10 @@
   position: fixed;
   bottom: 20px;
   left: 20px;
-  background: var(--black--light);
-  padding: 15px;
-  border-radius: 10px;
+  background: var(--grey-900);
+  padding: 1rem;
+  border-radius: 21px;
   font-size: 14px;
-  backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -485,9 +484,6 @@
 .game-sidebar {
   width: 185px;
   flex-shrink: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
 
   @media (max-width: 768px) {
     width: 100%;

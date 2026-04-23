@@ -56,6 +56,11 @@
   border: none;
   border-radius: 10px;
 
+  @media (max-width: 900px) {
+    width: 90px;
+    height: 150px;
+  }
+
   @media (max-width: 768px) {
     width: 70px;
     height: 116px;

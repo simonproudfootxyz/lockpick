@@ -1,53 +1,12 @@
 .player-list {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 20px;
+  background: var(--grey-900);
+  border-radius: 21px;
+  padding: 1rem;
   margin: 20px 0;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .player-list-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 1rem;
-}
-
-.player-list-header h3 {
-  margin: 0;
-  color: white;
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.start-game-btn {
-  background: #48bb78;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.start-game-btn:hover:not(:disabled) {
-  background: #38a169;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.start-game-btn:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  margin-bottom: 0.75rem;
 }
 
 .players-container,
@@ -68,17 +27,29 @@
 
 .player-list-item,
 .spectators-list-item {
-  border-radius: 6px;
-  padding: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.2s;
 }
 
-.player-list-item.current {
-  border-color: var(--yellow);
+.player-list-item {
+  position: relative;
+
+  &.current {
+    &::before {
+      content: "";
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: -20px;
+      transform: translateY(-50%);
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 12px solid var(--primary-color);
+      border-right: 10px solid transparent;
+      transform: translateY(-50%);
+    }
+  }
 }
 
-.player-list-item.disconnected {
+.player-list-item .player-list-item.disconnected {
   background: rgba(229, 62, 62, 0.2);
   border-color: #e53e3e;
   opacity: 0.7;

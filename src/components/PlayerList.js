@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./PlayerList.css";
-import Button from "./Button";
+import Button, { InvertButton } from "./Button";
 import { useParams } from "react-router-dom";
 
 const PlayerList = ({
@@ -32,7 +32,9 @@ const PlayerList = ({
   return (
     <div className="player-list">
       <div className="player-list-header">
-        <h3>Players ({players.length})</h3>
+        <p>
+          <strong>Players</strong> ({players.length})
+        </p>
         {isHost && !gameStarted && (
           <button
             className="start-game-btn"
@@ -59,13 +61,15 @@ const PlayerList = ({
           );
         })}
       </div>
-      <Button onClick={handleCopyInviteLink} mini fullWidth>
+      <InvertButton onClick={handleCopyInviteLink} mini fullWidth>
         Copy Invite Link
-      </Button>
+      </InvertButton>
       {copySuccess && <p className="copy-feedback-floating">{copySuccess}</p>}
       {spectators.length > 0 && (
         <div className="spectators-section">
-          <h3>Spectators</h3>
+          <p>
+            <strong>Spectators</strong> ({spectators.length})
+          </p>
           <ul className="spectators-list">
             {spectators.map((spectator) => (
               <li
