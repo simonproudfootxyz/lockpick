@@ -41,20 +41,20 @@
 
 /* INVERT BUTTON */
 .button--invert {
-  background: var(--black);
+  background: none;
   color: var(--grey-300);
   border: 1px solid var(--grey-300);
 
   &:not(.disabled, [disabled]):hover,
   &:not(.disabled, [disabled]):focus {
-    color: var(--grey-400);
-    background: var(--black);
-    border-color: var(--grey-400);
+    background: none;
+    color: var(--grey-450);
+    border-color: var(--grey-450);
   }
 
   &:not(.disabled, [disabled]):active {
+    background: none;
     color: var(--grey-450);
-    background: var(--black);
     border-color: var(--grey-450);
   }
 

@@ -35,16 +35,6 @@ const PlayerList = ({
         <p>
           <strong>Players</strong> ({players.length})
         </p>
-        {isHost && !gameStarted && (
-          <button
-            className="start-game-btn"
-            onClick={onStartGame}
-            disabled={players.length < 2}
-            title="Need at least 2 players"
-          >
-            {players.length < 2 ? "Need more players" : "Start Game"}
-          </button>
-        )}
       </div>
       <div className="players-container">
         {players.map((player) => {
