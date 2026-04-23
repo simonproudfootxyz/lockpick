@@ -117,6 +117,9 @@ export const TextButton = ({
       className={`button button--text ${className}`}
       mini={mini}
       fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
     >
       {children}
     </Button>
@@ -139,6 +142,9 @@ export const TextContrastButton = ({
       className={`button button--text-contrast ${className}`}
       mini={mini}
       fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
     >
       {children}
     </Button>

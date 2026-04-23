@@ -361,6 +361,7 @@
 .turn-progress {
   margin-bottom: 0.5rem;
   color: var(--red);
+  font-weight: 500;
 }
 
 .rules-btn-floating {

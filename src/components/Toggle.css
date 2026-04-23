@@ -1,0 +1,73 @@
+.toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--grey-550);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.toggle__track {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  background: var(--grey-950);
+  border: 1px solid var(--grey-500);
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle__thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: var(--grey-100);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.toggle__label {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* CHECKED STATE */
+.toggle__input:checked + .toggle__track {
+  background: var(--grey-550);
+}
+
+.toggle__input:checked + .toggle__track .toggle__thumb {
+  left: calc(100% - 20px);
+  background: var(--grey-100);
+}
+
+/* FOCUS */
+.toggle__input:focus-visible + .toggle__track {
+  outline: 1px solid var(--grey-550);
+  outline-offset: 2px;
+}
+
+/* HOVER */
+.toggle:hover .toggle__input:not(:disabled) + .toggle__track {
+  border-color: var(--grey-550);
+}
+
+/* DISABLED */
+.toggle--disabled,
+.toggle__input:disabled + .toggle__track {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

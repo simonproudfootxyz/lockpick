@@ -31,6 +31,7 @@ import BlockArrowDown from "../assets/BlockArrowDown.svg";
 import ThinArrowUp from "../assets/ThinArrowUp.svg";
 import ThinArrowDown from "../assets/ThinArrowDown.svg";
 import ArrowDown from "../assets/ArrowDown.svg";
+import Toggle from "./Toggle";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -771,15 +772,16 @@ const MultiplayerGame = () => {
                         discardPiles={gameState.discardPiles}
                       />
                       <div className="sort-controls">
-                        <label className="auto-sort-toggle">
-                          <input
-                            type="checkbox"
-                            checked={autoSortEnabled}
-                            onChange={handleAutoSortToggle}
-                            disabled={isSpectator}
-                          />
-                          Auto-Sort
-                        </label>
+                        <Toggle
+                          className="auto-sort-toggle"
+                          label="Auto-Sort"
+                          checked={autoSortEnabled}
+                          onChange={handleAutoSortToggle}
+                          disabled={
+                            localPlayerIndex !== gameState.currentPlayer ||
+                            isSpectator
+                          }
+                        />
                         <div className="sort-buttons">
                           <TextButton
                             onClick={() =>

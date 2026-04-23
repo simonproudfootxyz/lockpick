@@ -22,6 +22,7 @@ import Button, {
   TextButton,
   TextContrastButton,
 } from "./components/Button";
+import Toggle from "./components/Toggle";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import BlockArrowUp from "./assets/BlockArrowUp.svg";
 import BlockArrowDown from "./assets/BlockArrowDown.svg";
@@ -597,14 +598,12 @@ const Game = () => {
               />
               {index === gameState.currentPlayer && (
                 <div className="sort-controls">
-                  <label className="auto-sort-toggle">
-                    <input
-                      type="checkbox"
-                      checked={autoSortEnabled}
-                      onChange={handleAutoSortToggle}
-                    />
-                    Auto-Sort
-                  </label>
+                  <Toggle
+                    className="auto-sort-toggle"
+                    label="Auto-Sort"
+                    checked={autoSortEnabled}
+                    onChange={handleAutoSortToggle}
+                  />
                   <div className="sort-buttons">
                     <TextButton
                       onClick={sortHandAscending}
