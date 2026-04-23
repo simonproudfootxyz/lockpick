@@ -322,7 +322,6 @@
   background: var(--grey-900);
   padding: 1rem;
   border-radius: 21px;
-  font-size: 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
