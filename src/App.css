@@ -28,12 +28,12 @@
   --primary-color: #ffff4f;
   --primary-color--hover: #ffff90;
   --primary-color--pressed: #efef4a;
-  --secondary-color: #f85438;
+  --secondary-color: #ff8e82;
 
   /* COLORS */
   --white: var(--grey-100);
   --yellow: var(--primary-color);
-  --red: var(--secondary-color);
+  --red: #ff8e82;
 
   /* font family */
   --jost: "Jost", sans-serif;

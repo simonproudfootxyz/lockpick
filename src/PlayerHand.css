@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 10px 0;
-  border-bottom: 2px solid var(--white);
+  margin: 1rem 0;
+  border-bottom: 1px solid var(--grey-800);
 }
 
 .hand-cards {
@@ -12,12 +12,14 @@
   gap: 5px;
   justify-content: center;
   max-width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 .card-container {
   position: relative;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
   cursor: grab;
 }
 
