@@ -1,7 +1,7 @@
 .button {
   background: var(--grey-300);
   font-size: 0.75rem;
-  color: var(--black);
+  color: var(--grey-950);
   font-family: var(--jost);
   font-weight: bold;
   padding: 0.5rem 0.75rem;
@@ -68,13 +68,13 @@
 /* PRIMARY BUTTON */
 .button--primary {
   background: var(--primary-color);
-  color: var(--black);
+  color: var(--grey-950);
   border: none;
 
   &:not(.disabled, [disabled]):hover,
   &:not(.disabled, [disabled]):focus {
     background: var(--primary-color--hover);
-    color: var(--black);
+    color: var(--grey-950);
   }
 
   &:not(.disabled, [disabled]):active {
@@ -91,13 +91,13 @@
 
 /* PRIMARY INVERT BUTTON */
 .button--primary-invert {
-  background: var(--black);
+  background: none;
   color: var(--primary-color);
   border: 1px solid var(--primary-color);
 
   &:not(.disabled, [disabled]):hover,
   &:not(.disabled, [disabled]):focus {
-    background: var(--black);
+    background: none;
     border-color: var(--primary-color--hover);
     color: var(--primary-color--hover);
   }
@@ -105,7 +105,7 @@
   &:not(.disabled, [disabled]):active {
     border-color: var(--primary-color--pressed);
     color: var(--primary-color--pressed);
-    background: var(--black);
+    background: none;
   }
 
   &.disabled,
@@ -137,7 +137,7 @@
   &:not(.disabled, [disabled]):active {
     border-color: var(--primary-color--pressed);
     color: var(--primary-color--pressed);
-    background: var(--black);
+    background: none;
   }
 }
 
@@ -161,7 +161,7 @@
   &:not(.disabled, [disabled]):active {
     border-color: var(--primary-color--pressed);
     color: var(--primary-color--pressed);
-    background: var(--black);
+    background: none;
   }
 }
 

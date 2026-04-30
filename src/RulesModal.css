@@ -13,7 +13,7 @@
 }
 
 .rules-modal {
-  background: var(--black--light-3);
+  background: var(--grey-900);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;

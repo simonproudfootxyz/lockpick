@@ -1,10 +1,4 @@
 :root {
-  /* BLACK */
-  --black: #1c1924;
-  --black--light: #2c2a33;
-  --black--light-2: #8a8784;
-  --black--light-3: #2e2e33;
-
   /* GREYS */
   --grey-100: #ffffff;
   --grey-200: #fcfbff;
@@ -51,7 +45,7 @@
 }
 
 .disabled {
-  color: var(--black--light-3);
+  color: var(--grey-800);
 }
 
 .hidden {
@@ -70,15 +64,15 @@
 /* INPUTS */
 input[type="text"] {
   padding: 12px 16px;
-  border: 2px solid var(--black);
+  border: 2px solid var(--grey-950);
   border-radius: 6px;
   text-align: center;
   transition: all 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: var(--black-light-2);
-    box-shadow: 2px 1px 0px var(--black--light-2);
+    border-color: var(--grey-600);
+    box-shadow: 2px 1px 0px var(--grey-600);
   }
 }
 
@@ -110,18 +104,19 @@ input[type="text"] {
 
 .toast {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   left: 50%;
   transform: translate(-50%, 0);
-  padding: 12px 20px;
-  background: var(--black--light-3);
+  padding: 0.75rem 1rem;
+  background: var(--grey-900);
   color: var(--white);
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
   letter-spacing: 0.04em;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   z-index: 1100;
   pointer-events: none;
+  border: 1px solid var(--primary-color);
   animation: toast-pop 200ms ease-out;
 }
 

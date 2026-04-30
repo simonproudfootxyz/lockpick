@@ -112,7 +112,6 @@
   height: 100%;
   border-radius: 10px;
   background: var(--grey-500);
-  border: 1px solid var(--black--light-2);
   transform: rotate(-5deg);
 }
 
@@ -176,16 +175,6 @@
 @media (max-width: 768px) {
   /*  Player Actions Container */
   .player-actions-container {
-    /* position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: var(--black--light);
-    padding: 1rem;
-    border-radius: 10px 10px 0 0;
-    z-index: 10; */
-
     padding: 1rem 0;
   }
 }

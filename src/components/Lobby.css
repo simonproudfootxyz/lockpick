@@ -7,7 +7,7 @@
 }
 
 .lobby-container {
-  background: var(--black--light);
+  background: var(--grey-900);
   border-radius: 20px;
   padding: 40px;
   max-width: 600px;
@@ -39,12 +39,12 @@
 }
 
 .status-indicator.connected {
-  background: #48bb78;
+  background: var(--primary-color);
   box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
 }
 
 .status-indicator.disconnected {
-  background: #e53e3e;
+  background: var(--red);
   box-shadow: 0 0 10px rgba(229, 62, 62, 0.5);
 }
 
@@ -57,16 +57,14 @@
 .create-room-section,
 .join-room-section,
 .lobby-info {
-  background: var(--grey-400);
-  padding: 20px;
+  background: var(--grey-900);
+  padding: 1rem 0;
   border-radius: 6px;
 }
 
 .create-room-section h3,
 .join-room-section h3 {
-  margin: 0 0 15px 0;
-  color: #2d3748;
-  font-size: 1.2rem;
+  margin: 0 0 1rem 0;
 }
 
 .create-room-section form,
@@ -81,14 +79,12 @@
 }
 
 .lobby-info h4 {
-  margin: 0 0 15px 0;
-  color: #2d3748;
+  margin: 0 0 1rem 0;
 }
 
 .lobby-info ul {
   margin: 0;
-  padding-left: 20px;
-  color: #4a5568;
+  padding-left: 1rem;
 }
 
 .lobby-info li {
@@ -103,9 +99,7 @@
 }
 
 .invite-link-section h5 {
-  margin: 0 0 10px 0;
-  font-size: 1rem;
-  color: #2d3748;
+  margin: 0 0 0.5rem 0;
 }
 
 .copy-invite-btn {

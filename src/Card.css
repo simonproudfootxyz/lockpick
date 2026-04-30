@@ -45,7 +45,7 @@
 }
 
 .card.selected .card-value {
-  color: var(--black);
+  color: var(--grey-950);
 }
 
 /* Cards in discard piles */

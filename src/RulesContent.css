@@ -38,27 +38,17 @@
   font-weight: 600;
 }
 
-.rules-content code {
-  background: #edf2f7;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.9rem;
-  color: #2d3748;
-}
-
 .rules-content {
   & .rules-section {
     padding: 1rem;
   }
 }
 
-.rules-content .game-objective {
-  background: var(--black);
-}
-
 .rules-content .hand-sizes {
   padding: 12px 16px;
   margin-top: 12px;
+  background: var(--grey-900);
+  border-radius: 6px;
 }
 
 .rules-content .hand-sizes ul {

@@ -264,7 +264,7 @@
 }
 
 .pile-separator {
-  background-image: linear-gradient(var(--black) 33%, var(--grey-800) 0%);
+  background-image: linear-gradient(var(--grey-950) 33%, var(--grey-800) 0%);
   background-position: right;
   background-size: 6px 11px;
   background-repeat: repeat-y;
@@ -300,14 +300,14 @@
   display: inline-block;
   margin: 0 auto 0.5rem;
   text-align: center;
-  color: var(--black);
+  color: var(--grey-950);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
 }
 
 .player .player-section__player-name--disabled {
-  background: var(--black--light-3);
+  background: var(--grey-800);
 }
 
 .player .player__instructions {
@@ -593,7 +593,7 @@
 }
 
 .cant-play-modal {
-  background: var(--black--light);
+  background: var(--grey-900);
   border-radius: 16px;
   padding: 24px;
   width: min(480px, 100%);

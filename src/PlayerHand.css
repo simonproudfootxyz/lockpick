@@ -44,7 +44,7 @@
   left: -5px;
   right: -5px;
   bottom: -5px;
-  border: 2px dashed var(--black--light-2);
+  border: 2px dashed var(--grey-800);
   border-radius: 8px;
   background: rgba(66, 153, 225, 0.1);
   pointer-events: none;
