@@ -413,7 +413,21 @@ The room shape:
 }
 ```
 
-Each `Player` carries `{ socketId, playerId, name, isHost, isConnected, playerIndex, lastSeen? }`. `playerIndex` is assigned on first join (= current `players.size`) and is the link to `gameState.currentPlayer` and `playerHands[i]`. **Indices are not reassigned when a player permanently leaves.** This is fine in practice because the leave path also tears down the room when no players remain, but if you ever ship "kick player mid-game" you must consider re-indexing.
+Each `Player` carries `{ socketId, playerId, name, isHost, isConnected, playerIndex, avatar, lastSeen? }`. `playerIndex` is assigned on first join (= current `players.size`) and is the link to `gameState.currentPlayer` and `playerHands[i]`. **Indices are not reassigned when a player permanently leaves.** This is fine in practice because the leave path also tears down the room when no players remain, but if you ever ship "kick player mid-game" you must consider re-indexing.
+
+#### Avatar assignment (server-authoritative)
+
+Each player and spectator is stamped with an `avatar` string when they first join a room. The pool is defined at the top of `server/roomManager.js`:
+
+```js
+const AVATAR_POOL = ["Seth", "TheSmoke", "Kimbap", "Precious"];
+```
+
+`pickAvatarForRoom(room)` picks an unused avatar when one is available (so a 4-player room shows four distinct characters) and falls back to a random pick from the full pool when the room exceeds the pool size. The same helper is used at all three creation sites — `createRoom`, the new-player branch of `joinRoom`, and `addSpectator` — so reconnecting players keep the avatar already on their roster entry instead of being reassigned.
+
+`ensurePlayerAvatars(room)` is called from `loadRoom` alongside `ensurePlayerIds`, so rooms saved before this field existed are upgraded transparently on the next server boot.
+
+The avatar flows to clients as a normal field on the player object — `sanitizeParticipant` spreads the participant, so `room-joined`, `player-joined`, and the disconnect rebroadcasts carry it without extra plumbing. On the client, `src/components/PlayerList.js` maps the name to the SVG asset via a small `AVATAR_BY_NAME` lookup, falling back to `Seth` for unknown values (defensive against version skew between client and server). There is no client-side persistence — the server is the single source of truth, which is what makes the same player render identically across all browsers and what guarantees a fresh avatar on each new room (even when the same person uses the same name).
 
 #### Reconnection
 
@@ -566,6 +580,7 @@ A single-player-only easter egg; see §5.5. Triggering it during gameplay can be
 - **`leaveRoom` has a debounce.** Empty rooms aren't deleted instantly; reconnecting host within ~5 s will re-claim the room. Tests rely on this timing.
 - **Room codes are 6 alphanumeric chars** (`generateRoomCode`). Collisions are not detected explicitly — they're statistically negligible at expected scale, but if you ever expect 100k+ concurrent rooms, add a collision check.
 - **Names are not unique across rooms**, only within a room. Don't rely on `name` as a global identifier — use `playerId`.
+- **Avatar pool is duplicated.** `AVATAR_POOL` in `server/roomManager.js` (the strings the server can assign) and `AVATAR_BY_NAME` in `src/components/PlayerList.js` (the strings the client knows how to render) must stay in sync. When you add a new avatar you need to (a) drop the SVG in `src/assets/avatars/`, (b) add it to both lists, and (c) ship the server before the client — old clients will gracefully fall back to `Seth` for unknown names but never the reverse.
 - **The single-player route is the only place `localStorage` is used.** Multiplayer relies on `sessionStorage` for identity (so closing a tab clears the cached name binding for that `playerId`).
 - **Drag-and-drop** uses a custom MIME type (`application/lockpick-card`) carrying JSON; if you add new card-source surfaces, set both that payload and a `text/plain` fallback (see `PlayerHand.handleDragStart`).
 - **Helmet CSP is disabled** in `server.js`. If you turn it on, audit Socket.IO and CRA's inline-style usage.
