@@ -3,18 +3,31 @@
   border-radius: 21px;
   padding: 1rem;
   margin: 20px 0;
+
+  .player-list__actions {
+    margin-bottom: 0.75rem;
+  }
 }
 
-.player-list-header {
-  margin-bottom: 0.75rem;
+.player-list__header {
+  margin-bottom: 0.5rem;
+
+  .player-list-header__count {
+    color: var(--grey-550);
+  }
 }
 
-.players-container,
+.player-list__players-container {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.player-list__players-container,
 .spectators-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
 .spectators-list {
@@ -22,30 +35,50 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
 .player-list-item,
 .spectators-list-item {
+  color: var(--grey-550);
 }
 
-.player-list-item {
+.player-list__item {
   position: relative;
+  color: var(--grey-550);
+  font-weight: 700;
 
   &.current {
-    &::before {
-      content: "";
-      display: block;
+    color: var(--primary-color);
+
+    .player-list__item-marker {
       position: absolute;
       top: 50%;
       left: -20px;
       transform: translateY(-50%);
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
-      border-left: 12px solid var(--primary-color);
-      border-right: 10px solid transparent;
-      transform: translateY(-50%);
     }
+  }
+
+  .player-list__item-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .player-list__item-avatar {
+    border-radius: 50%;
+    border: 0.25rem solid var(--grey-800);
+  }
+
+  .player-list__item-current {
+    position: absolute;
+    top: 50%;
+    right: -26%;
+    color: var(--grey-950);
+    background: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    transform: translateY(-50%);
   }
 }
 
@@ -66,8 +99,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
-  color: white;
+  font-weight: 700;
+  color: var(--grey-550);
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -116,15 +149,19 @@
 }
 
 .spectators-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 15px;
-}
+  border-top: 1px solid var(--grey-800);
+  padding-top: 1rem;
 
-.spectators-section h3 {
-  margin: 0 0 10px 0;
-  color: white;
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  h3 {
+    margin: 0 0 10px 0;
+    color: white;
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .spectators-section__count {
+    color: var(--grey-550);
+  }
 }
 
 .spectators-container {
@@ -175,7 +212,7 @@
 }
 
 @media (max-width: 768px) {
-  .player-list-header {
+  .player-list__header {
     flex-direction: column;
     gap: 10px;
     align-items: stretch;

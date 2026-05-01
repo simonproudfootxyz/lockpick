@@ -43,7 +43,7 @@ const Lobby = () => {
       storePlayerIdentity(effectivePlayerId, playerName);
       navigate(
         `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
-          effectivePlayerId
+          effectivePlayerId,
         )}`,
         {
           replace: true,
@@ -52,7 +52,7 @@ const Lobby = () => {
             playerName,
             joinAsPlayer: true,
           },
-        }
+        },
       );
     };
 
@@ -69,7 +69,7 @@ const Lobby = () => {
       storePlayerIdentity(effectivePlayerId, playerName);
       navigate(
         `/multiplayer/${data.roomCode}?playerId=${encodeURIComponent(
-          effectivePlayerId
+          effectivePlayerId,
         )}`,
         {
           replace: true,
@@ -78,7 +78,7 @@ const Lobby = () => {
             playerName,
             joinAsPlayer: !data.isSpectator,
           },
-        }
+        },
       );
     };
 
@@ -168,7 +168,7 @@ const Lobby = () => {
 
   const submitName = async (submission) => {
     const rawName =
-      typeof submission === "string" ? submission : submission?.name ?? "";
+      typeof submission === "string" ? submission : (submission?.name ?? "");
     const requestedJoinFlag =
       typeof submission === "object" && submission !== null
         ? submission.joinAsPlayer
@@ -222,7 +222,7 @@ const Lobby = () => {
 
       if (response.isTaken) {
         setNameError(
-          `${trimmedName} is already taken, please choose another name`
+          `${trimmedName} is already taken, please choose another name`,
         );
         setIsSubmittingName(false);
         return;
@@ -352,8 +352,8 @@ const Lobby = () => {
                 {isJoining
                   ? "Joining..."
                   : isFetchingPreview
-                  ? "Preparing..."
-                  : "Join Room"}
+                    ? "Preparing..."
+                    : "Join Room"}
               </Button>
             </form>
           </div>
@@ -374,7 +374,7 @@ const Lobby = () => {
                 onClick={() => handleCopyInviteLink(lastCreatedRoom)}
                 className="copy-invite-btn"
               >
-                Copy Invite Link
+                Copy invite link
               </button>
               {copySuccess && <p className="copy-feedback">{copySuccess}</p>}
               <p className="invite-tip">

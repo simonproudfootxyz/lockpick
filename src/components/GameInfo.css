@@ -1,0 +1,27 @@
+.game-info {
+  background: var(--modal-background);
+  padding: 1rem;
+  border-radius: 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .game-info__value {
+    color: var(--grey-550);
+  }
+
+  .game-info__value--yellow {
+    color: var(--yellow);
+  }
+
+  .game-info__actions {
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 20px;
+    text-align: center;
+    max-width: 325px;
+    margin: 0 auto;
+  }
+}

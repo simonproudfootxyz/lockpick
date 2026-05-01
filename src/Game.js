@@ -24,6 +24,7 @@ import Button, {
 } from "./components/Button";
 import Toggle from "./components/Toggle";
 import GameHeader from "./components/GameHeader";
+import GameInfo from "./components/GameInfo";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import BlockArrowUp from "./assets/BlockArrowUp.svg";
 import BlockArrowDown from "./assets/BlockArrowDown.svg";
@@ -499,28 +500,7 @@ const Game = () => {
       )}
       <div className="game-layout">
         <div className="game-sidebar">
-          <div className="game-info">
-            <div className="game-id">Game ID: {gameId}</div>
-            <div>Cards in deck: {gameState.deck.length}</div>
-            <div>
-              Current player hand:{" "}
-              {gameState.playerHands[gameState.currentPlayer]?.length || 0}{" "}
-              cards
-            </div>
-            <div>
-              Total cards played:{" "}
-              {gameState.discardPiles.reduce(
-                (sum, pile) => sum + pile.length,
-                0,
-              )}
-              /
-              {gameState.totalCards ||
-                getTotalCardCount(gameState.playerHands.length)}
-            </div>
-            <Button mini fullWidth onClick={openRulesModal}>
-              Rules
-            </Button>
-          </div>
+          <GameInfo gameState={gameState} onOpenRules={openRulesModal} />
         </div>
         <div className="game-main">
           <GameHeader />

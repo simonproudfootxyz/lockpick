@@ -33,6 +33,7 @@ import ThinArrowDown from "../assets/ThinArrowDown.svg";
 import ArrowDown from "../assets/ArrowDown.svg";
 import Toggle from "./Toggle";
 import GameHeader from "./GameHeader";
+import GameInfo from "./GameInfo";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -637,34 +638,9 @@ const MultiplayerGame = () => {
             onStartGame={handleStartGame}
             gameStarted={gameStarted}
           />
-          <div className="game-info">
-            <div className="game-id">Room: {gameId}</div>
-            <div>Cards in deck: {gameState?.deck?.length || 0}</div>
-            <div>
-              Current player hand:{" "}
-              {gameState?.playerHands?.[gameState?.currentPlayer]?.length || 0}{" "}
-              cards
-            </div>
-            <div>
-              Total cards played:{" "}
-              {gameState?.discardPiles?.reduce(
-                (sum, pile) => sum + pile.length,
-                0,
-              ) || 0}
-              /{totalCardsTarget}
-            </div>
-            {/* 
-        {copySuccess && (
-          <div className="copy-feedback-floating">{copySuccess}</div>
-        )} */}
-
-            <InvertButton onClick={openRulesModal} mini>
-              Rules
-            </InvertButton>
-            <InvertButton onClick={startNewGame} mini>
-              Leave Room
-            </InvertButton>
-          </div>
+          {gameStarted && (
+            <GameInfo gameState={gameState} onOpenRules={openRulesModal} />
+          )}
         </div>
         <div className="game-main">
           <GameHeader />
@@ -760,7 +736,7 @@ const MultiplayerGame = () => {
                       }`}
                     >
                       <div className="player__instructions">
-                        <h3
+                        {/* <h3
                           className={`player-section__player-name ${
                             localPlayerIndex !== gameState.currentPlayer
                               ? "player-section__player-name--disabled"
@@ -770,7 +746,7 @@ const MultiplayerGame = () => {
                           {localPlayerIndex === gameState.currentPlayer
                             ? ` Your turn, ${getPlayerName(localPlayerIndex)}`
                             : "Not your turn"}
-                        </h3>
+                        </h3> */}
                         <p
                           className={`player__instructions ${
                             localPlayerIndex !== gameState.currentPlayer
