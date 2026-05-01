@@ -1,5 +1,5 @@
 .player-list {
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 21px;
   padding: 1rem;
   margin: 20px 0;

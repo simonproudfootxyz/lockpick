@@ -47,7 +47,7 @@
 .rules-content .hand-sizes {
   padding: 12px 16px;
   margin-top: 12px;
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 6px;
 }
 

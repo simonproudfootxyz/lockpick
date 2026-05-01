@@ -12,7 +12,7 @@
 }
 
 .game-over-modal {
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 12px;
   padding: 2rem;
   max-width: 400px;

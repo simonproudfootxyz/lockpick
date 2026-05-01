@@ -23,6 +23,7 @@ import Button, {
   TextContrastButton,
 } from "./components/Button";
 import Toggle from "./components/Toggle";
+import GameHeader from "./components/GameHeader";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 import BlockArrowUp from "./assets/BlockArrowUp.svg";
 import BlockArrowDown from "./assets/BlockArrowDown.svg";
@@ -496,197 +497,197 @@ const Game = () => {
           Cheat Code Activated
         </div>
       )}
-      <div className="game-header">
-        <h1>
-          <img src={LockpickLogo} alt="Lockpick" />
-        </h1>
-        <div className="game-controls"></div>
-      </div>
-
-      <div className="discard-piles">
-        <div className="pile-group">
-          <h3 className="pile-group__title">
-            <img src={BlockArrowUp} alt="Ascending Pile" />
-            Ascending
-          </h3>
-          <div className="piles-row">
-            <DiscardPile
-              pile={gameState.discardPiles[0]}
-              pileType="ascending"
-              pileNumber={1}
-              maxCard={descendingStart}
-              onViewPile={handleViewPile}
-              onSelectPile={handlePileAssignment}
-              onPlayCard={handlePlayCard}
-              isSelected={selectedPile === 0}
-              isSelectable={!!selectedCard}
-              onCardDrop={handleCardDrop}
-            />
-            <DiscardPile
-              pile={gameState.discardPiles[1]}
-              pileType="ascending"
-              pileNumber={2}
-              maxCard={descendingStart}
-              onViewPile={handleViewPile}
-              onSelectPile={handlePileAssignment}
-              onPlayCard={handlePlayCard}
-              isSelected={selectedPile === 1}
-              isSelectable={!!selectedCard}
-              onCardDrop={handleCardDrop}
-            />
-          </div>
-        </div>
-        <div className="pile-separator visible--tablet-down"></div>
-        <div className="pile-group">
-          <h3 className="pile-group__title">
-            <img src={BlockArrowDown} alt="Descending Pile" />
-            Descending
-          </h3>
-          <div className="piles-row">
-            <DiscardPile
-              pile={gameState.discardPiles[2]}
-              pileType="descending"
-              pileNumber={3}
-              maxCard={descendingStart}
-              onViewPile={handleViewPile}
-              onSelectPile={handlePileAssignment}
-              onPlayCard={handlePlayCard}
-              isSelected={selectedPile === 2}
-              isSelectable={!!selectedCard}
-              onCardDrop={handleCardDrop}
-            />
-            <DiscardPile
-              pile={gameState.discardPiles[3]}
-              pileType="descending"
-              pileNumber={4}
-              maxCard={descendingStart}
-              onViewPile={handleViewPile}
-              onSelectPile={handlePileAssignment}
-              onPlayCard={handlePlayCard}
-              isSelected={selectedPile === 3}
-              isSelectable={!!selectedCard}
-              onCardDrop={handleCardDrop}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="player-actions-container">
-        <div className="player-section">
-          {gameState.playerHands.map((hand, index) => (
-            <div
-              key={index}
-              className={`player ${
-                index === gameState.currentPlayer ? "current" : ""
-              }`}
-            >
-              <p className="player__instructions hidden--tablet-down">
-                Drag cards to a pile, or select a card & click “play”
-              </p>
-              <p className="player__instructions visible--tablet-down">
-                Select a card & tap “play” on the intended pile.
-              </p>
-
-              <PlayerHand
-                hand={hand}
-                selectedCard={selectedCard}
-                onCardSelect={(card) => handleCardSelect(card, index)}
-                onHandReorder={handleHandReorder}
-                isCurrentPlayer={index === gameState.currentPlayer}
-                discardPiles={gameState.discardPiles}
-                allowMultiplesOfTenReverse={isKonamiMode}
-              />
-              {index === gameState.currentPlayer && (
-                <div className="sort-controls">
-                  <Toggle
-                    className="auto-sort-toggle"
-                    label="Auto-Sort"
-                    checked={autoSortEnabled}
-                    onChange={handleAutoSortToggle}
-                  />
-                  <div className="sort-buttons">
-                    <TextButton
-                      onClick={sortHandAscending}
-                      mini
-                      className="sort-hand-btn"
-                    >
-                      <img
-                        className="sort-hand-btn__icon"
-                        src={ThinArrowUp}
-                        alt="Sort Ascending"
-                      />
-                      Sort Asc
-                      <span className="hidden--tablet-down">ending</span>
-                    </TextButton>
-                    <TextButton
-                      onClick={sortHandDescending}
-                      mini
-                      className="sort-hand-btn"
-                    >
-                      <img
-                        className="sort-hand-btn__icon"
-                        src={ThinArrowDown}
-                        alt="Sort Descending"
-                      />
-                      Sort Desc
-                      <span className="hidden--tablet-down">ending</span>
-                    </TextButton>
-                  </div>
-                </div>
-              )}
+      <div className="game-layout">
+        <div className="game-sidebar">
+          <div className="game-info">
+            <div className="game-id">Game ID: {gameId}</div>
+            <div>Cards in deck: {gameState.deck.length}</div>
+            <div>
+              Current player hand:{" "}
+              {gameState.playerHands[gameState.currentPlayer]?.length || 0}{" "}
+              cards
             </div>
-          ))}
-        </div>
-
-        <div className="play-card-section">
-          {!gameState.turnComplete && (
-            <p className="turn-progress">
-              Play{" "}
-              {Math.max(
+            <div>
+              Total cards played:{" "}
+              {gameState.discardPiles.reduce(
+                (sum, pile) => sum + pile.length,
                 0,
-                (gameState.deck.length === 0 ? 1 : 2) -
-                  gameState.cardsPlayedThisTurn,
-              )}{" "}
-              more cards
-            </p>
-          )}
-
-          <div className="cant-play-container">
-            <Button onClick={handleCantPlayClick} className="cant-play-btn">
-              I Can't Play A Card
+              )}
+              /
+              {gameState.totalCards ||
+                getTotalCardCount(gameState.playerHands.length)}
+            </div>
+            <Button mini fullWidth onClick={openRulesModal}>
+              Rules
             </Button>
-            <PrimaryButton
-              onClick={endTurn}
-              disabled={!gameState.turnComplete}
-              className="end-turn-btn"
-            >
-              End Turn & Draw Cards
-            </PrimaryButton>
           </div>
         </div>
-      </div>
+        <div className="game-main">
+          <GameHeader />
 
-      <div className="game-info">
-        <div className="game-id">Game ID: {gameId}</div>
-        <div>Cards in deck: {gameState.deck.length}</div>
-        <div>
-          Current player hand:{" "}
-          {gameState.playerHands[gameState.currentPlayer]?.length || 0} cards
-        </div>
-        <div>
-          Total cards played:{" "}
-          {gameState.discardPiles.reduce((sum, pile) => sum + pile.length, 0)}/
-          {gameState.totalCards ||
-            getTotalCardCount(gameState.playerHands.length)}
-        </div>
-        <Button mini fullWidth onClick={openRulesModal}>
-          Rules
-        </Button>
-        {lastSaved && (
-          <div className="save-indicator">
-            Saved: {lastSaved.toLocaleTimeString()}
+          <div className="discard-piles">
+            <div className="pile-group">
+              <h3 className="pile-group__title">
+                <img src={BlockArrowUp} alt="Ascending Pile" />
+                Ascending
+              </h3>
+              <div className="piles-row">
+                <DiscardPile
+                  pile={gameState.discardPiles[0]}
+                  pileType="ascending"
+                  pileNumber={1}
+                  maxCard={descendingStart}
+                  onViewPile={handleViewPile}
+                  onSelectPile={handlePileAssignment}
+                  onPlayCard={handlePlayCard}
+                  isSelected={selectedPile === 0}
+                  isSelectable={!!selectedCard}
+                  onCardDrop={handleCardDrop}
+                />
+                <DiscardPile
+                  pile={gameState.discardPiles[1]}
+                  pileType="ascending"
+                  pileNumber={2}
+                  maxCard={descendingStart}
+                  onViewPile={handleViewPile}
+                  onSelectPile={handlePileAssignment}
+                  onPlayCard={handlePlayCard}
+                  isSelected={selectedPile === 1}
+                  isSelectable={!!selectedCard}
+                  onCardDrop={handleCardDrop}
+                />
+              </div>
+            </div>
+            <div className="pile-separator visible--tablet-down"></div>
+            <div className="pile-group">
+              <h3 className="pile-group__title">
+                <img src={BlockArrowDown} alt="Descending Pile" />
+                Descending
+              </h3>
+              <div className="piles-row">
+                <DiscardPile
+                  pile={gameState.discardPiles[2]}
+                  pileType="descending"
+                  pileNumber={3}
+                  maxCard={descendingStart}
+                  onViewPile={handleViewPile}
+                  onSelectPile={handlePileAssignment}
+                  onPlayCard={handlePlayCard}
+                  isSelected={selectedPile === 2}
+                  isSelectable={!!selectedCard}
+                  onCardDrop={handleCardDrop}
+                />
+                <DiscardPile
+                  pile={gameState.discardPiles[3]}
+                  pileType="descending"
+                  pileNumber={4}
+                  maxCard={descendingStart}
+                  onViewPile={handleViewPile}
+                  onSelectPile={handlePileAssignment}
+                  onPlayCard={handlePlayCard}
+                  isSelected={selectedPile === 3}
+                  isSelectable={!!selectedCard}
+                  onCardDrop={handleCardDrop}
+                />
+              </div>
+            </div>
           </div>
-        )}
+
+          <div className="player-actions-container">
+            <div className="player-section">
+              {gameState.playerHands.map((hand, index) => (
+                <div
+                  key={index}
+                  className={`player ${
+                    index === gameState.currentPlayer ? "current" : ""
+                  }`}
+                >
+                  <p className="player__instructions hidden--tablet-down">
+                    Drag cards to a pile, or select a card & click “play”
+                  </p>
+                  <p className="player__instructions visible--tablet-down">
+                    Select a card & tap “play” on the intended pile.
+                  </p>
+
+                  <PlayerHand
+                    hand={hand}
+                    selectedCard={selectedCard}
+                    onCardSelect={(card) => handleCardSelect(card, index)}
+                    onHandReorder={handleHandReorder}
+                    isCurrentPlayer={index === gameState.currentPlayer}
+                    discardPiles={gameState.discardPiles}
+                    allowMultiplesOfTenReverse={isKonamiMode}
+                  />
+                  {index === gameState.currentPlayer && (
+                    <div className="sort-controls">
+                      <Toggle
+                        className="auto-sort-toggle"
+                        label="Auto-Sort"
+                        checked={autoSortEnabled}
+                        onChange={handleAutoSortToggle}
+                      />
+                      <div className="sort-buttons">
+                        <TextButton
+                          onClick={sortHandAscending}
+                          mini
+                          className="sort-hand-btn"
+                        >
+                          <img
+                            className="sort-hand-btn__icon"
+                            src={ThinArrowUp}
+                            alt="Sort Ascending"
+                          />
+                          Sort Asc
+                          <span className="hidden--tablet-down">ending</span>
+                        </TextButton>
+                        <TextButton
+                          onClick={sortHandDescending}
+                          mini
+                          className="sort-hand-btn"
+                        >
+                          <img
+                            className="sort-hand-btn__icon"
+                            src={ThinArrowDown}
+                            alt="Sort Descending"
+                          />
+                          Sort Desc
+                          <span className="hidden--tablet-down">ending</span>
+                        </TextButton>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="play-card-section">
+              {!gameState.turnComplete && (
+                <p className="turn-progress">
+                  Play{" "}
+                  {Math.max(
+                    0,
+                    (gameState.deck.length === 0 ? 1 : 2) -
+                      gameState.cardsPlayedThisTurn,
+                  )}{" "}
+                  more cards
+                </p>
+              )}
+
+              <div className="cant-play-container">
+                <Button onClick={handleCantPlayClick} className="cant-play-btn">
+                  I Can't Play A Card
+                </Button>
+                <PrimaryButton
+                  onClick={endTurn}
+                  disabled={!gameState.turnComplete}
+                  className="end-turn-btn"
+                >
+                  End Turn & Draw Cards
+                </PrimaryButton>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {viewingPile && (

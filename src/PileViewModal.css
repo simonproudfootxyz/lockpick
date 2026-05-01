@@ -13,7 +13,7 @@
 }
 
 .pile-view-modal {
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 15px;
   padding: 20px;
   max-width: 80vw;

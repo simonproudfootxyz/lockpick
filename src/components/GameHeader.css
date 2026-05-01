@@ -1,0 +1,15 @@
+.game-header {
+  text-align: center;
+  color: white;
+
+  .game-header__title {
+    margin: 0 0 1rem 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@media (max-width: 768px) {
+  .game-header .game-header__title {
+    font-size: 2rem;
+  }
+}

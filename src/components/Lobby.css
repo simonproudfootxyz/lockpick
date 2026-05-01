@@ -7,7 +7,7 @@
 }
 
 .lobby-container {
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 20px;
   padding: 40px;
   max-width: 600px;
@@ -57,7 +57,7 @@
 .create-room-section,
 .join-room-section,
 .lobby-info {
-  background: var(--grey-900);
+  background: var(--modal-background);
   padding: 1rem 0;
   border-radius: 6px;
 }

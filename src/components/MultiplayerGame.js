@@ -32,6 +32,7 @@ import ThinArrowUp from "../assets/ThinArrowUp.svg";
 import ThinArrowDown from "../assets/ThinArrowDown.svg";
 import ArrowDown from "../assets/ArrowDown.svg";
 import Toggle from "./Toggle";
+import GameHeader from "./GameHeader";
 
 const MultiplayerGame = () => {
   const { gameId } = useParams();
@@ -636,13 +637,37 @@ const MultiplayerGame = () => {
             onStartGame={handleStartGame}
             gameStarted={gameStarted}
           />
+          <div className="game-info">
+            <div className="game-id">Room: {gameId}</div>
+            <div>Cards in deck: {gameState?.deck?.length || 0}</div>
+            <div>
+              Current player hand:{" "}
+              {gameState?.playerHands?.[gameState?.currentPlayer]?.length || 0}{" "}
+              cards
+            </div>
+            <div>
+              Total cards played:{" "}
+              {gameState?.discardPiles?.reduce(
+                (sum, pile) => sum + pile.length,
+                0,
+              ) || 0}
+              /{totalCardsTarget}
+            </div>
+            {/* 
+        {copySuccess && (
+          <div className="copy-feedback-floating">{copySuccess}</div>
+        )} */}
+
+            <InvertButton onClick={openRulesModal} mini>
+              Rules
+            </InvertButton>
+            <InvertButton onClick={startNewGame} mini>
+              Leave Room
+            </InvertButton>
+          </div>
         </div>
         <div className="game-main">
-          <div className="game-header">
-            <h1>
-              <img src={LockpickLogo} alt="Lockpick" />
-            </h1>
-          </div>
+          <GameHeader />
           {isHost && !gameStarted && (
             <div className="start-game-section">
               <Button onClick={handleStartGame} disabled={players.length < 2}>
@@ -894,35 +919,6 @@ const MultiplayerGame = () => {
             </div>
           )}
         </div>
-      </div>
-
-      <div className="game-info">
-        <div className="game-id">Room: {gameId}</div>
-        <div>Cards in deck: {gameState?.deck?.length || 0}</div>
-        <div>
-          Current player hand:{" "}
-          {gameState?.playerHands?.[gameState?.currentPlayer]?.length || 0}{" "}
-          cards
-        </div>
-        <div>
-          Total cards played:{" "}
-          {gameState?.discardPiles?.reduce(
-            (sum, pile) => sum + pile.length,
-            0,
-          ) || 0}
-          /{totalCardsTarget}
-        </div>
-        {/* 
-        {copySuccess && (
-          <div className="copy-feedback-floating">{copySuccess}</div>
-        )} */}
-
-        <InvertButton onClick={openRulesModal} mini>
-          Rules
-        </InvertButton>
-        <InvertButton onClick={startNewGame} mini>
-          Leave Room
-        </InvertButton>
       </div>
 
       {showCantPlayConfirm && (

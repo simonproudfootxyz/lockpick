@@ -4,17 +4,6 @@
   position: relative;
 }
 
-.game-header {
-  text-align: center;
-  color: white;
-}
-
-.game-header h1 {
-  font-size: 3rem;
-  margin: 0 0 10px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
 .game-id {
   font-weight: bold;
   margin-bottom: 10px;
@@ -316,10 +305,7 @@
 }
 
 .game-info {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  background: var(--grey-900);
+  background: var(--modal-background);
   padding: 1rem;
   border-radius: 21px;
   display: flex;
@@ -384,14 +370,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.save-indicator {
-  font-size: 10px;
-  color: #a0aec0;
-  margin-top: 4px;
-  text-align: center;
-  font-style: italic;
-}
-
 .copy-invite-floating {
   background: #48bb78;
   color: white;
@@ -423,10 +401,6 @@
 @media (max-width: 768px) {
   .game {
     padding: 1rem;
-  }
-
-  .game-header h1 {
-    font-size: 2rem;
   }
 
   .game-controls {
@@ -481,7 +455,6 @@
 }
 
 .game-sidebar {
-  width: 185px;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
@@ -593,7 +566,7 @@
 }
 
 .cant-play-modal {
-  background: var(--grey-900);
+  background: var(--modal-background);
   border-radius: 16px;
   padding: 24px;
   width: min(480px, 100%);

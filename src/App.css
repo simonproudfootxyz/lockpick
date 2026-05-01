@@ -28,6 +28,7 @@
   --white: var(--grey-100);
   --yellow: var(--primary-color);
   --red: #ff8e82;
+  --modal-background: var(--grey-900);
 
   /* font family */
   --jost: "Jost", sans-serif;
@@ -108,7 +109,7 @@ input[type="text"] {
   left: 50%;
   transform: translate(-50%, 0);
   padding: 0.75rem 1rem;
-  background: var(--grey-900);
+  background: var(--modal-background);
   color: var(--white);
   border-radius: 6px;
   font-weight: 600;
