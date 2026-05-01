@@ -2,6 +2,17 @@ const { v4: uuidv4 } = require("uuid");
 const fs = require("fs").promises;
 const path = require("path");
 
+const AVATAR_POOL = ["Seth", "TheSmoke", "Kimbap", "Precious"];
+
+function pickAvatarForRoom(room) {
+  const taken = new Set();
+  for (const p of room.players.values()) if (p.avatar) taken.add(p.avatar);
+  for (const s of room.spectators.values()) if (s.avatar) taken.add(s.avatar);
+  const free = AVATAR_POOL.filter((a) => !taken.has(a));
+  const pool = free.length > 0 ? free : AVATAR_POOL;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 class RoomManager {
   constructor() {
     this.rooms = new Map(); // roomCode -> room data
@@ -135,6 +146,23 @@ class RoomManager {
     }
   }
 
+  ensurePlayerAvatars(room) {
+    const assignAvatar = (participant) => {
+      if (!participant.avatar) {
+        participant.avatar = pickAvatarForRoom(room);
+      }
+      return participant;
+    };
+
+    for (const [socketId, player] of room.players) {
+      room.players.set(socketId, assignAvatar(player));
+    }
+
+    for (const [socketId, spectator] of room.spectators) {
+      room.spectators.set(socketId, assignAvatar(spectator));
+    }
+  }
+
   async saveRoom(roomCode, room) {
     try {
       this.ensurePlayerIds(room);
@@ -176,6 +204,7 @@ class RoomManager {
       };
 
       this.ensurePlayerIds(room);
+      this.ensurePlayerAvatars(room);
 
       return room;
     } catch (error) {
@@ -253,6 +282,7 @@ class RoomManager {
       isHost: true,
       isConnected: true,
       playerIndex: 0,
+      avatar: pickAvatarForRoom(room),
     });
 
     this.rooms.set(roomCode, room);
@@ -432,6 +462,7 @@ class RoomManager {
         isHost: false,
         isConnected: true,
         isSpectator: true,
+        avatar: pickAvatarForRoom(room),
       });
       this.playerRooms.set(socketId, roomCode);
       room.lastActivity = Date.now();
@@ -474,6 +505,7 @@ class RoomManager {
       isHost: false,
       isConnected: true,
       playerIndex: playerIndex,
+      avatar: pickAvatarForRoom(room),
     });
 
     this.playerRooms.set(socketId, roomCode);

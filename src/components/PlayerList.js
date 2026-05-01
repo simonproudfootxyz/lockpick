@@ -24,50 +24,16 @@ const PlayerList = ({
     return `${origin}/join/${gameId}`;
   };
 
-  const avatars = [Seth, TheSmoke, Kimbap, Precious];
-
-  // Deterministically pick an avatar from a stable player identifier so the
-  // same player always gets the same avatar across re-renders.
-  const AVATAR_STORAGE_KEY = "lockpick:playerAvatars";
-
-  const readAvatarStore = () => {
-    try {
-      const raw = window.localStorage.getItem(AVATAR_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
+  const AVATAR_BY_NAME = {
+    Seth,
+    TheSmoke,
+    Kimbap,
+    Precious,
   };
+  const FALLBACK_AVATAR = Seth;
 
-  const writeAvatarStore = (store) => {
-    try {
-      window.localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(store));
-    } catch {
-      // ignore quota / privacy-mode errors
-    }
-  };
-
-  const getAvatar = (player) => {
-    // Use the player's name (stable across socket reconnects) as the key.
-    const key = String(player?.name ?? "");
-    if (!key) return avatars[0];
-
-    const store = readAvatarStore();
-    if (typeof store[key] === "number" && avatars[store[key]]) {
-      return avatars[store[key]];
-    }
-
-    // First time we've seen this player in this browser: pick a deterministic
-    // index from the name hash so it stays stable even if storage is cleared.
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-    }
-    const index = hash % avatars.length;
-    store[key] = index;
-    writeAvatarStore(store);
-    return avatars[index];
-  };
+  const getAvatar = (player) =>
+    AVATAR_BY_NAME[player?.avatar] || FALLBACK_AVATAR;
 
   const handleCopyInviteLink = async () => {
     try {

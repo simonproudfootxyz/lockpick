@@ -56,6 +56,10 @@
       left: -20px;
       transform: translateY(-50%);
     }
+
+    .player-list__item-avatar {
+      border: 0.25rem solid var(--primary-color);
+    }
   }
 
   .player-list__item-info {
