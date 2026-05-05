@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import "./PlayerList.css";
-import Button, { InvertButton } from "./Button";
+import Button, { InvertButton, TextButton } from "./Button";
 import { useParams } from "react-router-dom";
 import PlayerMarker from "../assets/PlayerMarker.svg";
+import CopyIcon from "../assets/CopyIcon.svg";
 import Seth from "../assets/avatars/Seth.svg";
 import TheSmoke from "../assets/avatars/TheSmoke.svg";
 import Kimbap from "../assets/avatars/Kimbap.svg";
@@ -48,11 +49,21 @@ const PlayerList = ({
   return (
     <div className="player-list">
       <div className="player-list__actions">
-        <InvertButton onClick={handleCopyInviteLink} mini>
-          Copy invite link
-        </InvertButton>
+        <p className="player-list__game-id">
+          <strong>Room ID: </strong>
+          <TextButton
+            className="player-list__game-id-button"
+            onClick={handleCopyInviteLink}
+            mini
+          >
+            {gameId}
+            <img width={12} height={12} src={CopyIcon} alt="Copy" />
+          </TextButton>
+        </p>
+        {copySuccess && (
+          <p className="player-list__copy-feedback">{copySuccess}</p>
+        )}
       </div>
-      {copySuccess && <p className="copy-feedback-floating">{copySuccess}</p>}
       <p className="player-list__header">
         <strong>Players</strong>{" "}
         <span className="player-list-header__count">({players.length})</span>

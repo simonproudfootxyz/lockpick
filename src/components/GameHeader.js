@@ -28,7 +28,7 @@ const GameHeader = ({ children }) => {
         className="game-header__rules-trigger"
         onClick={handleOpenRules}
       >
-        <img src={HelpIcon} alt="How do I play?" width={16} height={16} />
+        <img src={HelpIcon} alt="How do I play?" width={30} height={30} />
         <span className="hidden--tablet-down">How do I play?</span>
       </TextButton>
       {children}

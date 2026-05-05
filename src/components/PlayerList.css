@@ -6,6 +6,30 @@
 
   .player-list__actions {
     margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .player-list__game-id-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .player-list__copy-feedback {
+    position: absolute;
+    top: 50%;
+    right: -26%;
+    color: var(--grey-950);
+    background: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    transform: translateY(-50%);
+    font-weight: 600;
+
+    @media (max-width: 768px) {
+      right: 0;
+    }
   }
 }
 
@@ -83,6 +107,10 @@
     border-radius: 1rem;
     font-size: 0.75rem;
     transform: translateY(-50%);
+
+    @media (max-width: 768px) {
+      right: 0;
+    }
   }
 }
 

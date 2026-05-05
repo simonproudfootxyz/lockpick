@@ -914,7 +914,6 @@ const MultiplayerGame = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };
