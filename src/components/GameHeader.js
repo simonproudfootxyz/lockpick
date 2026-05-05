@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import LockpickLogo from "../assets/LockpickLogo.svg";
 import "./GameHeader.css";
 import { TextButton } from "./Button";
@@ -19,7 +20,9 @@ const GameHeader = ({ children }) => {
   return (
     <div className="game-header">
       <h1 className="game-header__title">
-        <img src={LockpickLogo} alt="Lockpick" />
+        <Link to="/" className="game-header__logo-link" aria-label="Home">
+          <img src={LockpickLogo} alt="Lockpick" />
+        </Link>
       </h1>
       <TextButton
         className="game-header__rules-trigger"

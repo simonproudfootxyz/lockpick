@@ -8,6 +8,18 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 
+  .game-header__logo-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .game-header__logo-link:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
   .game-header__rules-trigger {
     position: absolute;
     right: 0;
