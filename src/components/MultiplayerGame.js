@@ -15,16 +15,17 @@ import useSocket from "../hooks/useSocket";
 import DiscardPile from "../DiscardPile";
 import PlayerHand from "../PlayerHand";
 import PlayerList from "./PlayerList";
-import PileViewModal from "../PileViewModal";
-import GameOverModal from "../GameOverModal";
-import RulesModal from "../RulesModal";
 import { getTotalCardCount } from "../gameLogic";
 import "../Game.css";
 import {
   getStoredPlayerName,
   storePlayerIdentity,
 } from "../utils/playerIdentity";
-import Button, { InvertButton, PrimaryButton, TextButton } from "./Button";
+import Button, { PrimaryButton, TextButton } from "./Button";
+import { useModal } from "../context/ModalContext";
+import GameOverModalContent from "./modals/GameOverModalContent";
+import PileViewModalContent from "./modals/PileViewModalContent";
+import ConfirmModalContent from "./modals/ConfirmModalContent";
 import LockpickLogo from "../assets/LockpickLogo.svg";
 import BlockArrowUp from "../assets/BlockArrowUp.svg";
 import BlockArrowDown from "../assets/BlockArrowDown.svg";
@@ -41,15 +42,13 @@ const MultiplayerGame = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { socket, isConnected, emit, on, off } = useSocket();
+  const { openModal, closeModal } = useModal();
 
   const socketId = socket?.id;
 
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedPile, setSelectedPile] = useState(null);
-  const [viewingPile, setViewingPile] = useState(null);
-  const [showGameOverModal, setShowGameOverModal] = useState(false);
-  const [showRulesModal, setShowRulesModal] = useState(false);
 
   const [roomData, setRoomData] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -59,10 +58,10 @@ const MultiplayerGame = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameStatus, setGameStatus] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
-  const [gameOverInfo, setGameOverInfo] = useState(null);
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState("asc");
-  const [showCantPlayConfirm, setShowCantPlayConfirm] = useState(false);
+  const gameOverModalShownRef = useRef(false);
+  const startNewGameRef = useRef(() => {});
 
   const joinAttemptsRef = useRef(0);
   const hasJoinedRoom = useRef(false);
@@ -106,48 +105,67 @@ const MultiplayerGame = () => {
 
   const updateGameOverState = useCallback(
     (state, context = {}) => {
-      if (!state) {
-        setGameOverInfo(null);
-        setShowGameOverModal(false);
+      const isGameOver = !!(state && (state.gameWon || state.gameOver));
+
+      if (!isGameOver) {
+        gameOverModalShownRef.current = false;
         return;
       }
+
+      if (gameOverModalShownRef.current) {
+        return;
+      }
+      gameOverModalShownRef.current = true;
+
+      const buildAction = (close) => () => {
+        startNewGameRef.current();
+        close();
+      };
 
       if (state.gameWon) {
         const totalCards =
           typeof state.totalCards === "number"
             ? state.totalCards
             : getTotalCardCount(state.playerHands?.length || 0);
-        setGameOverInfo({
+        openModal({
           title: "Congratulations!",
-          message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
-          summaryItems: buildGameSummary(state),
+          size: "sm",
+          closeOnBackdrop: false,
+          content: ({ close }) => (
+            <GameOverModalContent
+              message={`Congratulations, you won! All ${totalCards} cards have been played! Great job!`}
+              summaryItems={buildGameSummary(state)}
+              actionLabel="Start New Game"
+              onAction={buildAction(close)}
+            />
+          ),
         });
-        setShowGameOverModal(true);
         return;
       }
 
-      if (state.gameOver) {
-        const failedPlayer =
-          typeof state.endedByPlayer === "number"
-            ? state.endedByPlayer
-            : (state.currentPlayer ?? 0);
-        const displayName =
-          context.playerName ||
-          players.find((p) => p.playerIndex === failedPlayer)?.name ||
-          `Player ${failedPlayer + 1}`;
-        setGameOverInfo({
-          title: "Game Over!",
-          message: `${displayName} couldn't play a card. The game has ended.`,
-          summaryItems: buildGameSummary(state),
-        });
-        setShowGameOverModal(true);
-        return;
-      }
-
-      setGameOverInfo(null);
-      setShowGameOverModal(false);
+      const failedPlayer =
+        typeof state.endedByPlayer === "number"
+          ? state.endedByPlayer
+          : (state.currentPlayer ?? 0);
+      const displayName =
+        context.playerName ||
+        players.find((p) => p.playerIndex === failedPlayer)?.name ||
+        `Player ${failedPlayer + 1}`;
+      openModal({
+        title: "Game Over!",
+        size: "sm",
+        closeOnBackdrop: false,
+        content: ({ close }) => (
+          <GameOverModalContent
+            message={`${displayName} couldn't play a card. The game has ended.`}
+            summaryItems={buildGameSummary(state)}
+            actionLabel="Start New Game"
+            onAction={buildAction(close)}
+          />
+        ),
+      });
     },
-    [players, buildGameSummary],
+    [players, buildGameSummary, openModal],
   );
 
   const handleRoomJoined = useCallback(
@@ -433,26 +451,33 @@ const MultiplayerGame = () => {
     });
   };
 
-  const handleCantPlayClick = useCallback(() => {
-    if (!gameState || isSpectator || gameState.gameOver) return;
-    setShowCantPlayConfirm(true);
-  }, [gameState, isSpectator]);
-
   const confirmCantPlayCard = useCallback(() => {
     if (!gameState || isSpectator || gameState.gameOver) {
-      setShowCantPlayConfirm(false);
       return;
     }
-
     emit("cant-play", {
       roomCode: gameId,
     });
-    setShowCantPlayConfirm(false);
   }, [emit, gameId, gameState, isSpectator]);
 
-  const cancelCantPlayCard = useCallback(() => {
-    setShowCantPlayConfirm(false);
-  }, []);
+  const handleCantPlayClick = useCallback(() => {
+    if (!gameState || isSpectator || gameState.gameOver) return;
+    openModal({
+      title: "End the game?",
+      size: "sm",
+      content: ({ close }) => (
+        <ConfirmModalContent
+          message="Confirm you have no legal moves. Ending now will mark the run as failed for everyone in the room."
+          confirmLabel="Yes, end the game"
+          cancelLabel="Keep playing"
+          onConfirm={() => {
+            close();
+            confirmCantPlayCard();
+          }}
+        />
+      ),
+    });
+  }, [gameState, isSpectator, openModal, confirmCantPlayCard]);
 
   const handleStartGame = () => {
     console.log("Start game clicked:", {
@@ -483,11 +508,12 @@ const MultiplayerGame = () => {
   };
 
   const handleViewPile = (pile, pileType, pileNumber) => {
-    setViewingPile({ pile, pileType, pileNumber });
-  };
-
-  const closePileView = () => {
-    setViewingPile(null);
+    const typeLabel = pileType === "ascending" ? "Ascending" : "Descending";
+    openModal({
+      title: `${typeLabel} Pile ${pileNumber}`,
+      size: "lg",
+      content: <PileViewModalContent pile={pile} />,
+    });
   };
 
   const handleSortHand = (playerIndex, order = "asc") => {
@@ -553,20 +579,14 @@ const MultiplayerGame = () => {
   }, [players, socketId, isSpectator]);
 
   const startNewGame = useCallback(() => {
-    setGameOverInfo(null);
-    setShowGameOverModal(false);
+    gameOverModalShownRef.current = false;
+    closeModal();
     setAutoSortEnabled(false);
     setLastSortOrder("asc");
     navigate("/");
-  }, [navigate]);
+  }, [navigate, closeModal]);
 
-  const openRulesModal = () => {
-    setShowRulesModal(true);
-  };
-
-  const closeRulesModal = () => {
-    setShowRulesModal(false);
-  };
+  startNewGameRef.current = startNewGame;
 
   if (!isConnected) {
     return (
@@ -638,9 +658,7 @@ const MultiplayerGame = () => {
             onStartGame={handleStartGame}
             gameStarted={gameStarted}
           />
-          {gameStarted && (
-            <GameInfo gameState={gameState} onOpenRules={openRulesModal} />
-          )}
+          {gameStarted && <GameInfo gameState={gameState} />}
         </div>
         <div className="game-main">
           <GameHeader />
@@ -897,48 +915,6 @@ const MultiplayerGame = () => {
         </div>
       </div>
 
-      {showCantPlayConfirm && (
-        <div
-          className="cant-play-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cant-play-modal-title"
-        >
-          <div className="cant-play-modal">
-            <h2 id="cant-play-modal-title">End the game?</h2>
-            <p>
-              Confirm you have no legal moves. Ending now will mark the run as
-              failed for everyone in the room.
-            </p>
-            <div className="cant-play-actions">
-              <InvertButton onClick={cancelCantPlayCard}>
-                Keep playing
-              </InvertButton>
-              <Button onClick={confirmCantPlayCard}>Yes, end the game</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewingPile && (
-        <PileViewModal
-          pile={viewingPile.pile}
-          pileType={viewingPile.pileType}
-          pileNumber={viewingPile.pileNumber}
-          onClose={closePileView}
-        />
-      )}
-
-      <GameOverModal
-        isOpen={showGameOverModal}
-        title={gameOverInfo?.title}
-        message={gameOverInfo?.message}
-        actionLabel="Start New Game"
-        onAction={startNewGame}
-        summaryItems={gameOverInfo?.summaryItems}
-      />
-
-      <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
     </div>
   );
 };

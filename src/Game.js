@@ -12,16 +12,15 @@ import {
 } from "./gameLogic";
 import DiscardPile from "./DiscardPile";
 import PlayerHand from "./PlayerHand";
-import PileViewModal from "./PileViewModal";
-import GameOverModal from "./GameOverModal";
-import RulesModal from "./RulesModal";
 import "./Game.css";
 import Button, {
-  InvertButton,
   PrimaryButton,
   TextButton,
-  TextContrastButton,
 } from "./components/Button";
+import { useModal } from "./context/ModalContext";
+import GameOverModalContent from "./components/modals/GameOverModalContent";
+import PileViewModalContent from "./components/modals/PileViewModalContent";
+import ConfirmModalContent from "./components/modals/ConfirmModalContent";
 import Toggle from "./components/Toggle";
 import GameHeader from "./components/GameHeader";
 import GameInfo from "./components/GameInfo";
@@ -36,19 +35,18 @@ const Game = () => {
   const { gameId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { openModal, closeModal } = useModal();
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedPile, setSelectedPile] = useState(null);
-  const [viewingPile, setViewingPile] = useState(null);
-  const [showGameOverModal, setShowGameOverModal] = useState(false);
-  const [showRulesModal, setShowRulesModal] = useState(false);
-  const [gameOverInfo, setGameOverInfo] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState("asc");
   const [isKonamiMode, setIsKonamiMode] = useState(false);
   const [showKonamiToast, setShowKonamiToast] = useState(false);
   const konamiToastTimeoutRef = useRef(null);
+  const winModalShownRef = useRef(false);
+  const startNewGameRef = useRef(() => {});
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
 
@@ -220,23 +218,35 @@ const Game = () => {
   }, []);
 
   useEffect(() => {
-    if (gameState?.gameWon) {
-      const totalCards =
-        typeof gameState.totalCards === "number"
-          ? gameState.totalCards
-          : getTotalCardCount(gameState.playerHands?.length || numPlayers);
-      setGameOverInfo({
-        type: "win",
-        title: "Congratulations!",
-        message: `Congratulations, you won! All ${totalCards} cards have been played! Great job!`,
-        summaryItems: buildGameSummary(gameState),
-      });
-      setShowGameOverModal(true);
-    } else if (gameOverInfo?.type === "win") {
-      setGameOverInfo(null);
-      setShowGameOverModal(false);
+    if (!gameState?.gameWon) {
+      winModalShownRef.current = false;
+      return;
     }
-  }, [gameState, gameOverInfo, numPlayers, buildGameSummary]);
+    if (winModalShownRef.current) {
+      return;
+    }
+    winModalShownRef.current = true;
+    const totalCards =
+      typeof gameState.totalCards === "number"
+        ? gameState.totalCards
+        : getTotalCardCount(gameState.playerHands?.length || numPlayers);
+    openModal({
+      title: "Congratulations!",
+      size: "sm",
+      closeOnBackdrop: false,
+      content: ({ close }) => (
+        <GameOverModalContent
+          message={`Congratulations, you won! All ${totalCards} cards have been played! Great job!`}
+          summaryItems={buildGameSummary(gameState)}
+          actionLabel="Start New Game"
+          onAction={() => {
+            startNewGameRef.current();
+            close();
+          }}
+        />
+      ),
+    });
+  }, [gameState, numPlayers, buildGameSummary, openModal]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -408,50 +418,63 @@ const Game = () => {
   };
 
   const handleViewPile = (pile, pileType, pileNumber) => {
-    setViewingPile({ pile, pileType, pileNumber });
-  };
-
-  const closePileView = () => {
-    setViewingPile(null);
-  };
-
-  const [showCantPlayConfirm, setShowCantPlayConfirm] = useState(false);
-
-  const handleCantPlayClick = () => {
-    if (!gameState?.gameOver) {
-      setShowCantPlayConfirm(true);
-    }
+    const typeLabel = pileType === "ascending" ? "Ascending" : "Descending";
+    openModal({
+      title: `${typeLabel} Pile ${pileNumber}`,
+      size: "lg",
+      content: <PileViewModalContent pile={pile} />,
+    });
   };
 
   const confirmCantPlayCard = () => {
-    setGameOverInfo({
-      type: "cant-play",
+    openModal({
       title: "Game Over!",
-      message: "No more moves are available. Start a new game to try again!",
-      summaryItems: buildGameSummary(gameState),
+      size: "sm",
+      closeOnBackdrop: false,
+      content: ({ close }) => (
+        <GameOverModalContent
+          message="No more moves are available. Start a new game to try again!"
+          summaryItems={buildGameSummary(gameState)}
+          actionLabel="Start New Game"
+          onAction={() => {
+            startNewGame();
+            close();
+          }}
+        />
+      ),
     });
-    setShowGameOverModal(true);
-    setShowCantPlayConfirm(false);
   };
 
-  const cancelCantPlayCard = () => {
-    setShowCantPlayConfirm(false);
+  const handleCantPlayClick = () => {
+    if (gameState?.gameOver) return;
+    openModal({
+      title: "End the game?",
+      size: "sm",
+      content: ({ close }) => (
+        <ConfirmModalContent
+          message="Confirm you have no legal moves available. Ending now will finish this run."
+          confirmLabel="Yes, end the game"
+          cancelLabel="Keep playing"
+          onConfirm={() => {
+            close();
+            confirmCantPlayCard();
+          }}
+        />
+      ),
+    });
   };
 
   const startNewGame = () => {
-    // Clear current game state
     clearGameState();
     setGameState(null);
     setSelectedCard(null);
     setSelectedPile(null);
-    setViewingPile(null);
-    setShowGameOverModal(false);
-    setShowRulesModal(false);
-    setGameOverInfo(null);
+    closeModal();
     setAutoSortEnabled(false);
     setLastSortOrder("asc");
     setIsKonamiMode(false);
     setShowKonamiToast(false);
+    winModalShownRef.current = false;
     if (konamiToastTimeoutRef.current) {
       clearTimeout(konamiToastTimeoutRef.current);
       konamiToastTimeoutRef.current = null;
@@ -459,13 +482,8 @@ const Game = () => {
     navigate("/");
   };
 
-  const openRulesModal = () => {
-    setShowRulesModal(true);
-  };
+  startNewGameRef.current = startNewGame;
 
-  const closeRulesModal = () => {
-    setShowRulesModal(false);
-  };
   const windowSize = useWindowSize();
   const isTabletDown = windowSize?.width < 768;
 
@@ -500,7 +518,7 @@ const Game = () => {
       )}
       <div className="game-layout">
         <div className="game-sidebar">
-          <GameInfo gameState={gameState} onOpenRules={openRulesModal} />
+          <GameInfo gameState={gameState} />
         </div>
         <div className="game-main">
           <GameHeader />
@@ -670,47 +688,6 @@ const Game = () => {
         </div>
       </div>
 
-      {viewingPile && (
-        <PileViewModal
-          pile={viewingPile.pile}
-          pileType={viewingPile.pileType}
-          pileNumber={viewingPile.pileNumber}
-          onClose={closePileView}
-        />
-      )}
-
-      <GameOverModal
-        isOpen={showGameOverModal}
-        title={gameOverInfo?.title}
-        message={gameOverInfo?.message}
-        actionLabel="Start New Game"
-        onAction={startNewGame}
-        summaryItems={gameOverInfo?.summaryItems}
-      />
-      {showCantPlayConfirm && (
-        <div
-          className="cant-play-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="single-cant-play-title"
-        >
-          <div className="cant-play-modal">
-            <h2 id="single-cant-play-title">End the game?</h2>
-            <p>
-              Confirm you have no legal moves available. Ending now will finish
-              this run.
-            </p>
-            <div className="cant-play-actions">
-              <InvertButton onClick={cancelCantPlayCard}>
-                Keep playing
-              </InvertButton>
-              <Button onClick={confirmCantPlayCard}>Yes, end the game</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <RulesModal isOpen={showRulesModal} onClose={closeRulesModal} />
     </div>
   );
 };

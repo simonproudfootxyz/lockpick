@@ -1,52 +1,12 @@
-.pile-view-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-
-.pile-view-modal {
-  background: var(--modal-background);
-  border-radius: 15px;
-  padding: 20px;
-  max-width: 80vw;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--grey-300);
-}
-
-.pile-view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #4a5568;
-}
-
-.close-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  padding: 0;
-  font-size: 16px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .pile-view-content {
   display: flex;
   gap: 20px;
+}
+
+.pile-view-empty {
+  text-align: center;
+  color: var(--white);
+  margin: 0;
 }
 
 .pile-cards-list {
@@ -85,7 +45,6 @@
   height: fit-content;
 }
 
-/* Scrollbar styling */
 .pile-cards-list::-webkit-scrollbar {
   width: 8px;
 }
@@ -104,14 +63,7 @@
   background: #3182ce;
 }
 
-/* Mobile responsiveness */
 @media (max-width: 768px) {
-  .pile-view-modal {
-    max-width: 95vw;
-    max-height: 90vh;
-    padding: 15px;
-  }
-
   .pile-view-content {
     flex-direction: column;
     gap: 15px;

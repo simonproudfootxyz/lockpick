@@ -470,46 +470,6 @@
   transform: none;
 }
 
-.cant-play-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1200;
-  padding: 16px;
-  text-align: center;
-}
-
-.cant-play-modal {
-  background: var(--modal-background);
-  border-radius: 16px;
-  padding: 24px;
-  width: min(480px, 100%);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.cant-play-modal h2 {
-  margin: 0;
-  font-size: 1.4rem;
-}
-
-.cant-play-modal p {
-  margin: 0;
-  line-height: 1.5;
-}
-
-.cant-play-actions {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
 @media (max-width: 768px) {
   .game-layout {
     flex-direction: column;

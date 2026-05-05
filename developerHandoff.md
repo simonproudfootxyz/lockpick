@@ -23,7 +23,9 @@ lockpick/
 │   ├── GameSetup.js           # Landing page: SP launch + multiplayer entry
 │   ├── gameLogic.js           # Client rules (deck, canPlayCard, isGameWon, …)
 │   ├── Card.js / DiscardPile.js / PlayerHand.js  # Shared presentation
-│   ├── PileViewModal.js / GameOverModal.js / RulesModal.js / RulesContent.js
+│   ├── RulesContent.js        # The rules copy reused by GameSetup + the rules modal
+│   ├── context/
+│   │   └── ModalContext.js    # ModalProvider + useModal() (single-slot)
 │   ├── components/
 │   │   ├── Lobby.js           # Multiplayer lobby (create/join)
 │   │   ├── JoinViaLink.js     # /join/:roomCode invite landing
@@ -32,6 +34,8 @@ lockpick/
 │   │   ├── PlayerList.js      # Sidebar roster + invite link
 │   │   ├── ConnectionStatus.js
 │   │   ├── Button.js / Toggle.js  # Design-system primitives
+│   │   ├── Modal/             # Shared modal shell (overlay, header, sizes)
+│   │   └── modals/            # Content-only bodies: Rules, GameOver, PileView, Confirm
 │   ├── hooks/
 │   │   ├── useSocket.js       # Socket.IO lifecycle + connection quality
 │   │   └── useWindowSize.js
@@ -247,10 +251,10 @@ Every state mutation goes through `setGameState(...) → saveGameState(...)`. Sa
 | `sortHandAscending` / `sortHandDescending` | Sort buttons | Sort the active hand and remember the order in `lastSortOrder` |
 | `handleAutoSortToggle` | Auto-Sort toggle | Sets `autoSortEnabled` (purely a client concern) |
 | `endTurn` | "End Turn & Draw Cards" | Enforces the 2/1-card minimum, draws up to hand size from `deck`, applies auto-sort if enabled, advances `currentPlayer`, clears selection |
-| `handleCantPlayClick` → `confirmCantPlayCard` | "I Can't Play" button | Two-step (modal confirms) → opens `GameOverModal` with type `cant-play` |
-| `startNewGame` | Game-over modal action | `clearGameState()`, resets all local state, navigates back to `/` |
+| `handleCantPlayClick` → `confirmCantPlayCard` | "I Can't Play" button | Opens a `ConfirmModalContent` via `useModal()`; on confirm, opens a `GameOverModalContent` with the cant-play message |
+| `startNewGame` | Game-over modal action | `clearGameState()`, resets all local state, calls `closeModal()`, navigates back to `/` |
 
-Win detection is reactive: a `useEffect` watches `gameState.gameWon` and pops the `GameOverModal` with a "Congratulations" payload when it flips true.
+Win detection is reactive: a `useEffect` watches `gameState.gameWon` and calls `openModal({...})` with a "Congratulations" payload when it flips true. A `winModalShownRef` guards against re-opening on subsequent renders, and a `startNewGameRef` is used so the modal's action callback can call the latest `startNewGame` without re-firing the effect. See §7 for the modal system itself.
 
 ### 5.4 UI structure
 
@@ -491,7 +495,75 @@ If you change the game-state shape, both files must be backward-compatible (or y
 
 ---
 
-## 7. Security, Validation, and Sanitization
+## 7. Modal System
+
+All in-app modals (rules, game-over, pile inspection, confirm dialogs) flow through a single React Context. The goals were: open and close modals from anywhere without prop-drilling, share one set of base styles, and structurally guarantee that only one modal is open at a time.
+
+### 7.1 Building blocks
+
+- [src/components/Modal/Modal.js](src/components/Modal/Modal.js) — the **shell**. Owns the overlay, the centered container, the header (title + close button), the size variants (`sm` / `md` / `lg` / `xl`), the Esc-key handler, the click-outside behavior, and the body-scroll lock. It does not know about content.
+- [src/components/Modal/Modal.css](src/components/Modal/Modal.css) — the single source of truth for `.modal-overlay`, `.modal`, `.modal--{size}`, `.modal__header`, `.modal__title`, `.modal__close`, `.modal__body`, and the `modalSlideIn` keyframes. Uses the existing `--modal-background` CSS variable so it inherits the rest of the design system.
+- [src/context/ModalContext.js](src/context/ModalContext.js) — exports `ModalProvider` and `useModal()`. Holds a **single-slot** state (not a stack); calling `openModal(config)` while another modal is open replaces it. This is what enforces the "only one at a time" invariant — there is no opt-in.
+- [src/components/modals/](src/components/modals/) — content-only components, one per modal type: `RulesModalContent`, `GameOverModalContent`, `PileViewModalContent`, `ConfirmModalContent`. Each renders just the body; the surrounding chrome is contributed by the shell.
+
+The provider is mounted once, in [src/App.js](src/App.js), inside `<Router>` so that modals survive navigations between routes:
+
+```js
+<Router>
+  <ModalProvider>
+    <Routes>...</Routes>
+  </ModalProvider>
+</Router>
+```
+
+### 7.2 Opening a modal
+
+From any descendant of `ModalProvider`:
+
+```js
+const { openModal, closeModal, isOpen } = useModal();
+
+openModal({
+  title: "Lockpick Game Rules",   // optional; renders the header if present
+  size: "md",                      // sm | md | lg | xl (default md)
+  closeOnBackdrop: true,           // default true; set false for blocking modals
+  hideClose: false,                // default false; hides the X button if true
+  content: <RulesModalContent />,  // either JSX...
+});
+```
+
+The `content` prop accepts **either JSX or a render function** of the form `({ close }) => <ConfirmModalContent ... onConfirm={() => { close(); doThing(); }} />`. The render-function form is the recommended pattern for confirm-style modals because the buttons inside the content can call `close()` without re-importing `useModal()`. Game-over modals use it too so `close()` runs after the action completes.
+
+### 7.3 Behavior guarantees
+
+- **Single-slot.** Calling `openModal` while another modal is open replaces it. There is no concept of stacking. If you ever want a "modal opens another modal" flow, the second `openModal` call cleanly swaps the first.
+- **Escape and backdrop close.** Both invoke `closeModal()`. Opt out per modal with `closeOnBackdrop: false` (and/or `hideClose: true` if you also want to hide the X). The win/game-over modals use `closeOnBackdrop: false` so a stray click can't dismiss the only path to "Start New Game".
+- **Body scroll lock.** While a modal is open, `document.body.style.overflow` is set to `hidden` and restored on close. This is handled by the shell, not the consumer.
+- **`onClose` callback.** `openModal({ onClose })` fires when `closeModal()` runs (including via Esc or backdrop). Useful for cleanup that should happen regardless of how the modal was dismissed.
+
+### 7.4 Adding a new modal
+
+1. Create `src/components/modals/MyThingModalContent.js` (and a matching `.css` if it has unique styles). The component renders only the body — no overlay, no header, no close button.
+2. From the component that should trigger it, call `openModal({ title, size, content: <MyThingModalContent ... /> })`. That's it.
+
+Do **not** add new top-level overlay/container CSS; the shell handles all of that. If you find yourself reaching for `position: fixed` and a `z-index: 1000`, you're at the wrong layer.
+
+### 7.5 Effect-driven modals (the `Ref` pattern)
+
+When a modal is opened from a `useEffect` (e.g. the win-state check in `Game.js` and the game-over branch in `MultiplayerGame.js`), two things matter:
+
+- Use a `…ShownRef` (e.g. `winModalShownRef`, `gameOverModalShownRef`) so you only open the modal once per transition. Reset the ref when the underlying condition becomes false.
+- If the modal's action callback needs to call a function that itself depends on a lot of state (e.g. `startNewGame`), reference it via a `…Ref` that is reassigned on every render (`startNewGameRef.current = startNewGame`). This avoids putting `startNewGame` in the effect's dependency array — which would otherwise cause the modal to re-open every time `startNewGame`'s identity changes.
+
+This is the same pattern used in both single-player and multiplayer controllers; copy it when adding new effect-driven modals.
+
+### 7.6 Known outlier: `NamePromptModal`
+
+`src/components/NamePromptModal.js` predates the modal context refactor and still ships its own overlay/container. It is used during the lobby/join flows and was left untouched because it has tightly coupled async validation (`validate-name` round-trip + role toggle + `room-preview` data) that warranted its own pass. It is the only modal in the app that is not yet migrated — folding it into the shared system is a clean follow-up: convert its body into a content-only component, then trigger it via `openModal({ content: ({ close }) => <NamePromptContent ... /> })`.
+
+---
+
+## 8. Security, Validation, and Sanitization
 
 All untrusted data is validated server-side via `validator`:
 
@@ -526,7 +598,7 @@ Names are also `validator.escape`-d before being stored, and `sanitizeParticipan
 
 ---
 
-## 8. Local Development & Tooling
+## 9. Local Development & Tooling
 
 ```bash
 # One-time
@@ -571,7 +643,7 @@ A single-player-only easter egg; see §5.5. Triggering it during gameplay can be
 
 ---
 
-## 9. Things to be aware of when contributing
+## 10. Things to be aware of when contributing
 
 - **Two copies of `gameLogic`.** They must stay in sync. The server copy is authoritative; the client copy is what powers single-player and the "playable card" hints in `PlayerHand`. The Konami `allowMultiplesOfTenReverse` flag exists *only* on the client; do not let it leak into multiplayer code paths.
 - **`gameState` shape drift.** Adding a field requires touching both `gameLogic`s, the server save files (or accepting that old saves will be loaded with the field undefined), and the client controllers. The single-player `gameState` deliberately omits server-only fields (`gameStarted`, `gameOver`, `endedByPlayer`).
@@ -582,13 +654,14 @@ A single-player-only easter egg; see §5.5. Triggering it during gameplay can be
 - **Names are not unique across rooms**, only within a room. Don't rely on `name` as a global identifier — use `playerId`.
 - **Avatar pool is duplicated.** `AVATAR_POOL` in `server/roomManager.js` (the strings the server can assign) and `AVATAR_BY_NAME` in `src/components/PlayerList.js` (the strings the client knows how to render) must stay in sync. When you add a new avatar you need to (a) drop the SVG in `src/assets/avatars/`, (b) add it to both lists, and (c) ship the server before the client — old clients will gracefully fall back to `Seth` for unknown names but never the reverse.
 - **The single-player route is the only place `localStorage` is used.** Multiplayer relies on `sessionStorage` for identity (so closing a tab clears the cached name binding for that `playerId`).
+- **All modals go through `ModalContext`.** Don't add bespoke overlay JSX or new `position: fixed; z-index: 1000` rules; build a content-only component in `src/components/modals/` and call `openModal({ content: <YourThing /> })`. The provider enforces a single-slot invariant — opening a second modal closes the first. See §7.
 - **Drag-and-drop** uses a custom MIME type (`application/lockpick-card`) carrying JSON; if you add new card-source surfaces, set both that payload and a `text/plain` fallback (see `PlayerHand.handleDragStart`).
 - **Helmet CSP is disabled** in `server.js`. If you turn it on, audit Socket.IO and CRA's inline-style usage.
 - **`process.env.DEV_MODE` is sticky for the server's lifetime.** Restart the server after changing it.
 
 ---
 
-## 10. Suggested first contributions
+## 11. Suggested first contributions
 
 If you want to get hands-on quickly:
 

@@ -1,9 +1,13 @@
 import React from "react";
 import { getTotalCardCount } from "../gameLogic";
 import { InvertButton } from "./Button";
+import { useModal } from "../context/ModalContext";
+import RulesModalContent from "./modals/RulesModalContent";
 import "./GameInfo.css";
 
-const GameInfo = ({ gameState, onOpenRules }) => {
+const GameInfo = ({ gameState }) => {
+  const { openModal } = useModal();
+
   const totalCardsPlayed = gameState.discardPiles.reduce(
     (sum, pile) => sum + pile.length,
     0,
@@ -12,6 +16,14 @@ const GameInfo = ({ gameState, onOpenRules }) => {
     gameState.totalCards || getTotalCardCount(gameState.playerHands.length);
   const currentHandSize =
     gameState.playerHands[gameState.currentPlayer]?.length || 0;
+
+  const handleOpenRules = () => {
+    openModal({
+      title: "Lockpick Game Rules",
+      size: "md",
+      content: <RulesModalContent />,
+    });
+  };
 
   return (
     <div className="game-info">
@@ -35,7 +47,7 @@ const GameInfo = ({ gameState, onOpenRules }) => {
         </span>
       </p>
       <p className="game-info__actions">
-        <InvertButton mini onClick={onOpenRules}>
+        <InvertButton mini onClick={handleOpenRules}>
           Read the rules
         </InvertButton>
       </p>
