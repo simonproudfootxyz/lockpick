@@ -4,9 +4,19 @@
   padding: 1rem;
   margin: 20px 0;
 
+  @media (max-width: 768px) {
+    max-width: var(--mobile-max-width);
+    margin: 0 auto 3rem;
+    gap: 1rem;
+  }
+
   .player-list__actions {
     margin-bottom: 0.75rem;
     position: relative;
+
+    @media (max-width: 768px) {
+      margin-bottom: 0;
+    }
   }
 
   .player-list__game-id-button {
@@ -41,17 +51,25 @@
   }
 }
 
-.player-list__players-container {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem 0;
-}
-
 .player-list__players-container,
 .spectators-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.player-list__players-container {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin: 0;
+    gap: 0;
+  }
 }
 
 .spectators-list {
@@ -79,6 +97,12 @@
       top: 50%;
       left: -20px;
       transform: translateY(-50%);
+
+      @media (max-width: 768px) {
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) rotate(90deg);
+      }
     }
 
     .player-list__item-avatar {
@@ -109,7 +133,10 @@
     transform: translateY(-50%);
 
     @media (max-width: 768px) {
-      right: 0;
+      right: 50%;
+      top: 100%;
+      transform: translateX(50%);
+      white-space: nowrap;
     }
   }
 }
@@ -245,9 +272,8 @@
 
 @media (max-width: 768px) {
   .player-list__header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
+    gap: 0.5rem;
+    margin-bottom: 0;
   }
 
   .start-game-btn {

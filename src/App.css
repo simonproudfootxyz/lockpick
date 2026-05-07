@@ -33,6 +33,9 @@
   /* font family */
   --jost: "Jost", sans-serif;
   --league-gothic: "League Gothic", sans-serif;
+
+  /* UTILITIES */
+  --mobile-max-width: 325px;
 }
 
 .App {

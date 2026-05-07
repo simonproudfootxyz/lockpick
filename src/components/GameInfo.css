@@ -21,7 +21,7 @@
   @media (max-width: 768px) {
     margin-top: 20px;
     text-align: center;
-    max-width: 325px;
+    max-width: var(--mobile-max-width);
     margin: 0 auto;
   }
 }

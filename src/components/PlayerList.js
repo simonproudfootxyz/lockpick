@@ -8,6 +8,7 @@ import Seth from "../assets/avatars/Seth.svg";
 import TheSmoke from "../assets/avatars/TheSmoke.svg";
 import Kimbap from "../assets/avatars/Kimbap.svg";
 import Precious from "../assets/avatars/Precious.svg";
+import useWindowSize from "../hooks/useWindowSize";
 
 const PlayerList = ({
   players,
@@ -17,6 +18,7 @@ const PlayerList = ({
   isHost,
   onStartGame,
   gameStarted,
+  className,
 }) => {
   const [copySuccess, setCopySuccess] = useState("");
   const { gameId } = useParams();
@@ -24,6 +26,9 @@ const PlayerList = ({
     const origin = window.location.origin;
     return `${origin}/join/${gameId}`;
   };
+  const windowSize = useWindowSize();
+  const isTabletDown = windowSize?.width < 768;
+  const avatarSize = isTabletDown ? 30 : 40;
 
   const AVATAR_BY_NAME = {
     Seth,
@@ -47,7 +52,7 @@ const PlayerList = ({
     }
   };
   return (
-    <div className="player-list">
+    <div className={`player-list ${className}`}>
       <div className="player-list__actions">
         <p className="player-list__game-id">
           <strong>Room ID: </strong>
@@ -63,8 +68,12 @@ const PlayerList = ({
         {copySuccess && (
           <p className="player-list__copy-feedback">{copySuccess}</p>
         )}
+        <p className="player-list__header visible--tablet-down">
+          <strong>Players</strong>{" "}
+          <span className="player-list-header__count">({players.length})</span>
+        </p>
       </div>
-      <p className="player-list__header">
+      <p className="player-list__header hidden--tablet-down">
         <strong>Players</strong>{" "}
         <span className="player-list-header__count">({players.length})</span>
       </p>
@@ -90,11 +99,13 @@ const PlayerList = ({
                 <img
                   src={getAvatar(player)}
                   alt={player.name}
-                  width={40}
-                  height={40}
+                  width={avatarSize}
+                  height={avatarSize}
                   className="player-list__item-avatar"
                 />
-                <span className="player-list__item-name">{player.name}</span>
+                <span className="player-list__item-name hidden--tablet-down">
+                  {player.name}
+                </span>
                 {shouldShowCurrentTurnIndicator && (
                   <span className="player-list__item-current">Your turn!</span>
                 )}
@@ -104,7 +115,7 @@ const PlayerList = ({
         })}
       </ul>
       {spectators.length > 0 && (
-        <div className="spectators-section">
+        <div className="spectators-section hidden--tablet-down">
           <p>
             <strong>Spectators</strong>{" "}
             <span className="spectators-section__count">

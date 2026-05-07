@@ -134,7 +134,7 @@
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    max-width: 325px;
+    max-width: var(--mobile-max-width);
   }
 }
 
@@ -343,7 +343,7 @@
   text-align: center;
 
   @media (max-width: 768px) {
-    max-width: 325px;
+    max-width: var(--mobile-max-width);
     margin: 0 auto;
     width: 100%;
   }
@@ -376,7 +376,7 @@
 
   @media (max-width: 768px) {
     width: 100%;
-    max-width: 325px;
+    max-width: var(--mobile-max-width);
     margin: 0 auto;
     order: 1;
     position: static;

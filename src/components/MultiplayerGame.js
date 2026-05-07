@@ -650,6 +650,7 @@ const MultiplayerGame = () => {
       <div className="game-layout">
         <div className="game-sidebar">
           <PlayerList
+            className="hidden--tablet-down"
             players={players}
             spectators={spectators}
             currentPlayerIndex={gameState?.currentPlayer ?? 0}
@@ -676,6 +677,16 @@ const MultiplayerGame = () => {
 
           {gameState && (
             <>
+              <PlayerList
+                className="visible--tablet-down"
+                players={players}
+                spectators={spectators}
+                currentPlayerIndex={gameState?.currentPlayer ?? 0}
+                localPlayerIndex={localPlayerIndex}
+                isHost={isHost}
+                onStartGame={handleStartGame}
+                gameStarted={gameStarted}
+              />
               <div className="discard-piles">
                 <div className="pile-group">
                   <h3 className="pile-group__title">
