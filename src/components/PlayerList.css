@@ -89,6 +89,10 @@
   color: var(--grey-550);
   font-weight: 700;
 
+  @media (max-width: 768px) {
+    margin-left: -0.75rem;
+  }
+
   &.current {
     color: var(--primary-color);
 
