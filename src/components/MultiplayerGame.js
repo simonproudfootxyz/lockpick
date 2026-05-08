@@ -663,6 +663,16 @@ const MultiplayerGame = () => {
         </div>
         <div className="game-main">
           <GameHeader />
+          <PlayerList
+            className="visible--tablet-down"
+            players={players}
+            spectators={spectators}
+            currentPlayerIndex={gameState?.currentPlayer ?? 0}
+            localPlayerIndex={localPlayerIndex}
+            isHost={isHost}
+            onStartGame={handleStartGame}
+            gameStarted={gameStarted}
+          />
           {isHost && !gameStarted && (
             <div className="start-game-section">
               <Button onClick={handleStartGame} disabled={players.length < 2}>
@@ -677,16 +687,6 @@ const MultiplayerGame = () => {
 
           {gameState && (
             <>
-              <PlayerList
-                className="visible--tablet-down"
-                players={players}
-                spectators={spectators}
-                currentPlayerIndex={gameState?.currentPlayer ?? 0}
-                localPlayerIndex={localPlayerIndex}
-                isHost={isHost}
-                onStartGame={handleStartGame}
-                gameStarted={gameStarted}
-              />
               <div className="discard-piles">
                 <div className="pile-group">
                   <h3 className="pile-group__title">
