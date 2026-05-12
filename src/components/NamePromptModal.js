@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import "./NamePromptModal.css";
 import Button, { InvertButton } from "./Button";
 
+const MAX_NAME_LENGTH = 12;
+
 const NamePromptModal = ({
   isOpen,
   initialValue = "",
@@ -15,13 +17,17 @@ const NamePromptModal = ({
   initialJoinAsPlayer = true,
   onJoinModeChange,
 }) => {
-  const [name, setName] = useState(initialValue);
+  const [name, setName] = useState(() =>
+    (initialValue || "").slice(0, MAX_NAME_LENGTH)
+  );
   const [joinAsPlayer, setJoinAsPlayer] = useState(initialJoinAsPlayer);
+  const [validationError, setValidationError] = useState("");
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      setName(initialValue);
+      setName((initialValue || "").slice(0, MAX_NAME_LENGTH));
+      setValidationError("");
       requestAnimationFrame(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
@@ -51,7 +57,23 @@ const NamePromptModal = ({
   const handleSubmit = (event) => {
     event.preventDefault();
     if (isSubmitting) return;
+    const trimmedName = name.trim();
+    if (trimmedName.length > MAX_NAME_LENGTH) {
+      setValidationError(
+        `Name must be ${MAX_NAME_LENGTH} characters or fewer.`
+      );
+      return;
+    }
+    setValidationError("");
     onSubmit?.({ name, joinAsPlayer: canChooseRole ? joinAsPlayer : false });
+  };
+
+  const handleNameChange = (event) => {
+    const nextValue = event.target.value.slice(0, MAX_NAME_LENGTH);
+    setName(nextValue);
+    if (validationError) {
+      setValidationError("");
+    }
   };
 
   const handleJoinModeToggle = (event) => {
@@ -83,13 +105,23 @@ const NamePromptModal = ({
             id="player-name-input"
             ref={inputRef}
             type="text"
-            maxLength={20}
+            maxLength={MAX_NAME_LENGTH}
             placeholder="Your name"
             value={name}
             disabled={isSubmitting}
-            onChange={(event) => setName(event.target.value)}
+            onChange={handleNameChange}
+            aria-describedby="player-name-counter"
+            aria-invalid={validationError ? "true" : "false"}
             data-testid="name-prompt-input"
           />
+          <p id="player-name-counter" className="name-counter">
+            {name.length}/{MAX_NAME_LENGTH}
+          </p>
+          {validationError && (
+            <p className="error" role="alert">
+              {validationError}
+            </p>
+          )}
           {pendingAction === "join" &&
             (canChooseRole ? (
               <label className="role-toggle">
@@ -127,7 +159,14 @@ const NamePromptModal = ({
             >
               Cancel
             </Button>
-            <InvertButton type="submit" disabled={isSubmitting || !name.trim()}>
+            <InvertButton
+              type="submit"
+              disabled={
+                isSubmitting ||
+                !name.trim() ||
+                name.trim().length > MAX_NAME_LENGTH
+              }
+            >
               {isSubmitting ? "Submitting..." : "Continue"}
             </InvertButton>
           </div>

@@ -85,6 +85,13 @@
   font-size: 0.9rem;
 }
 
+.name-prompt-modal .name-counter {
+  margin: -0.25rem 0 0;
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: var(--grey-400, #94a3b8);
+}
+
 .name-prompt-modal .actions {
   display: flex;
   justify-content: flex-end;
