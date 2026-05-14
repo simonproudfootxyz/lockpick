@@ -799,6 +799,7 @@ const MultiplayerGame = () => {
                           !isSpectator
                         }
                         discardPiles={gameState.discardPiles}
+                        disabled={!!gameState.gameFinished}
                       />
                       <div className="sort-controls">
                         <Toggle

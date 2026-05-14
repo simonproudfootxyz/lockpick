@@ -13,10 +13,7 @@ import {
 import DiscardPile from "./DiscardPile";
 import PlayerHand from "./PlayerHand";
 import "./Game.css";
-import Button, {
-  PrimaryButton,
-  TextButton,
-} from "./components/Button";
+import Button, { PrimaryButton, TextButton } from "./components/Button";
 import { useModal } from "./context/ModalContext";
 import GameOverModalContent from "./components/modals/GameOverModalContent";
 import PileViewModalContent from "./components/modals/PileViewModalContent";
@@ -117,7 +114,6 @@ const Game = () => {
       if (gameId && state) {
         const gameData = {
           gameState: state,
-          timestamp: Date.now(),
           gameId: gameId,
           numPlayers: numPlayers,
         };
@@ -176,11 +172,14 @@ const Game = () => {
         discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
         deck,
         gameWon: false,
+        gameFinished: false,
         cardsPlayedThisTurn: 0,
         turnComplete: false,
         totalCards,
         maxCard,
         descendingStart,
+        createdAt: Date.now(),
+        totalTime: null,
       };
 
       setGameState(newGameState);
@@ -308,17 +307,24 @@ const Game = () => {
     const minCardsRequired = deckEmpty ? 1 : 2;
     const turnComplete = newCardsPlayedThisTurn >= minCardsRequired;
 
+    const gameWonNow = isGameWon(
+      newDiscardPiles,
+      gameState.totalCards,
+      gameState.playerHands.length,
+    );
+
     const newGameState = {
       ...gameState,
       playerHands: newPlayerHands,
       discardPiles: newDiscardPiles,
       cardsPlayedThisTurn: newCardsPlayedThisTurn,
       turnComplete: turnComplete,
-      gameWon: isGameWon(
-        newDiscardPiles,
-        gameState.totalCards,
-        gameState.playerHands.length,
-      ),
+      gameWon: gameWonNow,
+      gameFinished: gameWonNow ? true : gameState.gameFinished,
+      totalTime:
+        gameWonNow && gameState.totalTime == null
+          ? Date.now() - gameState.createdAt
+          : gameState.totalTime,
     };
 
     setGameState(newGameState);
@@ -427,6 +433,16 @@ const Game = () => {
   };
 
   const confirmCantPlayCard = () => {
+    setGameState((prev) => {
+      if (!prev || prev.gameFinished) return prev;
+      const endedState = {
+        ...prev,
+        gameFinished: true,
+        totalTime: Date.now() - prev.createdAt,
+      };
+      saveGameState(endedState);
+      return endedState;
+    });
     openModal({
       title: "Game Over!",
       size: "sm",
@@ -615,6 +631,7 @@ const Game = () => {
                     isCurrentPlayer={index === gameState.currentPlayer}
                     discardPiles={gameState.discardPiles}
                     allowMultiplesOfTenReverse={isKonamiMode}
+                    disabled={gameState.gameFinished}
                   />
                   {index === gameState.currentPlayer && (
                     <div className="sort-controls">
@@ -687,7 +704,6 @@ const Game = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

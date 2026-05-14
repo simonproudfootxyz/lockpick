@@ -11,7 +11,9 @@ const PlayerHand = ({
   isCurrentPlayer,
   discardPiles = [],
   allowMultiplesOfTenReverse = false,
+  disabled = false,
 }) => {
+  const canInteract = isCurrentPlayer && !disabled;
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [showPlayableHints, setShowPlayableHints] = useState(false);
@@ -34,7 +36,7 @@ const PlayerHand = ({
   };
 
   const handleDragStart = (e, index) => {
-    if (!isCurrentPlayer) return;
+    if (!canInteract) return;
     setDraggedIndex(index);
     setShowPlayableHints(true);
     e.dataTransfer.effectAllowed = "move";
@@ -56,7 +58,7 @@ const PlayerHand = ({
   };
 
   const handleDragOver = (e, index) => {
-    if (!isCurrentPlayer) return;
+    if (!canInteract) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setDragOverIndex(index);
@@ -67,7 +69,7 @@ const PlayerHand = ({
   };
 
   const handleDrop = (e, dropIndex) => {
-    if (!isCurrentPlayer || draggedIndex === null) return;
+    if (!canInteract || draggedIndex === null) return;
     e.preventDefault();
 
     if (draggedIndex !== dropIndex) {
@@ -109,7 +111,7 @@ const PlayerHand = ({
             className={`card-container ${
               draggedIndex === index ? "dragging" : ""
             } ${dragOverIndex === index ? "drag-over" : ""}`}
-            draggable={isCurrentPlayer}
+            draggable={canInteract}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDragLeave={handleDragLeave}
@@ -126,7 +128,7 @@ const PlayerHand = ({
                 }
               }}
               isPlayable={showPlayableHints && isCardPlayable(card)}
-              isClickable={isCurrentPlayer}
+              isClickable={canInteract}
             />
           </div>
         ))}

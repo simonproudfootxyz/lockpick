@@ -36,14 +36,14 @@ const server = http.createServer(app);
 
 if (isDeterministicDealEnabled()) {
   console.log(
-    "Developer deterministic deck mode ENABLED: players will be dealt descending cards."
+    "Developer deterministic deck mode ENABLED: players will be dealt descending cards.",
   );
 } else if (
   process.env.DEV_MODE === "deterministic-deal" &&
   process.env.NODE_ENV === "production"
 ) {
   console.log(
-    "Developer deterministic deck flag ignored: mode is unavailable in production."
+    "Developer deterministic deck flag ignored: mode is unavailable in production.",
   );
 }
 
@@ -53,8 +53,8 @@ const allowedOrigins = Array.from(
     (process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(",") : [])
       .map((origin) => origin.trim())
       .filter(Boolean)
-      .concat(process.env.NODE_ENV === "production" ? [] : devOrigins)
-  )
+      .concat(process.env.NODE_ENV === "production" ? [] : devOrigins),
+  ),
 );
 
 const io = socketIo(server, {
@@ -71,14 +71,14 @@ const io = socketIo(server, {
 app.use(
   helmet({
     contentSecurityPolicy: false,
-  })
+  }),
 );
 app.use(compression());
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: "64kb" }));
 
@@ -87,7 +87,7 @@ const rateLimitMax = Number(process.env.RATE_LIMIT_MAX) || 120;
 
 if (process.env.NODE_ENV !== "test") {
   console.log(
-    `Rate limiting configured: window=${rateLimitWindowMs}ms, max=${rateLimitMax}`
+    `Rate limiting configured: window=${rateLimitWindowMs}ms, max=${rateLimitMax}`,
   );
 }
 
@@ -109,10 +109,13 @@ const persistence = new GamePersistence();
 // }, 1000);
 
 // Clean up inactive rooms every hour
-setInterval(async () => {
-  await roomManager.cleanupInactiveRooms();
-  await persistence.cleanupOldGames();
-}, 60 * 60 * 1000);
+setInterval(
+  async () => {
+    await roomManager.cleanupInactiveRooms();
+    await persistence.cleanupOldGames();
+  },
+  60 * 60 * 1000,
+);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
@@ -123,7 +126,7 @@ io.on("connection", (socket) => {
     console.log(
       `Player ${
         socket.id
-      } disconnected: ${reason} at ${new Date().toISOString()}`
+      } disconnected: ${reason} at ${new Date().toISOString()}`,
     );
   });
 
@@ -166,7 +169,7 @@ io.on("connection", (socket) => {
       const room = await roomManager.createRoom(
         socket.id,
         sanitizeName(playerName),
-        playerId
+        playerId,
       );
       console.log(`Room created: ${room.code} by ${playerName}`);
 
@@ -192,7 +195,7 @@ io.on("connection", (socket) => {
       console.log(
         `Attempting to join room: ${roomCode} by ${playerName} (${
           playerId || "no id"
-        }) as ${joinAsPlayer ? "player" : "spectator"}`
+        }) as ${joinAsPlayer ? "player" : "spectator"}`,
       );
 
       if (!isValidRoomCode(roomCode) || !isValidPlayerName(playerName)) {
@@ -211,7 +214,7 @@ io.on("connection", (socket) => {
       const existingRoom = roomManager.getPlayerRoom(socket.id);
       if (existingRoom && existingRoom.code === normalizeRoomCode(roomCode)) {
         console.log(
-          `Player ${socket.id} already in room ${existingRoom.code}, ignoring join request`
+          `Player ${socket.id} already in room ${existingRoom.code}, ignoring join request`,
         );
         return;
       }
@@ -220,7 +223,7 @@ io.on("connection", (socket) => {
       const reconnectionResult = await roomManager.handlePlayerReconnection(
         socket.id,
         playerId,
-        sanitizeName(playerName)
+        sanitizeName(playerName),
       );
 
       let result;
@@ -232,7 +235,7 @@ io.on("connection", (socket) => {
           socket.id,
           sanitizeName(playerName),
           playerId,
-          { joinAsPlayer }
+          { joinAsPlayer },
         );
       }
 
@@ -248,7 +251,7 @@ io.on("connection", (socket) => {
       console.log(
         `${playerName} ${
           isReconnection ? "reconnected to" : "joined"
-        } room ${roomCode} as ${isSpectator ? "spectator" : "player"}`
+        } room ${roomCode} as ${isSpectator ? "spectator" : "player"}`,
       );
 
       const normalizedCode = normalizeRoomCode(roomCode);
@@ -274,7 +277,7 @@ io.on("connection", (socket) => {
         playerId: participant?.playerId,
         players: Array.from(room.players.values()).map(sanitizeParticipant),
         spectators: Array.from(room.spectators.values()).map(
-          sanitizeParticipant
+          sanitizeParticipant,
         ),
         gameState: room.gameState,
       });
@@ -282,12 +285,12 @@ io.on("connection", (socket) => {
       // Notify other players in the room
       socket.to(normalizedCode).emit("player-joined", {
         player: sanitizeParticipant(
-          room.players.get(socket.id) || room.spectators.get(socket.id)
+          room.players.get(socket.id) || room.spectators.get(socket.id),
         ),
         isSpectator,
         players: Array.from(room.players.values()).map(sanitizeParticipant),
         spectators: Array.from(room.spectators.values()).map(
-          sanitizeParticipant
+          sanitizeParticipant,
         ),
       });
     } catch (error) {
@@ -329,7 +332,7 @@ io.on("connection", (socket) => {
       persistence.saveGame(normalizedCode, gameState);
 
       console.log(
-        `Game started in room ${normalizedCode} with ${room.players.size} players`
+        `Game started in room ${normalizedCode} with ${room.players.size} players`,
       );
 
       io.to(normalizedCode).emit("game-started", {
@@ -381,7 +384,7 @@ io.on("connection", (socket) => {
       console.log(
         `Player ${player.name} played card ${card} on pile ${
           pileIndex + 1
-        } in room ${roomCode}`
+        } in room ${roomCode}`,
       );
 
       io.to(normalizedCode).emit("card-played", {
@@ -625,16 +628,16 @@ io.on("connection", (socket) => {
           } else if (room && room.code) {
             // Notify remaining players
             console.log(
-              `Notifying players in room ${room.code} about player leaving`
+              `Notifying players in room ${room.code} about player leaving`,
             );
             socket.to(room.code).emit("player-left", {
               wasPlayer,
               wasSpectator,
               players: Array.from(room.players.values()).map(
-                sanitizeParticipant
+                sanitizeParticipant,
               ),
               spectators: Array.from(room.spectators.values()).map(
-                sanitizeParticipant
+                sanitizeParticipant,
               ),
             });
           } else {
@@ -659,14 +662,14 @@ io.on("connection", (socket) => {
         } else if (room && room.code) {
           // Notify remaining players
           console.log(
-            `Notifying players in room ${room.code} about player leaving`
+            `Notifying players in room ${room.code} about player leaving`,
           );
           socket.to(room.code).emit("player-left", {
             wasPlayer,
             wasSpectator,
             players: Array.from(room.players.values()).map(sanitizeParticipant),
             spectators: Array.from(room.spectators.values()).map(
-              sanitizeParticipant
+              sanitizeParticipant,
             ),
           });
         } else {
@@ -752,7 +755,7 @@ io.on("connection", (socket) => {
       const spectators = Array.from(room.spectators.values());
       const isTaken =
         [...players, ...spectators].some(
-          (participant) => participant.name.trim().toLowerCase() === nameLower
+          (participant) => participant.name.trim().toLowerCase() === nameLower,
         ) ||
         players.some((participant) => participant.playerId === data.playerId);
 
@@ -763,7 +766,7 @@ io.on("connection", (socket) => {
 
       const reservation = roomManager.createPendingPlayer(
         normalizedRoomCode,
-        sanitizedPlayerName
+        sanitizedPlayerName,
       );
 
       if (!reservation) {
@@ -800,7 +803,7 @@ io.on("connection", (socket) => {
 
 // API endpoints
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: Date.now() });
+  res.json({ status: "OK", createdAt: Date.now() });
 });
 
 app.get("/api/connection-status", (req, res) => {
@@ -812,7 +815,7 @@ app.get("/api/connection-status", (req, res) => {
     res.json({
       totalRooms: roomManager.rooms.size,
       totalConnections: io.engine.clientsCount,
-      timestamp: Date.now(),
+      createdAt: Date.now(),
     });
   }
 });
@@ -835,7 +838,7 @@ function isValidPlayerName(name) {
     trimmed.length <= 32 &&
     validator.isWhitelisted(
       trimmed,
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '-_"
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '-_",
     )
   );
 }

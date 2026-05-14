@@ -77,7 +77,7 @@ const canPlayCard = (card, pile, pileType) => {
 const isGameWon = (discardPiles, totalCards, playerCount) => {
   const totalCardsPlayed = discardPiles.reduce(
     (sum, pile) => sum + pile.length,
-    0
+    0,
   );
   const target =
     totalCards !== undefined
@@ -209,7 +209,7 @@ const playCard = (gameState, card, pileIndex) => {
   newGameState.gameWon = isGameWon(
     newDiscardPiles,
     newGameState.totalCards,
-    newGameState.playerHands.length
+    newGameState.playerHands.length,
   );
 
   return { success: true, gameState: newGameState };
@@ -343,7 +343,7 @@ const sortCurrentPlayerHand = (gameState, order = "asc") => {
   const newGameState = { ...gameState };
   const newPlayerHands = [...newGameState.playerHands];
   newPlayerHands[newGameState.currentPlayer] = [...currentHand].sort(
-    comparator
+    comparator,
   );
 
   newGameState.playerHands = newPlayerHands;
