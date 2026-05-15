@@ -10,7 +10,7 @@ const RulesContent = ({ className = "" }) => {
   return (
     <div className={containerClass}>
       <section className="rules-section game-objective">
-        <h3>Team Objective</h3>
+        <h3>Objective</h3>
         <p>
           Four shared discard piles sit at the center of every Lockpick match:
           two climb upward from 1 while two fall from the high anchor (100 in
@@ -116,16 +116,6 @@ const RulesContent = ({ className = "" }) => {
         </ul>
       </section>
 
-      <section className="rules-section communication-rules">
-        <h3>Communication</h3>
-        <p>
-          Coordinate freely, but never reveal or request exact card numbers.
-          Qualitative hints such as “leave the right pile alone” or “small jumps
-          help here” are allowed; anything that narrows to a specific value is
-          not.
-        </p>
-      </section>
-
       <section className="rules-section endgame-rules">
         <h3>Endgame</h3>
         <ul>
@@ -134,8 +124,8 @@ const RulesContent = ({ className = "" }) => {
             minimum requirement stays at one card per turn.
           </li>
           <li>
-            The team wins immediately when the final card from the deck lands on
-            a pile.
+            You win immediately when the final card from the deck lands on a
+            pile.
           </li>
           <li>
             If anyone cannot meet the minimum play on their turn, the expedition

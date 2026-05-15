@@ -27,15 +27,7 @@ const GameSetup = () => {
         </h1>
 
         <div className="setup-options">
-          <Button onClick={handleStartGame}>Start Single Player Game</Button>
-
-          <div className="multiplayer-section">
-            <h3>Multiplayer</h3>
-            <Button onClick={() => navigate("/lobby")}>
-              Join Multiplayer Lobby
-            </Button>
-            <p>Play with friends online!</p>
-          </div>
+          <Button onClick={handleStartGame}>Start Game</Button>
         </div>
         <div className="rules-summary">
           <RulesContent className="setup-rules-content" />
