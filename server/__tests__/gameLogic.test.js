@@ -12,6 +12,10 @@ const {
   getTotalCardCount,
   getMaxCardValue,
   reorderCurrentPlayerHand,
+  isBacktrackPlay,
+  getCardPlayPoints,
+  CARD_PLAY_POINTS,
+  BACKTRACK_PLAY_POINTS,
 } = require("../gameLogic");
 
 describe("Game Logic", () => {
@@ -424,9 +428,89 @@ describe("Game Logic", () => {
       expect(result.gameState.gameOver).toBe(true);
       expect(result.gameState.gameWon).toBe(false);
       expect(result.gameState.endedByPlayer).toBe(gameState.currentPlayer);
+      expect(result.gameState.totalTurns).toBe(1);
 
       const status = getGameStatus(result.gameState);
       expect(status).toMatch(/Game over!/);
+    });
+  });
+
+  describe("Scoring and Turns", () => {
+    test("should initialize with zero turns and score", () => {
+      const gameState = initializeGame(1);
+      expect(gameState.totalTurns).toBe(0);
+      expect(gameState.gameScore).toBe(0);
+    });
+
+    test("should detect backtrack plays", () => {
+      expect(isBacktrackPlay(37, [47], "ascending")).toBe(true);
+      expect(isBacktrackPlay(48, [47], "ascending")).toBe(false);
+      expect(isBacktrackPlay(108, [98], "descending")).toBe(true);
+      expect(isBacktrackPlay(88, [98], "descending")).toBe(false);
+    });
+
+    test("should award points for regular and backtrack plays", () => {
+      expect(getCardPlayPoints(20, [5], "ascending")).toBe(CARD_PLAY_POINTS);
+      expect(getCardPlayPoints(37, [47], "ascending")).toBe(
+        BACKTRACK_PLAY_POINTS,
+      );
+      expect(getCardPlayPoints(108, [98], "descending")).toBe(
+        BACKTRACK_PLAY_POINTS,
+      );
+    });
+
+    test("should update score and turns when playing and ending turns", () => {
+      const gameState = {
+        playerHands: [[10, 20, 30, 40, 50, 60, 70, 80]],
+        discardPiles: [[5], [], [100], []],
+        currentPlayer: 0,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+        deck: [90, 91, 92],
+        gameWon: false,
+        gameOver: false,
+        totalTurns: 0,
+        gameScore: 0,
+      };
+
+      const playResult = playCard(gameState, 20, 1);
+      expect(playResult.success).toBe(true);
+      expect(playResult.gameState.gameScore).toBe(CARD_PLAY_POINTS);
+      expect(playResult.gameState.totalTurns).toBe(0);
+
+      const readyState = {
+        ...playResult.gameState,
+        deck: [...playResult.gameState.deck],
+        playerHands: playResult.gameState.playerHands.map((hand) => [...hand]),
+        cardsPlayedThisTurn: 2,
+        turnComplete: true,
+      };
+
+      const endResult = endTurn(readyState);
+      expect(endResult.success).toBe(true);
+      expect(endResult.gameState.totalTurns).toBe(1);
+    });
+
+    test("should count the final turn when the game is won", () => {
+      const gameState = {
+        playerHands: [[10]],
+        discardPiles: [[5], [], [100], []],
+        currentPlayer: 0,
+        cardsPlayedThisTurn: 0,
+        turnComplete: false,
+        deck: [],
+        gameWon: false,
+        gameOver: false,
+        totalCards: 3,
+        totalTurns: 2,
+        gameScore: 10,
+      };
+
+      const playResult = playCard(gameState, 10, 1);
+      expect(playResult.success).toBe(true);
+      expect(playResult.gameState.gameWon).toBe(true);
+      expect(playResult.gameState.totalTurns).toBe(3);
+      expect(playResult.gameState.gameScore).toBe(10 + CARD_PLAY_POINTS);
     });
   });
 });

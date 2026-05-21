@@ -114,13 +114,67 @@ export const canPlayCards = (cards, discardPiles, options = {}) => {
 export const isGameWon = (discardPiles, totalCards, playerCount) => {
   const totalCardsPlayed = discardPiles.reduce(
     (sum, pile) => sum + pile.length,
-    0
+    0,
   );
   const target =
     totalCards !== undefined
       ? totalCards
       : getTotalCardCount(playerCount || discardPiles.length);
   return totalCardsPlayed === target;
+};
+
+export const CARD_PLAY_POINTS = 5;
+export const BACKTRACK_PLAY_POINTS = 8;
+
+export const isBacktrackPlay = (card, pile, pileType) => {
+  if (!pile || pile.length === 0) {
+    return false;
+  }
+
+  const topCard = pile[pile.length - 2];
+
+  if (pileType === "ascending") {
+    return card === topCard - 10;
+  }
+
+  return card === topCard + 10;
+};
+
+export const getCardPlayPoints = (card, pile, pileType) =>
+  isBacktrackPlay(card, pile, pileType)
+    ? BACKTRACK_PLAY_POINTS
+    : CARD_PLAY_POINTS;
+
+export const calculateFinalScore = (
+  gameScore = 0,
+  totalCardsPlayed = 0,
+  totalTurns = 0,
+) => gameScore * (98 + totalCardsPlayed - totalTurns);
+
+export const buildGameSummaryItems = (state) => {
+  if (!state) {
+    return [];
+  }
+
+  const deckCount = Array.isArray(state.deck) ? state.deck.length : 0;
+  const totalCardsPlayed = Array.isArray(state.discardPiles)
+    ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
+    : 0;
+  const totalTurns = state.totalTurns ?? 0;
+  const gameScore = state.gameScore ?? 0;
+  const finalScore = calculateFinalScore(
+    gameScore,
+    totalCardsPlayed,
+    totalTurns,
+  );
+
+  return [
+    { label: "Total cards played", value: totalCardsPlayed },
+    { label: "Cards remaining in deck", value: deckCount },
+    { label: "Total turns", value: totalTurns },
+    { label: "Points scored", value: gameScore },
+    { label: "Final score", value: finalScore },
+  ];
 };
 
 // Check if a turn is valid (minimum 2 cards, or 1 if deck is empty)

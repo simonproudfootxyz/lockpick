@@ -9,6 +9,8 @@ import {
   getTotalCardCount,
   getMaxCardValue,
   getDescendingStartValue,
+  getCardPlayPoints,
+  buildGameSummaryItems,
 } from "./gameLogic";
 import DiscardPile from "./DiscardPile";
 import PlayerHand from "./PlayerHand";
@@ -32,7 +34,7 @@ const Game = () => {
   const { gameId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { openModal, closeModal } = useModal();
+  const { openModal } = useModal();
   const [gameState, setGameState] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedPile, setSelectedPile] = useState(null);
@@ -42,8 +44,7 @@ const Game = () => {
   const [isKonamiMode, setIsKonamiMode] = useState(false);
   const [showKonamiToast, setShowKonamiToast] = useState(false);
   const konamiToastTimeoutRef = useRef(null);
-  const winModalShownRef = useRef(false);
-  const startNewGameRef = useRef(() => {});
+  const gameOverModalShownRef = useRef(false);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
 
@@ -178,8 +179,8 @@ const Game = () => {
         totalCards,
         maxCard,
         descendingStart,
-        createdAt: Date.now(),
-        totalTime: null,
+        totalTurns: 0,
+        gameScore: 0,
       };
 
       setGameState(newGameState);
@@ -202,50 +203,63 @@ const Game = () => {
     }
   }, [gameId, numPlayers, gameState, loadGameState, initializeGame]);
 
-  const buildGameSummary = useCallback((state) => {
-    if (!state) {
-      return [];
+  const buildGameSummary = useCallback(
+    (state) => buildGameSummaryItems(state),
+    [],
+  );
+
+  const exitFinishedGame = useCallback(() => {
+    clearGameState();
+    gameOverModalShownRef.current = false;
+    setAutoSortEnabled(false);
+    setLastSortOrder("asc");
+    setIsKonamiMode(false);
+    setShowKonamiToast(false);
+    if (konamiToastTimeoutRef.current) {
+      clearTimeout(konamiToastTimeoutRef.current);
+      konamiToastTimeoutRef.current = null;
     }
-    const deckCount = Array.isArray(state.deck) ? state.deck.length : 0;
-    const totalCardsPlayed = Array.isArray(state.discardPiles)
-      ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
-      : 0;
-    return [
-      { label: "Total cards played", value: totalCardsPlayed },
-      { label: "Cards remaining in deck", value: deckCount },
-    ];
-  }, []);
+    navigate("/");
+  }, [navigate]);
 
   useEffect(() => {
-    if (!gameState?.gameWon) {
-      winModalShownRef.current = false;
+    const isGameOver = !!(gameState?.gameWon || gameState?.gameFinished);
+
+    if (!isGameOver) {
+      gameOverModalShownRef.current = false;
       return;
     }
-    if (winModalShownRef.current) {
+
+    if (gameOverModalShownRef.current) {
       return;
     }
-    winModalShownRef.current = true;
+
+    gameOverModalShownRef.current = true;
+
     const totalCards =
       typeof gameState.totalCards === "number"
         ? gameState.totalCards
         : getTotalCardCount(gameState.playerHands?.length || numPlayers);
+
+    const title = gameState.gameWon ? "Congratulations!" : "Game Over!";
+    const message = gameState.gameWon
+      ? `Congratulations, you won! All ${totalCards} cards have been played! Great job!`
+      : "No more moves are available. Start a new game to try again!";
+
     openModal({
-      title: "Congratulations!",
+      title,
       size: "sm",
-      closeOnBackdrop: false,
+      onClose: exitFinishedGame,
       content: ({ close }) => (
         <GameOverModalContent
-          message={`Congratulations, you won! All ${totalCards} cards have been played! Great job!`}
+          message={message}
           summaryItems={buildGameSummary(gameState)}
-          actionLabel="Start New Game"
-          onAction={() => {
-            startNewGameRef.current();
-            close();
-          }}
+          actionLabel="Back to Home"
+          close={close}
         />
       ),
     });
-  }, [gameState, numPlayers, buildGameSummary, openModal]);
+  }, [gameState, numPlayers, buildGameSummary, openModal, exitFinishedGame]);
 
   const handleCardSelect = (card, playerIndex) => {
     if (gameState.gameWon) return;
@@ -312,6 +326,8 @@ const Game = () => {
       gameState.totalCards,
       gameState.playerHands.length,
     );
+    const pointsEarned = getCardPlayPoints(cardValue, pile, pileType);
+    const currentTotalTurns = gameState.totalTurns ?? 0;
 
     const newGameState = {
       ...gameState,
@@ -321,10 +337,8 @@ const Game = () => {
       turnComplete: turnComplete,
       gameWon: gameWonNow,
       gameFinished: gameWonNow ? true : gameState.gameFinished,
-      totalTime:
-        gameWonNow && gameState.totalTime == null
-          ? Date.now() - gameState.createdAt
-          : gameState.totalTime,
+      gameScore: (gameState.gameScore ?? 0) + pointsEarned,
+      totalTurns: gameWonNow ? currentTotalTurns + 1 : currentTotalTurns,
     };
 
     setGameState(newGameState);
@@ -413,6 +427,7 @@ const Game = () => {
       currentPlayer: nextPlayer,
       cardsPlayedThisTurn: 0,
       turnComplete: false,
+      totalTurns: (gameState.totalTurns ?? 0) + 1,
     };
 
     setGameState(newGameState);
@@ -433,32 +448,18 @@ const Game = () => {
   };
 
   const confirmCantPlayCard = () => {
-    setGameState((prev) => {
-      if (!prev || prev.gameFinished) return prev;
-      const endedState = {
-        ...prev,
-        gameFinished: true,
-        totalTime: Date.now() - prev.createdAt,
-      };
-      saveGameState(endedState);
-      return endedState;
-    });
-    openModal({
-      title: "Game Over!",
-      size: "sm",
-      closeOnBackdrop: false,
-      content: ({ close }) => (
-        <GameOverModalContent
-          message="No more moves are available. Start a new game to try again!"
-          summaryItems={buildGameSummary(gameState)}
-          actionLabel="Start New Game"
-          onAction={() => {
-            startNewGame();
-            close();
-          }}
-        />
-      ),
-    });
+    if (!gameState || gameState.gameFinished) {
+      return;
+    }
+
+    const endedState = {
+      ...gameState,
+      gameFinished: true,
+      totalTurns: (gameState.totalTurns ?? 0) + 1,
+    };
+
+    setGameState(endedState);
+    saveGameState(endedState);
   };
 
   const handleCantPlayClick = () => {
@@ -479,26 +480,6 @@ const Game = () => {
       ),
     });
   };
-
-  const startNewGame = () => {
-    clearGameState();
-    setGameState(null);
-    setSelectedCard(null);
-    setSelectedPile(null);
-    closeModal();
-    setAutoSortEnabled(false);
-    setLastSortOrder("asc");
-    setIsKonamiMode(false);
-    setShowKonamiToast(false);
-    winModalShownRef.current = false;
-    if (konamiToastTimeoutRef.current) {
-      clearTimeout(konamiToastTimeoutRef.current);
-      konamiToastTimeoutRef.current = null;
-    }
-    navigate("/");
-  };
-
-  startNewGameRef.current = startNewGame;
 
   const windowSize = useWindowSize();
   const isTabletDown = windowSize?.width < 768;

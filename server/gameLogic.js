@@ -73,6 +73,28 @@ const canPlayCard = (card, pile, pileType) => {
   }
 };
 
+const CARD_PLAY_POINTS = 5;
+const BACKTRACK_PLAY_POINTS = 8;
+
+const isBacktrackPlay = (card, pile, pileType) => {
+  if (!pile || pile.length === 0) {
+    return false;
+  }
+
+  const topCard = pile[pile.length - 1];
+
+  if (pileType === "ascending") {
+    return card === topCard - 10;
+  }
+
+  return card === topCard + 10;
+};
+
+const getCardPlayPoints = (card, pile, pileType) =>
+  isBacktrackPlay(card, pile, pileType)
+    ? BACKTRACK_PLAY_POINTS
+    : CARD_PLAY_POINTS;
+
 // Check if game is won (all cards played)
 const isGameWon = (discardPiles, totalCards, playerCount) => {
   const totalCardsPlayed = discardPiles.reduce(
@@ -160,7 +182,8 @@ const initializeGame = (playersOrCount) => {
     cardsPlayedThisTurn: 0,
     turnComplete: false,
     gameStarted: true,
-    createdAt: Date.now(),
+    totalTurns: 0,
+    gameScore: 0,
     totalCards: getTotalCardCount(numPlayers),
     maxCard: getMaxCardValue(numPlayers),
     descendingStart: getDescendingStartValue(numPlayers),
@@ -198,6 +221,8 @@ const playCard = (gameState, card, pileIndex) => {
   newGameState.discardPiles = newDiscardPiles;
   newGameState.playerHands = newPlayerHands;
   newGameState.cardsPlayedThisTurn += 1;
+  newGameState.gameScore =
+    (newGameState.gameScore || 0) + getCardPlayPoints(card, pile, pileType);
 
   // Check if turn is complete
   const deckEmpty = newGameState.deck.length === 0;
@@ -211,6 +236,10 @@ const playCard = (gameState, card, pileIndex) => {
     newGameState.totalCards,
     newGameState.playerHands.length,
   );
+
+  if (newGameState.gameWon) {
+    newGameState.totalTurns = (newGameState.totalTurns || 0) + 1;
+  }
 
   return { success: true, gameState: newGameState };
 };
@@ -252,6 +281,7 @@ const endTurn = (gameState, options = {}) => {
     (newGameState.currentPlayer + 1) % newGameState.playerHands.length;
   newGameState.cardsPlayedThisTurn = 0;
   newGameState.turnComplete = false;
+  newGameState.totalTurns = (newGameState.totalTurns || 0) + 1;
 
   return { success: true, gameState: newGameState };
 };
@@ -265,6 +295,7 @@ const handleCantPlay = (gameState) => {
     turnComplete: true,
     cardsPlayedThisTurn: gameState.cardsPlayedThisTurn,
     endedByPlayer: gameState.currentPlayer,
+    totalTurns: (gameState.totalTurns || 0) + 1,
   };
 
   return { success: true, gameState: newGameState };
@@ -368,4 +399,8 @@ module.exports = {
   getTotalCardCount,
   getDescendingStartValue,
   isDeterministicDealEnabled,
+  isBacktrackPlay,
+  getCardPlayPoints,
+  CARD_PLAY_POINTS,
+  BACKTRACK_PLAY_POINTS,
 };

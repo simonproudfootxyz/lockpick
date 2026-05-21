@@ -5,7 +5,7 @@ import "./GameOverModalContent.css";
 const GameOverModalContent = ({
   message,
   summaryItems = [],
-  actionLabel = "Start New Game",
+  actionLabel = "Back to Home",
   onAction,
   close,
 }) => {

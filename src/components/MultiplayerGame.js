@@ -15,7 +15,7 @@ import useSocket from "../hooks/useSocket";
 import DiscardPile from "../DiscardPile";
 import PlayerHand from "../PlayerHand";
 import PlayerList from "./PlayerList";
-import { getTotalCardCount } from "../gameLogic";
+import { getTotalCardCount, buildGameSummaryItems } from "../gameLogic";
 import "../Game.css";
 import {
   getStoredPlayerName,
@@ -42,7 +42,7 @@ const MultiplayerGame = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { socket, isConnected, emit, on, off } = useSocket();
-  const { openModal, closeModal } = useModal();
+  const { openModal } = useModal();
 
   const socketId = socket?.id;
 
@@ -89,19 +89,10 @@ const MultiplayerGame = () => {
     initialJoinPreference,
   );
 
-  const buildGameSummary = useCallback((state) => {
-    if (!state) {
-      return [];
-    }
-    const deckCount = Array.isArray(state.deck) ? state.deck.length : 0;
-    const totalCardsPlayed = Array.isArray(state.discardPiles)
-      ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
-      : 0;
-    return [
-      { label: "Total cards played", value: totalCardsPlayed },
-      { label: "Cards remaining in deck", value: deckCount },
-    ];
-  }, []);
+  const buildGameSummary = useCallback(
+    (state) => buildGameSummaryItems(state),
+    [],
+  );
 
   const updateGameOverState = useCallback(
     (state, context = {}) => {
@@ -117,9 +108,9 @@ const MultiplayerGame = () => {
       }
       gameOverModalShownRef.current = true;
 
-      const buildAction = (close) => () => {
-        startNewGameRef.current();
-        close();
+      const modalConfig = {
+        size: "sm",
+        onClose: () => startNewGameRef.current(),
       };
 
       if (state.gameWon) {
@@ -128,15 +119,14 @@ const MultiplayerGame = () => {
             ? state.totalCards
             : getTotalCardCount(state.playerHands?.length || 0);
         openModal({
+          ...modalConfig,
           title: "Congratulations!",
-          size: "sm",
-          closeOnBackdrop: false,
           content: ({ close }) => (
             <GameOverModalContent
               message={`Congratulations, you won! All ${totalCards} cards have been played! Great job!`}
               summaryItems={buildGameSummary(state)}
-              actionLabel="Start New Game"
-              onAction={buildAction(close)}
+              actionLabel="Back to Home"
+              close={close}
             />
           ),
         });
@@ -152,15 +142,14 @@ const MultiplayerGame = () => {
         players.find((p) => p.playerIndex === failedPlayer)?.name ||
         `Player ${failedPlayer + 1}`;
       openModal({
+        ...modalConfig,
         title: "Game Over!",
-        size: "sm",
-        closeOnBackdrop: false,
         content: ({ close }) => (
           <GameOverModalContent
             message={`${displayName} couldn't play a card. The game has ended.`}
             summaryItems={buildGameSummary(state)}
-            actionLabel="Start New Game"
-            onAction={buildAction(close)}
+            actionLabel="Back to Home"
+            close={close}
           />
         ),
       });
@@ -580,11 +569,10 @@ const MultiplayerGame = () => {
 
   const startNewGame = useCallback(() => {
     gameOverModalShownRef.current = false;
-    closeModal();
     setAutoSortEnabled(false);
     setLastSortOrder("asc");
     navigate("/");
-  }, [navigate, closeModal]);
+  }, [navigate]);
 
   startNewGameRef.current = startNewGame;
 
