@@ -20,8 +20,8 @@ lockpick/
 ├── src/                       # React client (CRA, react-scripts 5)
 │   ├── App.js                 # Top-level router
 │   ├── Game.js                # Single-player controller (client-authoritative)
-│   ├── GameSetup.js           # Landing page: SP launch + multiplayer entry
-│   ├── gameLogic.js           # Client rules (deck, canPlayCard, isGameWon, …)
+│   ├── GameSetup.js           # Landing page: single-player launch + inline rules
+│   ├── gameLogic.js           # Client rules (deck, canPlayCard, scoring, isGameWon, …)
 │   ├── Card.js / DiscardPile.js / PlayerHand.js  # Shared presentation
 │   ├── RulesContent.js        # The rules copy reused by GameSetup + the rules modal
 │   ├── context/
@@ -31,6 +31,8 @@ lockpick/
 │   │   ├── JoinViaLink.js     # /join/:roomCode invite landing
 │   │   ├── NamePromptModal.js # Reusable name + role picker
 │   │   ├── MultiplayerGame.js # Multiplayer controller (server-authoritative)
+│   │   ├── GameHeader.js      # Logo home link + rules modal trigger (SP + MP)
+│   │   ├── GameInfo.js        # Sidebar stats: turns, score, deck, progress
 │   │   ├── PlayerList.js      # Sidebar roster + invite link
 │   │   ├── ConnectionStatus.js
 │   │   ├── Button.js / Toggle.js  # Design-system primitives
@@ -94,14 +96,14 @@ In development, `npm run dev` runs CRA on `:3000` and the API on `:3001` (with `
 
 | Route | Component | Purpose |
 |---|---|---|
-| `/` | `GameSetup` | Landing page; launches SP with a generated `gameId` (`?players=1`), or routes to `/lobby` |
+| `/` | `GameSetup` | Landing page; launches SP with a generated `gameId` (`?players=1`) and renders inline rules |
 | `/game/:gameId` | `Game` | Single-player; `gameId` is just an opaque key for `localStorage` |
 | `/lobby` | `Lobby` | Create or join a multiplayer room |
 | `/join/:roomCode` | `JoinViaLink` | Deep-link landing for shared invite URLs |
 | `/multiplayer/:gameId` | `MultiplayerGame` | Multiplayer game; `gameId` is the 6-char room code |
 | `*` | redirect `/` | Fallback |
 
-`GameSetup` currently hard-codes `DEFAULT_PLAYER_COUNT = 1`; the multi-seat single-player flow is reachable only via direct URL (`/game/:id?players=N`). This is intentional — physical-table SP for >1 player is a power-user feature.
+`GameSetup` currently hard-codes `DEFAULT_PLAYER_COUNT = 1`; the multi-seat single-player flow is reachable only via direct URL (`/game/:id?players=N`). Multiplayer is entered directly at `/lobby` or via invite links (`/join/:roomCode`) — there is no lobby button on the landing page today. Physical-table SP for >1 player remains a power-user feature.
 
 ---
 
@@ -155,7 +157,7 @@ export const canPlayCard = (card, pile, pileType, options = {}) => {
 };
 ```
 
-The default, ship-facing rule on both client and server is: **strictly monotone OR the ±10 backtrack**. The `allowMultiplesOfTenReverse` flag is **only present on the client** and is exposed only through the Konami code easter egg in single-player (see §6.4). The server's `canPlayCard` deliberately has no such option — a multiplayer client cannot enable it.
+The default, ship-facing rule on both client and server is: **strictly monotone OR the ±10 backtrack**. The `allowMultiplesOfTenReverse` flag is **only present on the client** and is exposed only through the Konami code easter egg in single-player (see §5.5). The server's `canPlayCard` deliberately has no such option — a multiplayer client cannot enable it.
 
 ### 4.3 Turn structure
 
@@ -164,8 +166,23 @@ The default, ship-facing rule on both client and server is: **strictly monotone 
 - After meeting the minimum, the player ends the turn, draws back up to `getHandSize`, and play passes to `(currentPlayer + 1) % playerHands.length`.
 - **Win condition:** `discardPiles.flat().length === totalCards` (all cards 2..max played).
 - **Loss condition:** the active player presses *I Can't Play A Card*. There is no automatic detection; the player asserts it.
+- **`totalTurns` accounting:** incremented when a turn ends normally (`endTurn`), when the winning card is played, or when someone concedes via *I Can't Play A Card*. The live turn counter is shown in `GameInfo` and included in the end-of-run summary.
 
-### 4.4 The `gameState` object (canonical shape)
+### 4.4 Scoring
+
+Both copies of `gameLogic` track per-play points and derive a final score at game end. Points are awarded on every legal card play; the server is authoritative for multiplayer.
+
+| Constant / helper | Value / behaviour |
+|---|---|
+| `CARD_PLAY_POINTS` | `5` — any normal (monotone) play |
+| `BACKTRACK_PLAY_POINTS` | `8` — a ±10 backtrack play (`isBacktrackPlay`) |
+| `getCardPlayPoints(card, pile, pileType)` | Returns backtrack or normal points based on the pile **before** the card is appended |
+| `calculateFinalScore(gameScore, totalCardsPlayed, totalTurns)` | `gameScore × (98 + totalCardsPlayed − totalTurns)` |
+| `buildGameSummaryItems(state)` | Builds the `{ label, value }[]` list shown in `GameOverModalContent` |
+
+During play, `gameState.gameScore` accumulates the per-card points. The sidebar `GameInfo` component shows the running score and turn count. When a run ends (win or loss), the game-over modal renders the summary from `buildGameSummaryItems`, including the computed **Final score**.
+
+### 4.5 The `gameState` object (canonical shape)
 
 This is the single shape passed between client and server (and persisted to disk). Every field below is read by at least one UI component:
 
@@ -176,20 +193,24 @@ This is the single shape passed between client and server (and persisted to disk
   discardPiles: number[][],    // length 4: [asc1, asc2, desc1, desc2]
   deck: number[],              // remaining draw pile (mutated by splice on draw)
   gameWon: boolean,
-  gameOver: boolean,           // server-only: set when someone presses "Cant play"
   cardsPlayedThisTurn: number,
   turnComplete: boolean,       // ≥ minRequired played
   totalCards: number,          // computed once at init for the win check
   maxCard: number,
   descendingStart: number,
+  totalTurns: number,          // completed turns (see §4.3)
+  gameScore: number,           // accumulated per-play points (see §4.4)
+  // end-of-run flags (differ slightly between SP and MP):
+  gameFinished: boolean,       // single-player: true after win or cant-play
+  gameOver: boolean,           // multiplayer/server: true after cant-play
   // multiplayer-only:
   gameStarted: boolean,        // present after initializeGame on the server
-  createdAt: number,           // epoch ms
+  createdAt: number,           // epoch ms (persisted snapshots only)
   endedByPlayer: number,       // playerIndex who pressed cant-play
 }
 ```
 
-The single-player code only writes a subset of these (`gameStarted`, `gameOver`, `endedByPlayer` are absent). When inspecting saved games on disk, expect the full server shape.
+The single-player controller uses `gameFinished` to gate interaction and trigger the unified game-over modal; it does not set `gameOver` or `endedByPlayer`. Multiplayer relies on `gameOver` + `endedByPlayer` from the server. Both modes carry `gameScore` and `totalTurns`. When inspecting saved games on disk, expect the full server shape.
 
 ---
 
@@ -222,11 +243,14 @@ The single-player flow is a classic React-state machine with localStorage hydrat
         discardPiles: [[], [], [], []],
         deck,
         gameWon: false,
+        gameFinished: false,
         cardsPlayedThisTurn: 0,
         turnComplete: false,
         totalCards,
         maxCard,
         descendingStart,
+        totalTurns: 0,
+        gameScore: 0,
       };
       setGameState(newGameState);
       saveGameState(newGameState);
@@ -237,7 +261,7 @@ The single-player flow is a classic React-state machine with localStorage hydrat
 
 ### 5.2 Persistence
 
-Every state mutation goes through `setGameState(...) → saveGameState(...)`. Saved JSON includes `{ gameState, timestamp, gameId, numPlayers }`. There is currently no migration story; if you change the `gameState` shape, bump the validation in `loadGameState` to drop incompatible saves.
+Every state mutation goes through `setGameState(...) → saveGameState(...)`. Saved JSON includes `{ gameState, gameId, numPlayers }`. There is currently no migration story; if you change the `gameState` shape, bump the validation in `loadGameState` to drop incompatible saves.
 
 ### 5.3 Action handlers (the only places that mutate state)
 
@@ -245,23 +269,25 @@ Every state mutation goes through `setGameState(...) → saveGameState(...)`. Sa
 |---|---|---|
 | `handleCardSelect(card, playerIndex)` | Card click in `PlayerHand` | Toggles selection; only the active player can select |
 | `handlePileAssignment(pileIndex)` | Pile click (non-DnD path) | Records the chosen target pile |
-| `handlePlayCard(pileIndex, cardValue?)` | "Play" button OR drop on a pile | Validates with `canPlayCard`, alerts on illegal moves, otherwise mutates `discardPiles` and the active hand, increments `cardsPlayedThisTurn`, and recomputes `turnComplete` and `gameWon` |
+| `handlePlayCard(pileIndex, cardValue?)` | "Play" button OR drop on a pile | Validates with `canPlayCard`, alerts on illegal moves, otherwise mutates `discardPiles` and the active hand, adds `getCardPlayPoints` to `gameScore`, increments `cardsPlayedThisTurn`, and recomputes `turnComplete`, `gameWon`, and `gameFinished` |
 | `handleCardDrop(card, pileIndex)` | DnD onto a `DiscardPile` | Thin wrapper around `handlePlayCard` |
 | `handleHandReorder(newHand)` | DnD within `PlayerHand` | Replaces the active player's hand wholesale |
 | `sortHandAscending` / `sortHandDescending` | Sort buttons | Sort the active hand and remember the order in `lastSortOrder` |
 | `handleAutoSortToggle` | Auto-Sort toggle | Sets `autoSortEnabled` (purely a client concern) |
-| `endTurn` | "End Turn & Draw Cards" | Enforces the 2/1-card minimum, draws up to hand size from `deck`, applies auto-sort if enabled, advances `currentPlayer`, clears selection |
-| `handleCantPlayClick` → `confirmCantPlayCard` | "I Can't Play" button | Opens a `ConfirmModalContent` via `useModal()`; on confirm, opens a `GameOverModalContent` with the cant-play message |
-| `startNewGame` | Game-over modal action | `clearGameState()`, resets all local state, calls `closeModal()`, navigates back to `/` |
+| `endTurn` | "End Turn & Draw Cards" | Enforces the 2/1-card minimum, draws up to hand size from `deck`, applies auto-sort if enabled, advances `currentPlayer`, increments `totalTurns`, clears selection |
+| `handleCantPlayClick` → `confirmCantPlayCard` | "I Can't Play" button | Opens a `ConfirmModalContent` via `useModal()`; on confirm, sets `gameFinished: true` and increments `totalTurns` |
+| `exitFinishedGame` | Game-over modal close / action | `clearGameState()`, resets local state, navigates back to `/` |
 
-Win detection is reactive: a `useEffect` watches `gameState.gameWon` and calls `openModal({...})` with a "Congratulations" payload when it flips true. A `winModalShownRef` guards against re-opening on subsequent renders, and a `startNewGameRef` is used so the modal's action callback can call the latest `startNewGame` without re-firing the effect. See §7 for the modal system itself.
+Game-over detection is reactive: a `useEffect` watches `gameState.gameWon || gameState.gameFinished` and opens a single `GameOverModalContent` (win or loss) with `buildGameSummaryItems` stats. A `gameOverModalShownRef` guards against re-opening on subsequent renders; closing the modal or clicking "Back to Home" calls `exitFinishedGame`. See §7 for the modal system itself.
 
 ### 5.4 UI structure
 
-The render is a single layout with three regions:
-- **Discard piles** at the top, grouped into ascending vs descending columns (responsive collapse < 768px).
-- **Player section** in the middle: `PlayerHand` for each seat (only the current seat is interactive), plus the sort controls.
-- **Action bar** with `I Can't Play A Card` and `End Turn & Draw Cards`. The "Play" button lives on each `DiscardPile` (you can either select a card and click Play on a pile, or drag the card directly onto a pile).
+Both single-player and multiplayer use a shared `game-layout` shell:
+
+- **Sidebar** (`game-sidebar`): in SP, `GameInfo` shows live turns, score, deck size, hand size, cards-played progress, and a rules button. In MP, the sidebar holds `PlayerList` (desktop) plus `GameInfo` once the game has started.
+- **Main column** (`game-main`): `GameHeader` (logo home link + "How do I play?" rules trigger), discard piles grouped into ascending vs descending columns (responsive collapse < 768px), then the player hand and action bar.
+- **Player section:** `PlayerHand` for each seat in SP (only the current seat is interactive); MP shows only the local player's hand. Sort controls (Auto-Sort toggle, Sort Asc/Desc) sit below the hand.
+- **Action bar:** turn-progress hint, `I Can't Play A Card`, and `End Turn & Draw Cards`. The "Play" button lives on each `DiscardPile` (select a card and click Play, or drag directly onto a pile).
 
 ### 5.5 The Konami code (single-player only)
 
@@ -377,9 +403,9 @@ Violating any of these yields a per-socket `error` emit, never a state mutation.
 | `room-preview` | `{ roomCode }` | code valid + room exists | ACK callback returns occupancy + `canJoinAsPlayer` |
 | `validate-name` | `{ action: "create" \| "join", roomCode?, playerName, playerId? }` | name + (room when joining) | ACK with `playerId` (reserves on join) and `roomStatus` snapshot |
 | `start-game` | `{ roomCode }` | caller is host; `players.size >= 2` | `initializeGame(players.size)` → broadcast `game-started` |
-| `play-card` | `{ roomCode, card, pileIndex }` | turn ownership | `playCard()` → broadcast `card-played` |
-| `end-turn` | `{ roomCode, autoSort?, sortOrder? }` | turn ownership; minimum cards met | `endTurn({ autoSortEnabled, sortOrder })` → broadcast `turn-ended` |
-| `cant-play` | `{ roomCode }` | turn ownership | `handleCantPlay()` sets `gameOver` and `endedByPlayer` → broadcast `cant-play` |
+| `play-card` | `{ roomCode, card, pileIndex }` | turn ownership | `playCard()` adds points to `gameScore`, may set `gameWon` → broadcast `card-played` |
+| `end-turn` | `{ roomCode, autoSort?, sortOrder? }` | turn ownership; minimum cards met | `endTurn({ autoSortEnabled, sortOrder })` increments `totalTurns` → broadcast `turn-ended` |
+| `cant-play` | `{ roomCode }` | turn ownership | `handleCantPlay()` sets `gameOver`, `endedByPlayer`, increments `totalTurns` → broadcast `cant-play` |
 | `sort-hand` | `{ roomCode, order: "asc" \| "desc" }` | turn ownership | `sortCurrentPlayerHand()` → broadcast `hand-sorted` |
 | `reorder-hand` | `{ roomCode, hand: number[] }` | turn ownership; `hand` is a permutation of the current hand | `reorderCurrentPlayerHand()` → broadcast `hand-reordered` |
 | `ping` | — | — | Server replies `pong` (used by `useSocket` for connection-quality heuristics) |
@@ -474,11 +500,13 @@ Spectators see the full board and roster but `MultiplayerGame` short-circuits al
 A few patterns are worth flagging:
 
 - **Single source of truth.** Every gameplay-affecting socket event (`card-played`, `turn-ended`, `cant-play`, `hand-sorted`, `hand-reordered`, `game-started`, `room-joined`) overwrites local `gameState` wholesale via `setGameState(data.gameState)`. There is no diffing.
+- **Unified game-over handling.** `updateGameOverState(state, context)` centralises win and loss modals. It fires when `state.gameWon || state.gameOver`, opens `GameOverModalContent` with `buildGameSummaryItems`, and wires `onClose` to navigate home via `startNewGameRef`. Socket handlers (`handleCardPlayed`, `handleTurnEnded`, `handleCantPlay`, etc.) all call it after applying server state.
 - **Optimistic reorder, only.** `handleHandReorder` is the one place where the client mutates `gameState` before the server replies. This avoids a visible "jump" while dragging cards within the hand. The server's `reorder-hand` ACK (`hand-reordered`) is then accepted as canonical.
 - **Auto-sort on end-turn is server-driven.** When the player toggles Auto-Sort on, the client tracks `autoSortEnabled` and `lastSortOrder` locally. On `end-turn` it sends `{ autoSort, sortOrder }` so the server can sort the *replenished* hand consistently for everyone (including spectators). The "Sort Asc / Desc" buttons emit a separate `sort-hand` event that runs immediately and is also broadcast.
 - **Local seat resolution.** `localPlayerIndex` is derived from `players.find(p => p.socketId === socketId)`. All "is it my turn" gating uses `localPlayerIndex === gameState.currentPlayer`. Spectators get `-1`.
 - **Connection lifecycle.** A second `useEffect` listens to raw `socket.on('connect' / 'disconnect')` and resets `hasJoinedRoom`/`joinAttemptsRef` so that on reconnect the client re-emits `join-room`. The server's reconnection logic recognises the `playerId` and slots the user back in.
 - **Drag and drop into piles.** `PlayerHand` writes `application/lockpick-card` JSON onto the drag payload; `DiscardPile` reads it and calls `onCardDrop(card, pileIndex)`, which delegates to `handlePlayCard`.
+- **Shared layout with SP.** Uses the same `game-layout` / `GameHeader` / `GameInfo` sidebar pattern as single-player; `PlayerList` renders in the sidebar on desktop and above the board on tablet/mobile.
 
 ### 6.7 `useSocket` hook
 
@@ -504,7 +532,7 @@ All in-app modals (rules, game-over, pile inspection, confirm dialogs) flow thro
 - [src/components/Modal/Modal.js](src/components/Modal/Modal.js) — the **shell**. Owns the overlay, the centered container, the header (title + close button), the size variants (`sm` / `md` / `lg` / `xl`), the Esc-key handler, the click-outside behavior, and the body-scroll lock. It does not know about content.
 - [src/components/Modal/Modal.css](src/components/Modal/Modal.css) — the single source of truth for `.modal-overlay`, `.modal`, `.modal--{size}`, `.modal__header`, `.modal__title`, `.modal__close`, `.modal__body`, and the `modalSlideIn` keyframes. Uses the existing `--modal-background` CSS variable so it inherits the rest of the design system.
 - [src/context/ModalContext.js](src/context/ModalContext.js) — exports `ModalProvider` and `useModal()`. Holds a **single-slot** state (not a stack); calling `openModal(config)` while another modal is open replaces it. This is what enforces the "only one at a time" invariant — there is no opt-in.
-- [src/components/modals/](src/components/modals/) — content-only components, one per modal type: `RulesModalContent`, `GameOverModalContent`, `PileViewModalContent`, `ConfirmModalContent`. Each renders just the body; the surrounding chrome is contributed by the shell.
+- [src/components/modals/](src/components/modals/) — content-only components, one per modal type: `RulesModalContent`, `GameOverModalContent`, `PileViewModalContent`, `ConfirmModalContent`. Each renders just the body; the surrounding chrome is contributed by the shell. `GameOverModalContent` accepts `message`, `summaryItems` (from `buildGameSummaryItems`), and `actionLabel` (defaults to "Back to Home").
 
 The provider is mounted once, in [src/App.js](src/App.js), inside `<Router>` so that modals survive navigations between routes:
 
@@ -550,10 +578,10 @@ Do **not** add new top-level overlay/container CSS; the shell handles all of tha
 
 ### 7.5 Effect-driven modals (the `Ref` pattern)
 
-When a modal is opened from a `useEffect` (e.g. the win-state check in `Game.js` and the game-over branch in `MultiplayerGame.js`), two things matter:
+When a modal is opened from a `useEffect` (e.g. the unified game-over check in `Game.js` and `updateGameOverState` in `MultiplayerGame.js`), two things matter:
 
-- Use a `…ShownRef` (e.g. `winModalShownRef`, `gameOverModalShownRef`) so you only open the modal once per transition. Reset the ref when the underlying condition becomes false.
-- If the modal's action callback needs to call a function that itself depends on a lot of state (e.g. `startNewGame`), reference it via a `…Ref` that is reassigned on every render (`startNewGameRef.current = startNewGame`). This avoids putting `startNewGame` in the effect's dependency array — which would otherwise cause the modal to re-open every time `startNewGame`'s identity changes.
+- Use a `…ShownRef` (e.g. `gameOverModalShownRef`) so you only open the modal once per transition. Reset the ref when the underlying condition becomes false.
+- If the modal's action callback needs to call a function that itself depends on a lot of state (e.g. `exitFinishedGame` / `startNewGame`), reference it via a `…Ref` that is reassigned on every render (`startNewGameRef.current = startNewGame`) or pass it through `onClose`. This avoids putting the handler in the effect's dependency array — which would otherwise cause the modal to re-open every time the handler's identity changes.
 
 This is the same pattern used in both single-player and multiplayer controllers; copy it when adding new effect-driven modals.
 
@@ -645,8 +673,8 @@ A single-player-only easter egg; see §5.5. Triggering it during gameplay can be
 
 ## 10. Things to be aware of when contributing
 
-- **Two copies of `gameLogic`.** They must stay in sync. The server copy is authoritative; the client copy is what powers single-player and the "playable card" hints in `PlayerHand`. The Konami `allowMultiplesOfTenReverse` flag exists *only* on the client; do not let it leak into multiplayer code paths.
-- **`gameState` shape drift.** Adding a field requires touching both `gameLogic`s, the server save files (or accepting that old saves will be loaded with the field undefined), and the client controllers. The single-player `gameState` deliberately omits server-only fields (`gameStarted`, `gameOver`, `endedByPlayer`).
+- **Two copies of `gameLogic`.** They must stay in sync. The server copy is authoritative; the client copy is what powers single-player and the "playable card" hints in `PlayerHand`. Scoring helpers (`getCardPlayPoints`, `calculateFinalScore`, `buildGameSummaryItems`) live in the client copy and are consumed by UI; the server copy implements the same point constants and accumulation in `playCard`. The Konami `allowMultiplesOfTenReverse` flag exists *only* on the client; do not let it leak into multiplayer code paths.
+- **`gameState` shape drift.** Adding a field requires touching both `gameLogic`s, the server save files (or accepting that old saves will be loaded with the field undefined), and the client controllers. Single-player uses `gameFinished`; multiplayer uses `gameOver` + `endedByPlayer`. Both carry `gameScore` and `totalTurns`.
 - **`playerIndex` is stable for the room's lifetime.** Don't try to compact indices when a player leaves — `playerHands` is keyed by index.
 - **Server is not idempotent on duplicate emits.** The handlers assume the client only emits once per intent. The client takes care of this (`hasJoinedRoom`, `joinAttemptsRef`, debounced UI buttons). Keep that contract if you add new actions.
 - **`leaveRoom` has a debounce.** Empty rooms aren't deleted instantly; reconnecting host within ~5 s will re-claim the room. Tests rely on this timing.
@@ -667,6 +695,6 @@ If you want to get hands-on quickly:
 
 1. Run `npm run install:all && npm run dev`, open two browser windows, exercise the lobby → invite → reconnect flow end-to-end.
 2. Step through `server/__tests__/integration.test.js` with a debugger; that file is the clearest narrative of how a multiplayer game actually plays.
-3. Make a small change that touches both `gameLogic`s (e.g. add a derived field to `getGameStatus`) and observe how it propagates through `Game.js` and `MultiplayerGame.js`. This will inoculate you against the "two copies" trap.
+3. Make a small change that touches both `gameLogic`s (e.g. adjust scoring in `getCardPlayPoints` or add a derived field to `getGameStatus`) and observe how it propagates through `Game.js`, `GameInfo`, and `MultiplayerGame.js`. This will inoculate you against the "two copies" trap.
 
 Welcome aboard. The architecture is small enough that you'll have the whole map in your head within a day; the persistence and reconnection corners are the only places where surprises live.
