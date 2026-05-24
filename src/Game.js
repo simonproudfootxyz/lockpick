@@ -330,7 +330,12 @@ const Game = () => {
       gameState.totalCards,
       gameState.playerHands.length,
     );
-    const pointsEarned = getCardPlayPoints(cardValue, pile, pileType);
+    const pointsEarned = getCardPlayPoints(
+      cardValue,
+      pile,
+      pileType,
+      gameState.isKonamiMode,
+    );
     const currentTotalTurns = gameState.totalTurns ?? 0;
 
     const newGameState = {

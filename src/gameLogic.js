@@ -126,8 +126,8 @@ export const isGameWon = (discardPiles, totalCards, playerCount) => {
 export const CARD_PLAY_POINTS = 5;
 export const BACKTRACK_PLAY_POINTS = 8;
 
-export const isBacktrackPlay = (card, pile, pileType) => {
-  if (!pile || pile.length === 0) {
+export const isBacktrackPlay = (card, pile, pileType, isKonamiMode = false) => {
+  if (!pile || pile.length === 0 || isKonamiMode) {
     return false;
   }
 
@@ -140,8 +140,13 @@ export const isBacktrackPlay = (card, pile, pileType) => {
   return card === topCard + 10;
 };
 
-export const getCardPlayPoints = (card, pile, pileType) =>
-  isBacktrackPlay(card, pile, pileType)
+export const getCardPlayPoints = (
+  card,
+  pile,
+  pileType,
+  isKonamiMode = false,
+) =>
+  isBacktrackPlay(card, pile, pileType, isKonamiMode)
     ? BACKTRACK_PLAY_POINTS
     : CARD_PLAY_POINTS;
 
