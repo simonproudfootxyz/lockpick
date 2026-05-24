@@ -40,6 +40,10 @@
 .rules-content {
   & .rules-section {
     padding: 1rem;
+
+    @media (max-width: 640px) {
+      padding: 0.5rem;
+    }
   }
 
   .special-rules {

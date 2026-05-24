@@ -65,6 +65,17 @@
   display: none;
 }
 
+code {
+  background: var(--grey-800);
+  padding: 0.25rem;
+  border-radius: 6px;
+  text-shadow: -2px 2px 1px var(--grey-850);
+
+  img {
+    filter: drop-shadow(-2px 2px 1px var(--grey-850));
+  }
+}
+
 /* INPUTS */
 input[type="text"] {
   padding: 12px 16px;
@@ -95,7 +106,7 @@ input[type="text"] {
 @media (max-width: 640px) {
   p,
   li {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
   }
 
   .hidden--phone-down {

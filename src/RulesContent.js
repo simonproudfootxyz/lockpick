@@ -36,9 +36,9 @@ const RulesContent = ({ className = "" }) => {
           </li>
           <li>
             Tap{" "}
-            <TextButton>
+            <code>
               X Cards <img src={MagnifyingGlass} alt="Magnifying Glass" />
-            </TextButton>{" "}
+            </code>{" "}
             on any pile to see its full history before you play
           </li>
           <li>
@@ -59,23 +59,28 @@ const RulesContent = ({ className = "" }) => {
       <section className="rules-section special-rules">
         <h3>Backtrack (±10)</h3>
         <p>
-          Normally you follow each pile's direction — but if your card is
-          exactly <strong>10 away in the wrong direction</strong>, you can still
-          play it. This is called a backtrack, and it's often what keeps a run
-          alive.
+          Normally you follow each pile's direction — but you can play a card
+          that is <code>exactly 10 away in the wrong direction</code>. This is
+          called a backtrack, and it's often what keeps a game alive.
         </p>
         <ul>
           <li>
-            <strong>Ascending pile:</strong> Play a card exactly 10{" "}
-            <em>lower</em> than the top card (e.g. play <strong>37</strong> onto{" "}
+            <strong>Ascending pile:</strong> Play a card{" "}
+            <strong>
+              exactly 10 <em>lower</em>
+            </strong>{" "}
+            than the top card (e.g. play <strong>37</strong> onto{" "}
             <strong>47</strong>, or <strong>56</strong> onto <strong>66</strong>
             )
           </li>
           <li>
-            <strong>Descending pile:</strong> Play a card exactly 10{" "}
-            <em>higher</em> than the top card (e.g. play <strong>55</strong>{" "}
-            onto <strong>45</strong>, or <strong>88</strong> onto{" "}
-            <strong>78</strong>)
+            <strong>Descending pile:</strong> Play a card{" "}
+            <strong>
+              exactly 10 <em>higher</em>
+            </strong>{" "}
+            than the top card (e.g. play <strong>55</strong> onto{" "}
+            <strong>45</strong>, or <strong>88</strong> onto <strong>78</strong>
+            )
           </li>
         </ul>
         <p>
@@ -89,15 +94,15 @@ const RulesContent = ({ className = "" }) => {
         <h3>Your Turn</h3>
         <ul>
           <li>
-            While cards remain in the draw pile, you must play at least{" "}
-            <strong>two</strong> cards. Once the draw pile is empty, you only
-            need to play <strong>one</strong>
+            While cards remain in the deck, you must play at least{" "}
+            <strong>two</strong> cards. Once the deck is empty, you only need to
+            play <strong>one</strong>
           </li>
           <li>Play cards one at a time onto any legal pile.</li>
           <li>
             When you've met the minimum, press{" "}
             <code>End Turn &amp; Draw Cards</code> to refill your hand from the
-            draw pile (if any cards remain)
+            deck (if any cards remain)
           </li>
           <li>
             If you have no legal moves, press <code>I Can't Play A Card</code>{" "}
@@ -118,9 +123,8 @@ const RulesContent = ({ className = "" }) => {
             requirement on your turn
           </li>
           <li>
-            Once the draw pile runs out, keep playing without drawing. The
-            minimum stays at one card per turn until the deck is cleared or
-            you're stuck
+            Once the deck runs out, keep playing without drawing. The minimum
+            stays at one card per turn until the deck is cleared or you're stuck
           </li>
         </ul>
       </section>
