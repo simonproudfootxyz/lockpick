@@ -34,17 +34,6 @@
   margin-top: 12px;
 }
 
-.setup-rules-content .rules-section {
-  margin-bottom: 16px;
-  background: none;
-  border: none;
-  color: var(--white);
-}
-
-.setup-rules-content .game-objective {
-  margin-bottom: 16px;
-}
-
 .setup-options {
   display: flex;
   flex-direction: column;

@@ -93,7 +93,8 @@ input[type="text"] {
 
 /* Global Phone */
 @media (max-width: 640px) {
-  p {
+  p,
+  li {
     font-size: 0.75rem;
   }
 

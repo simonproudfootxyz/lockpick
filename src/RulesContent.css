@@ -1,9 +1,4 @@
-.rules-content section {
-  margin-bottom: 20px;
-}
-
 .rules-content h3 {
-  margin: 24px 0 12px 0;
   font-size: 1.3rem;
   font-weight: 600;
   padding-bottom: 8px;
@@ -21,16 +16,20 @@
 }
 
 .rules-content p {
-  margin: 0 0 16px 0;
+  & + p {
+    margin-top: 1rem;
+  }
 }
 
 .rules-content ul {
-  margin: 0 0 16px 0;
-  padding-left: 22px;
+  padding-left: 1rem;
+  text-align: left;
 }
 
 .rules-content li {
-  margin-bottom: 8px;
+  & + li {
+    margin-top: 0.5rem;
+  }
 }
 
 .rules-content strong {
@@ -41,6 +40,13 @@
 .rules-content {
   & .rules-section {
     padding: 1rem;
+  }
+
+  .special-rules {
+    border: 1px solid var(--primary-color);
+    border-radius: 0.4rem;
+    background: var(--grey-950);
+    margin: 1rem 0;
   }
 }
 
@@ -65,12 +71,7 @@
   border-radius: 8px;
 }
 
-.rules-content .special-rules {
-  padding: 16px;
-  border-radius: 8px;
-}
-
-.rules-content .communication-rules {
+.rules-content .rules-content .communication-rules {
   padding: 16px;
   border-radius: 8px;
 }

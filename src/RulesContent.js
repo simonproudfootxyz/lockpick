@@ -1,5 +1,7 @@
 import React from "react";
 import "./RulesContent.css";
+import MagnifyingGlass from "./assets/MagnifyingGlass.svg";
+import { TextButton } from "./components/Button";
 
 const combineClassNames = (...classNames) =>
   classNames.filter(Boolean).join(" ");
@@ -10,126 +12,115 @@ const RulesContent = ({ className = "" }) => {
   return (
     <div className={containerClass}>
       <section className="rules-section game-objective">
-        <h3>Objective</h3>
+        <h3>How to Play</h3>
         <p>
-          Four shared discard piles sit at the center of every Lockpick match:
-          two climb upward from 1 while two fall from the high anchor (100 in
-          smaller games, or the current max card + 1 once the deck stretches
-          past 99). Everyone cooperates to drain the tailored deck, which always
-          includes every number from 2 up to that max value (99 with up to five
-          players, then +10 for each player beyond five).
+          Lockpick is a solo card game — think solitaire with numbers. Your goal
+          is to play every card from the deck onto four shared piles: two count
+          up from 1, and two count down from 100. The deck contains every number
+          from <strong>2 to 99</strong> (98 cards total) Play at least two cards
+          per turn, and try to empty the whole deck before you run out of legal
+          moves.
         </p>
-        <p>
-          Keep the piles flexible by making small jumps whenever you can, and
-          tap <code>View</code> on any pile to review its full history before
-          committing to a play.
-        </p>
-      </section>
-
-      <section className="rules-section pile-rules">
-        <h3>Discard Piles</h3>
-        <ul>
-          <li>
-            <strong>Ascending piles (1 ↑):</strong> Each card must be higher
-            than the top card already showing. Tight gaps preserve the most
-            future plays.
-          </li>
-          <li>
-            <strong>Descending piles (max ↓):</strong> Each card must be lower
-            than the top card to keep the stack counting down.
-          </li>
-          <li>
-            <strong>Pile visibility:</strong> Use the <code>View</code> control
-            whenever you need to confirm the order of cards on a pile.
-          </li>
-        </ul>
       </section>
 
       <section className="rules-section setup-rules">
         <h3>Getting Started</h3>
         <ul>
           <li>
-            Choose the player count to size the deck and seating order. In
-            multiplayer, the lobby host always takes the first turn.
+            You start with a hand of <strong>8 cards</strong>. The four discard
+            piles begin empty
           </li>
           <li>
-            The deck includes every number from 2 through the current maximum.
-            With six or more players, the max grows by ten per additional player
-            (e.g. 109 with six players, 119 with seven).
+            You must play <strong>at least two cards</strong> per turn (unless
+            the deck is empty, in which case you only need to play one card)
           </li>
           <li>
-            Everyone draws an opening hand according to the table size. Discard
-            piles begin empty until the first cards are played.
-          </li>
-        </ul>
-        <div className="hand-sizes">
-          <h3>Starting hand sizes</h3>
-          <ul>
-            <li>1 player: 8 cards</li>
-            <li>2 players: 7 cards each</li>
-            <li>3–5 players: 6 cards each</li>
-            <li>6–10 players: 5 cards each</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="rules-section gameplay-rules">
-        <h3>Turn Flow</h3>
-        <ul>
-          <li>
-            While the draw pile still contains cards, you must play at least{" "}
-            <strong>two</strong> cards on your turn. Once it is empty, only{" "}
-            <strong>one</strong> card is required.
+            Tap{" "}
+            <TextButton>
+              X Cards <img src={MagnifyingGlass} alt="Magnifying Glass" />
+            </TextButton>{" "}
+            on any pile to see its full history before you play
           </li>
           <li>
-            Play cards one at a time, mixing piles in any order as long as you
-            respect the ascending or descending direction of each stack.
+            <strong>Ascending piles (1 ↑):</strong> Each card must be higher
+            than the top card. Smaller jumps leave more room for future plays
           </li>
           <li>
-            After meeting your requirement, press{" "}
-            <code>End Turn &amp; Draw Cards</code> to replenish from the draw
-            pile (if available) and pass play to the next teammate.
+            <strong>Descending piles (100 ↓):</strong> Each card must be lower
+            than the top card
           </li>
           <li>
-            If you have no legal moves, use <code>I can't play a card</code> to
-            concede the run for the entire team.
+            You can play on any pile in any order during your turn, as long as
+            each play follows the pile's direction
           </li>
         </ul>
       </section>
 
       <section className="rules-section special-rules">
-        <h3>Backtrack Maneuver (±10)</h3>
+        <h3>Backtrack (±10)</h3>
         <p>
-          Break the normal direction when your card is exactly ten away from the
-          top card of a pile. You can use the maneuver multiple times per turn
-          and across different piles.
+          Normally you follow each pile's direction — but if your card is
+          exactly <strong>10 away in the wrong direction</strong>, you can still
+          play it. This is called a backtrack, and it's often what keeps a run
+          alive.
         </p>
         <ul>
           <li>
-            <strong>Ascending pile:</strong> Play a card exactly 10 lower than
-            the top card (e.g. play 37 onto 47 or 56 onto 66).
+            <strong>Ascending pile:</strong> Play a card exactly 10{" "}
+            <em>lower</em> than the top card (e.g. play <strong>37</strong> onto{" "}
+            <strong>47</strong>, or <strong>56</strong> onto <strong>66</strong>
+            )
           </li>
           <li>
-            <strong>Descending pile:</strong> Play a card exactly 10 higher than
-            the top card (e.g. play 108 onto 98 or 55 onto 45).
+            <strong>Descending pile:</strong> Play a card exactly 10{" "}
+            <em>higher</em> than the top card (e.g. play <strong>55</strong>{" "}
+            onto <strong>45</strong>, or <strong>88</strong> onto{" "}
+            <strong>78</strong>)
+          </li>
+        </ul>
+        <p>
+          You can backtrack multiple times in a single turn, on the same pile or
+          different ones. Save them for when a pile is getting tight — that's
+          where they matter most.
+        </p>
+      </section>
+
+      <section className="rules-section gameplay-rules">
+        <h3>Your Turn</h3>
+        <ul>
+          <li>
+            While cards remain in the draw pile, you must play at least{" "}
+            <strong>two</strong> cards. Once the draw pile is empty, you only
+            need to play <strong>one</strong>
+          </li>
+          <li>Play cards one at a time onto any legal pile.</li>
+          <li>
+            When you've met the minimum, press{" "}
+            <code>End Turn &amp; Draw Cards</code> to refill your hand from the
+            draw pile (if any cards remain)
+          </li>
+          <li>
+            If you have no legal moves, press <code>I Can't Play A Card</code>{" "}
+            to end the game
           </li>
         </ul>
       </section>
 
       <section className="rules-section endgame-rules">
-        <h3>Endgame</h3>
+        <h3>Winning &amp; Losing</h3>
         <ul>
           <li>
-            When the draw pile runs out, keep playing without drawing. The
-            minimum requirement stays at one card per turn.
+            <strong>You win</strong> when the last card from the deck is played
+            onto a pile
           </li>
           <li>
-            You win immediately when the final card from the deck lands on a
-            pile.
+            <strong>You lose</strong> if you can't meet the minimum play
+            requirement on your turn
           </li>
           <li>
-            If anyone cannot meet the minimum play on their turn, the expedition
-            fails and the game ends.
+            Once the draw pile runs out, keep playing without drawing. The
+            minimum stays at one card per turn until the deck is cleared or
+            you're stuck
           </li>
         </ul>
       </section>
