@@ -41,73 +41,11 @@ const Game = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState("asc");
-  const [isKonamiMode, setIsKonamiMode] = useState(false);
   const [showKonamiToast, setShowKonamiToast] = useState(false);
   const konamiToastTimeoutRef = useRef(null);
   const gameOverModalShownRef = useRef(false);
 
   const numPlayers = parseInt(searchParams.get("players")) || 1;
-
-  useEffect(() => {
-    if (numPlayers !== 1) {
-      setIsKonamiMode(false);
-      setShowKonamiToast(false);
-      if (konamiToastTimeoutRef.current) {
-        clearTimeout(konamiToastTimeoutRef.current);
-        konamiToastTimeoutRef.current = null;
-      }
-      return;
-    }
-
-    const konamiSequence = [
-      "ArrowUp",
-      "ArrowUp",
-      "ArrowDown",
-      "ArrowDown",
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowLeft",
-      "ArrowRight",
-      "KeyB",
-      "KeyA",
-    ];
-
-    let sequenceIndex = 0;
-
-    const handleKeyDown = (event) => {
-      const expectedKey = konamiSequence[sequenceIndex];
-      if (event.code === expectedKey) {
-        sequenceIndex += 1;
-        if (sequenceIndex === konamiSequence.length) {
-          setIsKonamiMode(true);
-          if (konamiToastTimeoutRef.current) {
-            clearTimeout(konamiToastTimeoutRef.current);
-          }
-          setShowKonamiToast(true);
-          konamiToastTimeoutRef.current = setTimeout(() => {
-            setShowKonamiToast(false);
-            konamiToastTimeoutRef.current = null;
-          }, 2500);
-          sequenceIndex = 0;
-        }
-        return;
-      }
-
-      sequenceIndex = event.code === konamiSequence[0] ? 1 : 0;
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      setIsKonamiMode(false);
-      setShowKonamiToast(false);
-      if (konamiToastTimeoutRef.current) {
-        clearTimeout(konamiToastTimeoutRef.current);
-        konamiToastTimeoutRef.current = null;
-      }
-    };
-  }, [numPlayers]);
 
   // Game state persistence functions
   const saveGameState = useCallback(
@@ -153,6 +91,72 @@ const Game = () => {
     }
   };
 
+  useEffect(() => {
+    if (numPlayers !== 1) {
+      setShowKonamiToast(false);
+      if (konamiToastTimeoutRef.current) {
+        clearTimeout(konamiToastTimeoutRef.current);
+        konamiToastTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const konamiSequence = [
+      "ArrowUp",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowLeft",
+      "ArrowRight",
+      "KeyB",
+      "KeyA",
+    ];
+
+    let sequenceIndex = 0;
+
+    const handleKeyDown = (event) => {
+      const expectedKey = konamiSequence[sequenceIndex];
+      if (event.code === expectedKey) {
+        sequenceIndex += 1;
+        if (sequenceIndex === konamiSequence.length) {
+          setGameState((prev) => {
+            if (!prev || prev.isKonamiMode) {
+              return prev;
+            }
+            const nextState = { ...prev, isKonamiMode: true };
+            saveGameState(nextState);
+            return nextState;
+          });
+          if (konamiToastTimeoutRef.current) {
+            clearTimeout(konamiToastTimeoutRef.current);
+          }
+          setShowKonamiToast(true);
+          konamiToastTimeoutRef.current = setTimeout(() => {
+            setShowKonamiToast(false);
+            konamiToastTimeoutRef.current = null;
+          }, 2500);
+          sequenceIndex = 0;
+        }
+        return;
+      }
+
+      sequenceIndex = event.code === konamiSequence[0] ? 1 : 0;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      setShowKonamiToast(false);
+      if (konamiToastTimeoutRef.current) {
+        clearTimeout(konamiToastTimeoutRef.current);
+        konamiToastTimeoutRef.current = null;
+      }
+    };
+  }, [numPlayers, saveGameState]);
+
   const initializeGame = useCallback(
     (players) => {
       const deck = createDeck(players);
@@ -181,6 +185,7 @@ const Game = () => {
         descendingStart,
         totalTurns: 0,
         gameScore: 0,
+        isKonamiMode: false,
       };
 
       setGameState(newGameState);
@@ -213,7 +218,6 @@ const Game = () => {
     gameOverModalShownRef.current = false;
     setAutoSortEnabled(false);
     setLastSortOrder("asc");
-    setIsKonamiMode(false);
     setShowKonamiToast(false);
     if (konamiToastTimeoutRef.current) {
       clearTimeout(konamiToastTimeoutRef.current);
@@ -291,7 +295,7 @@ const Game = () => {
     // Validate card can be played on selected pile
     if (
       !canPlayCard(cardValue, pile, pileType, {
-        allowMultiplesOfTenReverse: isKonamiMode,
+        allowMultiplesOfTenReverse: !!gameState.isKonamiMode,
       })
     ) {
       alert(`Card ${cardValue} cannot be played on this ${pileType} pile!`);
@@ -481,11 +485,6 @@ const Game = () => {
     });
   };
 
-  const windowSize = useWindowSize();
-  const isTabletDown = windowSize?.width < 768;
-
-  console.log({ isKonamiMode });
-
   if (!gameState) {
     return (
       <div className="game">
@@ -611,7 +610,7 @@ const Game = () => {
                     onHandReorder={handleHandReorder}
                     isCurrentPlayer={index === gameState.currentPlayer}
                     discardPiles={gameState.discardPiles}
-                    allowMultiplesOfTenReverse={isKonamiMode}
+                    allowMultiplesOfTenReverse={!!gameState.isKonamiMode}
                     disabled={gameState.gameFinished}
                   />
                   {index === gameState.currentPlayer && (

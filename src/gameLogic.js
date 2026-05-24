@@ -147,9 +147,10 @@ export const getCardPlayPoints = (card, pile, pileType) =>
 
 export const calculateFinalScore = (
   gameScore = 0,
+  totalCards = 98,
   totalCardsPlayed = 0,
   totalTurns = 0,
-) => gameScore * (98 + totalCardsPlayed - totalTurns);
+) => gameScore * (totalCards + totalCardsPlayed - totalTurns);
 
 export const buildGameSummaryItems = (state) => {
   if (!state) {
@@ -161,9 +162,11 @@ export const buildGameSummaryItems = (state) => {
     ? state.discardPiles.reduce((sum, pile) => sum + pile.length, 0)
     : 0;
   const totalTurns = state.totalTurns ?? 0;
+  const totalCards = state.totalCards ?? 98;
   const gameScore = state.gameScore ?? 0;
   const finalScore = calculateFinalScore(
     gameScore,
+    totalCards,
     totalCardsPlayed,
     totalTurns,
   );
