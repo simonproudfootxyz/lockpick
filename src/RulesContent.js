@@ -59,7 +59,7 @@ const RulesContent = ({ className = "" }) => {
       <section className="rules-section special-rules">
         <h3>Backtrack (±10)</h3>
         <p>
-          Normally you follow each pile's direction — but you can play a card
+          Normally you follow each pile's direction, but you can play a card
           that is <code>exactly 10 away in the wrong direction</code>. This is
           called a backtrack, and it's often what keeps a game alive.
         </p>
