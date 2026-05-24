@@ -12,10 +12,8 @@ const GameInfo = ({ gameState }) => {
     (sum, pile) => sum + pile.length,
     0,
   );
-  const totalCardsTarget =
-    gameState.totalCards || getTotalCardCount(gameState.playerHands.length);
-  const currentHandSize =
-    gameState.playerHands[gameState.currentPlayer]?.length || 0;
+  const totalCardsTarget = gameState.totalCards || getTotalCardCount(1);
+  const currentHandSize = gameState.playerHand?.length || 0;
   const totalTurns = gameState.totalTurns ?? 0;
   const gameScore = gameState.gameScore ?? 0;
 

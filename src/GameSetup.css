@@ -72,18 +72,6 @@
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
-.multiplayer-section {
-  margin-top: 30px;
-}
-
-.multiplayer-section h3 {
-  margin: 0 0 10px 0;
-}
-
-.multiplayer-section p {
-  margin: 15px 0;
-}
-
 @media (max-width: 768px) {
   .setup-container {
     padding: 1rem;

@@ -196,8 +196,7 @@ export const isValidTurn = (cardsPlayed, deckEmpty) => {
 // Get game status message
 export const getGameStatus = (gameState) => {
   const {
-    playerHands,
-    currentPlayer,
+    playerHand,
     deck,
     gameWon,
     cardsPlayedThisTurn,
@@ -207,33 +206,24 @@ export const getGameStatus = (gameState) => {
     descendingStart,
   } = gameState;
 
-  const playerCount = playerHands.length;
-  const maxCards = totalCards || getTotalCardCount(playerCount);
-  const highestCardValue = maxCard || getMaxCardValue(playerCount);
-  const descendingStartValue =
-    descendingStart || getDescendingStartValue(playerCount);
+  const maxCards = totalCards || getTotalCardCount(1);
+  const highestCardValue = maxCard || getMaxCardValue(1);
+  const descendingStartValue = descendingStart || getDescendingStartValue(1);
 
   if (gameWon) {
-    return `Congratulations! Player ${
-      currentPlayer + 1
-    } won! All ${maxCards} cards have been played! (Max card ${highestCardValue}, descending starts at ${descendingStartValue})`;
+    return `Congratulations! You won! All ${maxCards} cards have been played! (Max card ${highestCardValue}, descending starts at ${descendingStartValue})`;
   }
 
-  const currentHand = playerHands[currentPlayer];
-  const cardsInHand = currentHand.length;
+  const cardsInHand = playerHand.length;
   const cardsInDeck = deck.length;
   const minCardsRequired = cardsInDeck === 0 ? 1 : 2;
   const cardsRemaining = Math.max(0, minCardsRequired - cardsPlayedThisTurn);
 
   if (turnComplete) {
-    return `Player ${
-      currentPlayer + 1
-    }'s turn complete! End turn to draw new cards. (${cardsInHand} cards in hand, ${cardsInDeck} cards in deck)`;
+    return `Turn complete! End turn to draw new cards. (${cardsInHand} cards in hand, ${cardsInDeck} cards in deck)`;
   }
 
-  return `Player ${
-    currentPlayer + 1
-  }'s turn - Play ${cardsRemaining} more card${
+  return `Your turn - Play ${cardsRemaining} more card${
     cardsRemaining === 1 ? "" : "s"
   } to complete your turn (${cardsInHand} cards in hand, ${cardsInDeck} cards in deck)`;
 };

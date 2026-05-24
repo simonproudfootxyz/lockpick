@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   createDeck,
   getHandSize,
@@ -32,7 +32,6 @@ import useWindowSize from "./hooks/useWindowSize";
 
 const Game = () => {
   const { gameId } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { openModal } = useModal();
   const [gameState, setGameState] = useState(null);
@@ -45,7 +44,22 @@ const Game = () => {
   const konamiToastTimeoutRef = useRef(null);
   const gameOverModalShownRef = useRef(false);
 
-  const numPlayers = parseInt(searchParams.get("players")) || 1;
+  const normalizeGameState = (state) => {
+    if (!state) {
+      return null;
+    }
+    if (state.playerHand) {
+      return state;
+    }
+    if (state.playerHands) {
+      const { playerHands, currentPlayer, ...rest } = state;
+      return {
+        ...rest,
+        playerHand: playerHands[currentPlayer ?? 0] ?? playerHands[0] ?? [],
+      };
+    }
+    return state;
+  };
 
   // Game state persistence functions
   const saveGameState = useCallback(
@@ -54,7 +68,6 @@ const Game = () => {
         const gameData = {
           gameState: state,
           gameId: gameId,
-          numPlayers: numPlayers,
         };
         localStorage.setItem(
           `lockpick_game_${gameId}`,
@@ -63,7 +76,7 @@ const Game = () => {
         setLastSaved(new Date());
       }
     },
-    [gameId, numPlayers],
+    [gameId],
   );
 
   const loadGameState = useCallback(() => {
@@ -74,16 +87,15 @@ const Game = () => {
       const savedData = localStorage.getItem(`lockpick_game_${gameId}`);
       if (savedData) {
         const gameData = JSON.parse(savedData);
-        // Check if the saved game matches current game ID and player count
-        if (gameData.gameId === gameId && gameData.numPlayers === numPlayers) {
-          return gameData.gameState;
+        if (gameData.gameId === gameId) {
+          return normalizeGameState(gameData.gameState);
         }
       }
     } catch (error) {
       console.error("Error loading game state:", error);
     }
     return null;
-  }, [gameId, numPlayers]);
+  }, [gameId]);
 
   const clearGameState = () => {
     if (gameId) {
@@ -92,15 +104,6 @@ const Game = () => {
   };
 
   useEffect(() => {
-    if (numPlayers !== 1) {
-      setShowKonamiToast(false);
-      if (konamiToastTimeoutRef.current) {
-        clearTimeout(konamiToastTimeoutRef.current);
-        konamiToastTimeoutRef.current = null;
-      }
-      return;
-    }
-
     const konamiSequence = [
       "ArrowUp",
       "ArrowUp",
@@ -155,44 +158,35 @@ const Game = () => {
         konamiToastTimeoutRef.current = null;
       }
     };
-  }, [numPlayers, saveGameState]);
+  }, [saveGameState]);
 
-  const initializeGame = useCallback(
-    (players) => {
-      const deck = createDeck(players);
-      const handSize = getHandSize(players);
-      const totalCards = getTotalCardCount(players);
-      const maxCard = getMaxCardValue(players);
-      const descendingStart = getDescendingStartValue(players);
+  const initializeGame = useCallback(() => {
+    const deck = createDeck(1);
+    const handSize = getHandSize(1);
+    const totalCards = getTotalCardCount(1);
+    const maxCard = getMaxCardValue(1);
+    const descendingStart = getDescendingStartValue(1);
 
-      // Deal hands for all players
-      const playerHands = [];
-      for (let i = 0; i < players; i++) {
-        playerHands.push(deck.splice(0, handSize));
-      }
+    const newGameState = {
+      playerHand: deck.splice(0, handSize),
 
-      const newGameState = {
-        playerHands,
-        currentPlayer: 0,
-        discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
-        deck,
-        gameWon: false,
-        gameFinished: false,
-        cardsPlayedThisTurn: 0,
-        turnComplete: false,
-        totalCards,
-        maxCard,
-        descendingStart,
-        totalTurns: 0,
-        gameScore: 0,
-        isKonamiMode: false,
-      };
+      discardPiles: [[], [], [], []], // Two ascending (1), two descending (100)
+      deck,
+      gameWon: false,
+      gameFinished: false,
+      cardsPlayedThisTurn: 0,
+      turnComplete: false,
+      totalCards,
+      maxCard,
+      descendingStart,
+      totalTurns: 0,
+      gameScore: 0,
+      isKonamiMode: false,
+    };
 
-      setGameState(newGameState);
-      saveGameState(newGameState);
-    },
-    [saveGameState],
-  );
+    setGameState(newGameState);
+    saveGameState(newGameState);
+  }, [saveGameState]);
 
   // Initialize game when component mounts
   useEffect(() => {
@@ -203,10 +197,10 @@ const Game = () => {
         setGameState(savedState);
       } else {
         // No saved state found, initialize new game
-        initializeGame(numPlayers);
+        initializeGame();
       }
     }
-  }, [gameId, numPlayers, gameState, loadGameState, initializeGame]);
+  }, [gameId, gameState, loadGameState, initializeGame]);
 
   const buildGameSummary = useCallback(
     (state) => buildGameSummaryItems(state),
@@ -243,7 +237,7 @@ const Game = () => {
     const totalCards =
       typeof gameState.totalCards === "number"
         ? gameState.totalCards
-        : getTotalCardCount(gameState.playerHands?.length || numPlayers);
+        : getTotalCardCount(1);
 
     const title = gameState.gameWon ? "Congratulations!" : "Game Over!";
     const message = gameState.gameWon
@@ -263,13 +257,10 @@ const Game = () => {
         />
       ),
     });
-  }, [gameState, numPlayers, buildGameSummary, openModal, exitFinishedGame]);
+  }, [gameState, buildGameSummary, openModal, exitFinishedGame]);
 
-  const handleCardSelect = (card, playerIndex) => {
+  const handleCardSelect = (card) => {
     if (gameState.gameWon) return;
-
-    // Only allow current player to select cards
-    if (playerIndex !== gameState.currentPlayer) return;
 
     if (selectedCard === card) {
       // Deselect the card
@@ -304,16 +295,13 @@ const Game = () => {
 
     // Play the card
     const newDiscardPiles = [...gameState.discardPiles];
-    const newPlayerHands = [...gameState.playerHands];
+    const newPlayerHand = [...gameState.playerHand];
 
-    // Remove played card from current player's hand
     newDiscardPiles[pileIndex].push(cardValue);
-    const currentHand = [...newPlayerHands[gameState.currentPlayer]];
-    const cardIndex = currentHand.indexOf(cardValue);
+    const cardIndex = newPlayerHand.indexOf(cardValue);
     if (cardIndex > -1) {
-      currentHand.splice(cardIndex, 1);
+      newPlayerHand.splice(cardIndex, 1);
     }
-    newPlayerHands[gameState.currentPlayer] = currentHand;
 
     // Clear selection
     setSelectedCard(null);
@@ -325,11 +313,7 @@ const Game = () => {
     const minCardsRequired = deckEmpty ? 1 : 2;
     const turnComplete = newCardsPlayedThisTurn >= minCardsRequired;
 
-    const gameWonNow = isGameWon(
-      newDiscardPiles,
-      gameState.totalCards,
-      gameState.playerHands.length,
-    );
+    const gameWonNow = isGameWon(newDiscardPiles, gameState.totalCards, 1);
     const pointsEarned = getCardPlayPoints(
       cardValue,
       pile,
@@ -340,7 +324,7 @@ const Game = () => {
 
     const newGameState = {
       ...gameState,
-      playerHands: newPlayerHands,
+      playerHand: newPlayerHand,
       discardPiles: newDiscardPiles,
       cardsPlayedThisTurn: newCardsPlayedThisTurn,
       turnComplete: turnComplete,
@@ -359,12 +343,9 @@ const Game = () => {
   };
 
   const handleHandReorder = (newHand) => {
-    const newPlayerHands = [...gameState.playerHands];
-    newPlayerHands[gameState.currentPlayer] = newHand;
-
     const newGameState = {
       ...gameState,
-      playerHands: newPlayerHands,
+      playerHand: newHand,
     };
 
     setGameState(newGameState);
@@ -373,15 +354,11 @@ const Game = () => {
 
   const updateSortedHand = (order, shouldPersistOrder = false) => {
     const comparator = order === "desc" ? (a, b) => b - a : (a, b) => a - b;
-    const sortedHand = [...gameState.playerHands[gameState.currentPlayer]].sort(
-      comparator,
-    );
-    const newPlayerHands = [...gameState.playerHands];
-    newPlayerHands[gameState.currentPlayer] = sortedHand;
+    const sortedHand = [...gameState.playerHand].sort(comparator);
 
     const newGameState = {
       ...gameState,
-      playerHands: newPlayerHands,
+      playerHand: sortedHand,
     };
 
     setGameState(newGameState);
@@ -408,32 +385,26 @@ const Game = () => {
       return;
     }
 
-    // Refill current player's hand to hand size
-    const handSize = getHandSize(gameState.playerHands.length);
-    const currentHand = [...gameState.playerHands[gameState.currentPlayer]];
+    // Refill hand to hand size
+    const handSize = getHandSize(1);
+    const currentHand = [...gameState.playerHand];
     const cardsNeeded = handSize - currentHand.length;
     const cardsToDraw = Math.min(cardsNeeded, gameState.deck.length);
 
-    const newPlayerHands = [...gameState.playerHands];
+    let updatedHand = currentHand;
     if (cardsToDraw > 0) {
       const newCards = gameState.deck.splice(0, cardsToDraw);
-      let updatedHand = [...currentHand, ...newCards];
+      updatedHand = [...currentHand, ...newCards];
       if (autoSortEnabled) {
         const comparator =
           lastSortOrder === "desc" ? (a, b) => b - a : (a, b) => a - b;
         updatedHand = updatedHand.sort(comparator);
       }
-      newPlayerHands[gameState.currentPlayer] = updatedHand;
     }
-
-    // Move to next player
-    const nextPlayer =
-      (gameState.currentPlayer + 1) % gameState.playerHands.length;
 
     const newGameState = {
       ...gameState,
-      playerHands: newPlayerHands,
-      currentPlayer: nextPlayer,
+      playerHand: updatedHand,
       cardsPlayedThisTurn: 0,
       turnComplete: false,
       totalTurns: (gameState.totalTurns ?? 0) + 1,
@@ -442,7 +413,6 @@ const Game = () => {
     setGameState(newGameState);
     saveGameState(newGameState);
 
-    // Clear any selected card when switching players
     setSelectedCard(null);
     setSelectedPile(null);
   };
@@ -594,70 +564,61 @@ const Game = () => {
 
           <div className="player-actions-container">
             <div className="player-section">
-              {gameState.playerHands.map((hand, index) => (
-                <div
-                  key={index}
-                  className={`player ${
-                    index === gameState.currentPlayer ? "current" : ""
-                  }`}
-                >
-                  <p className="player__instructions hidden--tablet-down">
-                    Drag cards to a pile, or select a card & click “play”
-                  </p>
-                  <p className="player__instructions visible--tablet-down">
-                    Select a card & tap “play” on the intended pile.
-                  </p>
+              <div className="player current">
+                <p className="player__instructions hidden--tablet-down">
+                  Drag cards to a pile, or select a card & click “play”
+                </p>
+                <p className="player__instructions visible--tablet-down">
+                  Select a card & tap “play” on the intended pile.
+                </p>
 
-                  <PlayerHand
-                    hand={hand}
-                    selectedCard={selectedCard}
-                    onCardSelect={(card) => handleCardSelect(card, index)}
-                    onHandReorder={handleHandReorder}
-                    isCurrentPlayer={index === gameState.currentPlayer}
-                    discardPiles={gameState.discardPiles}
-                    allowMultiplesOfTenReverse={!!gameState.isKonamiMode}
-                    disabled={gameState.gameFinished}
+                <PlayerHand
+                  hand={gameState.playerHand}
+                  selectedCard={selectedCard}
+                  onCardSelect={handleCardSelect}
+                  onHandReorder={handleHandReorder}
+                  isCurrentPlayer
+                  discardPiles={gameState.discardPiles}
+                  allowMultiplesOfTenReverse={!!gameState.isKonamiMode}
+                  disabled={gameState.gameFinished}
+                />
+                <div className="sort-controls">
+                  <Toggle
+                    className="auto-sort-toggle"
+                    label="Auto-Sort"
+                    checked={autoSortEnabled}
+                    onChange={handleAutoSortToggle}
                   />
-                  {index === gameState.currentPlayer && (
-                    <div className="sort-controls">
-                      <Toggle
-                        className="auto-sort-toggle"
-                        label="Auto-Sort"
-                        checked={autoSortEnabled}
-                        onChange={handleAutoSortToggle}
+                  <div className="sort-buttons">
+                    <TextButton
+                      onClick={sortHandAscending}
+                      mini
+                      className="sort-hand-btn"
+                    >
+                      <img
+                        className="sort-hand-btn__icon"
+                        src={ThinArrowUp}
+                        alt="Sort Ascending"
                       />
-                      <div className="sort-buttons">
-                        <TextButton
-                          onClick={sortHandAscending}
-                          mini
-                          className="sort-hand-btn"
-                        >
-                          <img
-                            className="sort-hand-btn__icon"
-                            src={ThinArrowUp}
-                            alt="Sort Ascending"
-                          />
-                          Sort Asc
-                          <span className="hidden--tablet-down">ending</span>
-                        </TextButton>
-                        <TextButton
-                          onClick={sortHandDescending}
-                          mini
-                          className="sort-hand-btn"
-                        >
-                          <img
-                            className="sort-hand-btn__icon"
-                            src={ThinArrowDown}
-                            alt="Sort Descending"
-                          />
-                          Sort Desc
-                          <span className="hidden--tablet-down">ending</span>
-                        </TextButton>
-                      </div>
-                    </div>
-                  )}
+                      Sort Asc
+                      <span className="hidden--tablet-down">ending</span>
+                    </TextButton>
+                    <TextButton
+                      onClick={sortHandDescending}
+                      mini
+                      className="sort-hand-btn"
+                    >
+                      <img
+                        className="sort-hand-btn__icon"
+                        src={ThinArrowDown}
+                        alt="Sort Descending"
+                      />
+                      Sort Desc
+                      <span className="hidden--tablet-down">ending</span>
+                    </TextButton>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
 
             <div className="play-card-section">

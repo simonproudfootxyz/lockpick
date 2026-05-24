@@ -5,8 +5,6 @@ import RulesContent from "./RulesContent";
 import Button from "./components/Button";
 import LockpickLogo from "./assets/LockpickLogo.svg";
 
-const DEFAULT_PLAYER_COUNT = 1;
-
 const GameSetup = () => {
   const navigate = useNavigate();
 
@@ -16,14 +14,14 @@ const GameSetup = () => {
 
   const handleStartGame = () => {
     const gameId = generateGameId();
-    navigate(`/game/${gameId}?players=${DEFAULT_PLAYER_COUNT}`);
+    navigate(`/game/${gameId}`);
   };
 
   return (
     <div className="game-setup">
       <div className="setup-container">
         <h1>
-          <img src={LockpickLogo} alt="Multiplayer" />
+          <img src={LockpickLogo} alt="Lockpick" />
         </h1>
 
         <div className="setup-options">
