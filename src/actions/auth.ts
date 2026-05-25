@@ -2,7 +2,6 @@
 
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { signUpSchema } from "@/lib/auth/schemas";
@@ -13,6 +12,14 @@ export type AuthActionResult = {
   error?: string;
   fieldErrors?: Record<string, string[]>;
 };
+
+async function signInWithCredentials(email: string, password: string) {
+  return signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
+}
 
 export async function signUpAction(
   _prev: AuthActionResult,
@@ -58,13 +65,18 @@ export async function signUpAction(
     passwordHash,
   });
 
-  await signIn("credentials", {
-    email: parsed.data.email,
-    password: parsed.data.password,
-    redirect: false,
-  });
+  const result = await signInWithCredentials(
+    parsed.data.email,
+    parsed.data.password,
+  );
+  if (result?.error) {
+    return {
+      ok: false,
+      error: "Account created, but sign-in failed. Please sign in manually.",
+    };
+  }
 
-  redirect("/");
+  return { ok: true };
 }
 
 export async function signInAction(
@@ -74,12 +86,8 @@ export async function signInAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  try {
-    await signIn("credentials", { email, password, redirectTo: "/" });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-      throw error;
-    }
+  const result = await signInWithCredentials(email, password);
+  if (result?.error) {
     return { ok: false, error: "Invalid email or password." };
   }
 

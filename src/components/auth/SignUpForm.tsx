@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpAction, type AuthActionResult } from "@/actions/auth";
@@ -12,6 +13,7 @@ import "./AuthForm.css";
 const initialState: AuthActionResult = { ok: false };
 
 export default function SignUpForm() {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(signUpAction, initialState);
   const {
     register,
@@ -21,12 +23,23 @@ export default function SignUpForm() {
     resolver: zodResolver(signUpSchema),
   });
 
+  useEffect(() => {
+    if (state.ok) {
+      router.push("/");
+      router.refresh();
+    }
+  }, [state.ok, router]);
+
+  const onSubmit = handleSubmit((data) => {
+    const formData = new FormData();
+    formData.set("username", data.username);
+    formData.set("email", data.email);
+    formData.set("password", data.password);
+    formAction(formData);
+  });
+
   return (
-    <form
-      className="auth-form"
-      action={formAction}
-      onSubmit={handleSubmit(() => {})}
-    >
+    <form className="auth-form" onSubmit={onSubmit}>
       <label>
         Username
         <input type="text" autoComplete="username" {...register("username")} />
