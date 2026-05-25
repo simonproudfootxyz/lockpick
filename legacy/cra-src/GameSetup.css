@@ -41,60 +41,6 @@
   align-items: center;
 }
 
-.setup-auth-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 0.5rem;
-}
-
-.setup-auth-links a {
-  color: var(--white);
-  text-decoration: underline;
-}
-
-.leaderboard-subtitle {
-  color: var(--white);
-  margin-bottom: 1.5rem;
-}
-
-.leaderboard-table-wrap {
-  overflow-x: auto;
-  margin-bottom: 1.5rem;
-}
-
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.leaderboard-table th,
-.leaderboard-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  color: #2d3748;
-}
-
-.leaderboard-table thead {
-  background: #edf2f7;
-}
-
-.leaderboard-table tbody tr:nth-child(even) {
-  background: #f7fafc;
-}
-
-.account-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  color: var(--white);
-  margin-bottom: 1.5rem;
-}
-
 .player-selection {
   display: flex;
   flex-direction: column;

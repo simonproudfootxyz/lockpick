@@ -1,0 +1,39 @@
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.auth-form input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.auth-form .field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
+
+.auth-form .form-error {
+  color: #b00020;
+  text-align: center;
+}
+
+.auth-form .auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}

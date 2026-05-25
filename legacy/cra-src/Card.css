@@ -1,0 +1,95 @@
+.card {
+  width: 60px;
+  height: 100px;
+  border: 1px solid var(--grey-100);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: var(--grey-950);
+  z-index: 1;
+
+  &.selected,
+  &:hover,
+  &:focus {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 60px;
+  }
+}
+
+.card.disabled {
+  cursor: not-allowed;
+}
+
+.card.disabled:hover {
+  transform: none;
+}
+
+.card-value {
+  font-size: 2.75rem;
+  font-weight: 400;
+  font-family: "League Gothic", sans-serif;
+  color: var(--white);
+}
+
+/* Selected card */
+.card.selected {
+  background: var(--white);
+}
+
+.card.selected .card-value {
+  color: var(--grey-950);
+}
+
+/* Cards in discard piles */
+.card.card--discard {
+  width: 120px;
+  height: 200px;
+  background: var(--grey-900);
+  border: none;
+  border-radius: 10px;
+
+  @media (max-width: 980px) {
+    width: 90px;
+    height: 150px;
+  }
+
+  @media (max-width: 768px) {
+    width: 70px;
+    height: 116px;
+  }
+}
+
+.card.card--discard .card-value {
+  font-size: 5rem;
+
+  @media (max-width: 768px) {
+    font-size: 3rem;
+  }
+}
+
+/* Cards on top of discard piles */
+.card.card--discard.card--last {
+  background: var(--grey-100);
+  border: 1px solid var(--grey-600);
+}
+
+.card.card--discard.card--last .card-value {
+  color: var(--grey-950);
+}
+
+@media (max-width: 768px) {
+  .card-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 680px) {
+}

@@ -1,0 +1,29 @@
+.confirm-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  color: var(--white);
+}
+
+.confirm-modal-content__message {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-modal-content__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .confirm-modal-content__actions {
+    flex-direction: column;
+  }
+
+  .confirm-modal-content__actions button {
+    width: 100%;
+  }
+}

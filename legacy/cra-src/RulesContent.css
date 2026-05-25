@@ -1,0 +1,97 @@
+.rules-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+}
+
+.rules-content h3:first-child {
+  margin-top: 0;
+}
+
+.rules-content h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.rules-content p {
+  & + p {
+    margin-top: 1rem;
+  }
+}
+
+.rules-content ul {
+  padding-left: 1rem;
+  text-align: left;
+}
+
+.rules-content li {
+  & + li {
+    margin-top: 0.5rem;
+  }
+}
+
+.rules-content strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.rules-content {
+  & .rules-section {
+    padding: 1rem;
+
+    @media (max-width: 640px) {
+      padding: 0.5rem;
+    }
+  }
+
+  .special-rules {
+    border: 1px solid var(--primary-color);
+    border-radius: 0.4rem;
+    background: var(--grey-950);
+    margin: 1rem 0;
+  }
+}
+
+.rules-content .hand-sizes {
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: var(--modal-background);
+  border-radius: 6px;
+}
+
+.rules-content .hand-sizes ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.rules-content .hand-sizes li {
+  margin-bottom: 6px;
+}
+
+.rules-content .gameplay-rules {
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.rules-content .rules-content .communication-rules {
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.rules-content .endgame-rules {
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .rules-content {
+    font-size: 0.95rem;
+  }
+
+  .rules-content h3 {
+    font-size: 1.1rem;
+  }
+}

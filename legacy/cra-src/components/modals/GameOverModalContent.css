@@ -54,32 +54,6 @@
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-  align-items: center;
-}
-
-.game-over-actions .leaderboard-link {
-  color: var(--white);
-  text-decoration: underline;
-  font-weight: 600;
-}
-
-.guest-leaderboard-form {
-  text-align: left;
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.guest-leaderboard-form input {
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.guest-leaderboard-form .error {
-  color: #fed7d7;
-  margin: 0;
 }
 
 @media (max-width: 480px) {

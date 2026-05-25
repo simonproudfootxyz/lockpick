@@ -1,0 +1,162 @@
+"use client";
+
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import "./Button.css";
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  mini?: boolean;
+  fullWidth?: boolean;
+  children?: ReactNode;
+};
+
+const Button = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <button
+      type={type}
+      className={`button ${mini ? "button--mini " : ""} ${
+        fullWidth ? "button--full-width" : ""
+      } ${className}`}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const InvertButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  mini = false,
+  children,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--invert ${mini ? "button--mini " : ""} ${
+        fullWidth ? "button--full-width" : ""
+      } ${className}`}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const PrimaryButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--primary ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const PrimaryInvertButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--primary-invert ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const TextButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--text ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export const TextContrastButton = ({
+  className = "",
+  type = "button",
+  onClick,
+  title,
+  disabled = false,
+  children,
+  mini = false,
+  fullWidth = false,
+}: ButtonProps) => {
+  return (
+    <Button
+      type={type}
+      className={`button button--text-contrast ${className}`}
+      mini={mini}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
+    >
+      {children}
+    </Button>
+  );
+};
+
+export default Button;

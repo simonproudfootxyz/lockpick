@@ -1,0 +1,171 @@
+.button {
+  background: var(--grey-300);
+  font-size: 0.75rem;
+  color: var(--grey-950);
+  font-family: var(--jost);
+  font-weight: bold;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  height: 44px;
+  transition: all 0.2s ease;
+
+  /* INTERACTIVE STATES */
+
+  /* HOVER & FOCUS */
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: var(--grey-400);
+    cursor: pointer;
+  }
+
+  &:not(.disabled, [disabled]):active {
+    background: var(--grey-450);
+  }
+
+  /* DISABLED BUTTON */
+  &.disabled,
+  &[disabled] {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+}
+
+/* BUTTON TYPES */
+
+/* MINI BUTTON */
+.button--mini {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  height: auto;
+}
+
+/* INVERT BUTTON */
+.button--invert {
+  background: none;
+  color: var(--grey-300);
+  border: 1px solid var(--grey-300);
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    color: var(--grey-450);
+    border-color: var(--grey-450);
+  }
+
+  &:not(.disabled, [disabled]):active {
+    background: none;
+    color: var(--grey-450);
+    border-color: var(--grey-450);
+  }
+
+  &.disabled,
+  &[disabled] {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+}
+
+/* PRIMARY BUTTON */
+.button--primary {
+  background: var(--primary-color);
+  color: var(--grey-950);
+  border: none;
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: var(--primary-color--hover);
+    color: var(--grey-950);
+  }
+
+  &:not(.disabled, [disabled]):active {
+    background: var(--primary-color--pressed);
+  }
+
+  &.disabled,
+  &[disabled] {
+    background: var(--primary-color);
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* PRIMARY INVERT BUTTON */
+.button--primary-invert {
+  background: none;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    border-color: var(--primary-color--hover);
+    color: var(--primary-color--hover);
+  }
+
+  &:not(.disabled, [disabled]):active {
+    border-color: var(--primary-color--pressed);
+    color: var(--primary-color--pressed);
+    background: none;
+  }
+
+  &.disabled,
+  &[disabled] {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* TEXT BUTTON */
+.button--text {
+  background: none;
+  color: var(--grey-550);
+  border: none;
+  padding: 0;
+  height: auto;
+  font-weight: normal;
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    border: none;
+    color: var(--white);
+    text-decoration: underline;
+  }
+
+  &:not(.disabled, [disabled]):active {
+    border-color: var(--primary-color--pressed);
+    color: var(--primary-color--pressed);
+    background: none;
+  }
+}
+
+/* TEXT BUTTON CONTRAST */
+.button--text-contrast {
+  background: none;
+  color: var(--white);
+  border: none;
+  padding: 0;
+  height: auto;
+  font-weight: normal;
+
+  &:not(.disabled, [disabled]):hover,
+  &:not(.disabled, [disabled]):focus {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    text-decoration: underline;
+  }
+
+  &:not(.disabled, [disabled]):active {
+    border-color: var(--primary-color--pressed);
+    color: var(--primary-color--pressed);
+    background: none;
+  }
+}
+
+/* BUTTON MODDIFIERS */
+.button--full-width {
+  width: 100%;
+}

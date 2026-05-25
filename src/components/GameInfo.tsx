@@ -1,0 +1,76 @@
+"use client";
+
+import { getTotalCardCount } from "@/lib/game/gameLogic";
+import type { GameState } from "@/lib/game/gameTypes";
+import { InvertButton } from "@/components/Button";
+import { useModal } from "@/context/ModalContext";
+import RulesModalContent from "@/components/modals/RulesModalContent";
+import "./GameInfo.css";
+
+type GameInfoProps = {
+  gameState: GameState;
+};
+
+const GameInfo = ({ gameState }: GameInfoProps) => {
+  const { openModal } = useModal();
+
+  const totalCardsPlayed = gameState.discardPiles.reduce(
+    (sum, pile) => sum + pile.length,
+    0,
+  );
+  const totalCardsTarget = gameState.totalCards || getTotalCardCount(1);
+  const currentHandSize = gameState.playerHand?.length || 0;
+  const totalTurns = gameState.totalTurns ?? 0;
+  const gameScore = gameState.gameScore ?? 0;
+
+  const handleOpenRules = () => {
+    openModal({
+      title: "Lockpick Game Rules",
+      size: "md",
+      content: <RulesModalContent />,
+    });
+  };
+
+  return (
+    <div className="game-info">
+      <p className="game-info__item">
+        Total turns:{" "}
+        <span className="game-info__value" data-testid="game-info-turns">
+          {totalTurns}
+        </span>
+      </p>
+      <p className="game-info__item">
+        Score:{" "}
+        <span className="game-info__value" data-testid="game-info-score">
+          {gameScore}
+        </span>
+      </p>
+      <p className="game-info__item">
+        Cards in deck:{" "}
+        <span className="game-info__value">{gameState.deck.length}</span>
+      </p>
+      <p className="game-info__item">
+        Current player hand:{" "}
+        <span className="game-info__value">{currentHandSize} cards</span>
+      </p>
+      <p className="game-info__item">
+        Total cards played:{" "}
+        <span className="game-info__value">
+          {totalCardsPlayed}/{totalCardsTarget}
+        </span>
+      </p>
+      <p className="game-info__item">
+        <span className="game-info__value--yellow">
+          Cards played this turn: {gameState.cardsPlayedThisTurn}
+        </span>
+      </p>
+      <p className="game-info__actions">
+        <InvertButton mini onClick={handleOpenRules}>
+          Read the rules
+        </InvertButton>
+      </p>
+    </div>
+  );
+};
+
+export default GameInfo;
