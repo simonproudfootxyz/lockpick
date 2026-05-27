@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Jost, League_Gothic } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import { ModalProvider } from "@/context/ModalContext";
 import QueryProvider from "@/providers/QueryProvider";
 import "./globals.css";
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`App ${jost.variable} ${leagueGothic.variable}`}>
+        <NextTopLoader color="#ffff4f" height={3} showSpinner={false} />
         <QueryProvider>
           <ModalProvider>{children}</ModalProvider>
         </QueryProvider>

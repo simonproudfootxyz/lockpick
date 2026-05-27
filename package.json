@@ -22,6 +22,7 @@
     "drizzle-orm": "^0.45.1",
     "next": "15.5.18",
     "next-auth": "5.0.0-beta.30",
+    "nextjs-toploader": "^3.9.17",
     "react": "19.1.7",
     "react-dom": "19.1.7",
     "react-hook-form": "^7.68.0",

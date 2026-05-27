@@ -1,0 +1,54 @@
+.game-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.game-loading__panel {
+  background: var(--modal-background);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.game-loading__logo {
+  width: min(240px, 70vw);
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.game-loading__message {
+  color: var(--white);
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+}
+
+.game-loading__bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--grey-850);
+  overflow: hidden;
+}
+
+.game-loading__bar-fill {
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--primary-color);
+  animation: game-loading-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes game-loading-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
+}
