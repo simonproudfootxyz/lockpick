@@ -37,14 +37,6 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
             the deck is empty, in which case you only need to play one card)
           </li>
           <li>
-            Tap{" "}
-            <code>
-              X Cards{" "}
-              <img src={MagnifyingGlass.src} alt="Magnifying Glass" />
-            </code>{" "}
-            on any pile to see its full history before you play
-          </li>
-          <li>
             <strong>Ascending piles (1 ↑):</strong> Each card must be higher
             than the top card. Smaller jumps leave more room for future plays
           </li>
@@ -62,9 +54,9 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
       <section className="rules-section special-rules">
         <h3>Backtrack (±10)</h3>
         <p>
-          Normally you follow each pile&apos;s direction, but you can play a card
-          that is <code>exactly 10 away in the wrong direction</code>. This is
-          called a backtrack, and it&apos;s often what keeps a game alive.
+          Normally you follow each pile&apos;s direction, but you can play a
+          card that is <code>exactly 10 away in the wrong direction</code>. This
+          is called a backtrack, and it&apos;s often what keeps a game alive.
         </p>
         <ul>
           <li>
@@ -88,8 +80,8 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
         </ul>
         <p>
           You can backtrack multiple times in a single turn, on the same pile or
-          different ones. Save them for when a pile is getting tight — that&apos;s
-          where they matter most.
+          different ones. Save them for when a pile is getting tight,
+          that&apos;s where they matter most.
         </p>
       </section>
 
@@ -103,13 +95,20 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
           </li>
           <li>Play cards one at a time onto any legal pile.</li>
           <li>
+            Tap{" "}
+            <code>
+              X Cards <img src={MagnifyingGlass.src} alt="Magnifying Glass" />
+            </code>{" "}
+            on any pile to see its full history before you play
+          </li>
+          <li>
             When you&apos;ve met the minimum, press{" "}
             <code>End Turn &amp; Draw Cards</code> to refill your hand from the
             deck (if any cards remain)
           </li>
           <li>
-            If you have no legal moves, press <code>I Can&apos;t Play A Card</code>{" "}
-            to end the game
+            If you have no legal moves, press{" "}
+            <code>I Can&apos;t Play A Card</code> to end the game
           </li>
         </ul>
       </section>
@@ -127,7 +126,8 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
           </li>
           <li>
             Once the deck runs out, keep playing without drawing. The minimum
-            stays at one card per turn until the deck is cleared or you&apos;re stuck
+            stays at one card per turn until the deck is cleared or you&apos;re
+            stuck
           </li>
         </ul>
       </section>
