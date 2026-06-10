@@ -115,7 +115,7 @@ export const calculateFinalScore = ({
 }) => {
   const gameCompleteBonus = gameWon ? 300 : 0;
   const deckBonus = deck.length === 0 ? 100 : 0;
-  const bigPlayerBonus = totalTurns < 25 ? 150 : 0;
+  const bigPlayerBonus = gameWon && totalTurns < 25 ? 150 : 0;
   return (
     gameScore +
     gameCompleteBonus +
