@@ -89,7 +89,7 @@ export const isBacktrackPlay = (
   isKonamiMode = false,
 ) => {
   if (!pile || pile.length === 0 || isKonamiMode) return false;
-  const topCard = pile[pile.length - 2];
+  const topCard = pile[pile.length - 1];
   if (topCard === undefined) return false;
   if (pileType === "ascending") return card === topCard - 10;
   return card === topCard + 10;
@@ -105,12 +105,24 @@ export const getCardPlayPoints = (
     ? BACKTRACK_PLAY_POINTS
     : CARD_PLAY_POINTS;
 
-export const calculateFinalScore = (
+export const calculateFinalScore = ({
   gameScore = 0,
   totalCards = 98,
   totalCardsPlayed = 0,
   totalTurns = 0,
-) => gameScore * (totalCards + totalCardsPlayed - totalTurns);
+  gameWon = false,
+  deck = [],
+}) => {
+  const gameCompleteBonus = gameWon ? 300 : 0;
+  const deckBonus = deck.length === 0 ? 100 : 0;
+  const bigPlayerBonus = totalTurns < 25 ? 150 : 0;
+  return (
+    gameScore +
+    gameCompleteBonus +
+    deckBonus +
+    bigPlayerBonus * (totalCards + totalCardsPlayed - totalTurns)
+  );
+};
 
 export const buildGameSummaryItems = (state: GameState | null) => {
   if (!state) return [];
@@ -122,12 +134,7 @@ export const buildGameSummaryItems = (state: GameState | null) => {
   const totalTurns = state.totalTurns ?? 0;
   const totalCards = state.totalCards ?? 98;
   const gameScore = state.gameScore ?? 0;
-  const finalScore = calculateFinalScore(
-    gameScore,
-    totalCards,
-    totalCardsPlayed,
-    totalTurns,
-  );
+  const finalScore = calculateFinalScore(state);
 
   return [
     { label: "Total cards played", value: totalCardsPlayed },
