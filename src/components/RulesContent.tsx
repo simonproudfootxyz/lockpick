@@ -16,11 +16,14 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
       <section className="rules-section game-objective">
         <h3>How to Play</h3>
         <p>
-          Lockpick is a solo card game — think solitaire with numbers. Your goal
-          is to play every card from the deck onto four shared piles: two count
-          up from 1, and two count down from 100. The deck contains every number
-          from <strong>2 to 99</strong> (98 cards total) Play at least two cards
-          per turn, and try to empty the whole deck before you run out of legal
+          Lockpick is a solo card game that uses a combination of wit and a
+          healthy pinch of luck — think{" "}
+          <strong>solitaire, but with numbers</strong>. Your goal is to play
+          every card from the deck onto four shared piles: two count{" "}
+          <strong>up from 1</strong>, and two count{" "}
+          <strong>down from 100</strong>. The deck contains every number from{" "}
+          <strong>2 to 99</strong> (98 cards total). Play at least two cards per
+          turn, and try to empty the whole deck before you run out of legal
           moves.
         </p>
       </section>
@@ -38,11 +41,13 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
           </li>
           <li>
             <strong>Ascending piles (1 ↑):</strong> Each card must be higher
-            than the top card. Smaller jumps leave more room for future plays
+            than the top card (e.g. 3, 8, 12, 13, 17, 21, etc.). Smaller jumps
+            leave more room for future plays
           </li>
           <li>
             <strong>Descending piles (100 ↓):</strong> Each card must be lower
-            than the top card
+            than the top card (e.g. 98, 93, 89, 88, 84, 79, etc.). Smaller jumps
+            leave more room for future plays
           </li>
           <li>
             You can play on any pile in any order during your turn, as long as
