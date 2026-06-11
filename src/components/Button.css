@@ -9,6 +9,10 @@
   height: 44px;
   transition: all 0.2s ease;
 
+  &.link {
+    text-decoration: none;
+  }
+
   /* INTERACTIVE STATES */
 
   /* HOVER & FOCUS */
