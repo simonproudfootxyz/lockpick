@@ -1,5 +1,6 @@
 import MagnifyingGlass from "@/assets/MagnifyingGlass.svg";
 import "../RulesContent.css";
+import Link, { TextLink } from "./Link";
 
 const combineClassNames = (...classNames: (string | false | undefined)[]) =>
   classNames.filter(Boolean).join(" ");
@@ -25,6 +26,14 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
           <strong>2 to 99</strong> (98 cards total). Play at least two cards per
           turn, and try to empty the whole deck before you run out of legal
           moves.
+        </p>
+        <p>
+          Do well enough, and you might just make it onto our{" "}
+          <code>
+            <TextLink href="/leaderboard">
+              <strong>Leaderboard</strong>
+            </TextLink>
+          </code>
         </p>
       </section>
 
