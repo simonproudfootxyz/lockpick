@@ -17,10 +17,10 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
       <section className="rules-section game-objective">
         <h3>How to Play</h3>
         <p>
-          Lockpick is a solo card game that uses a combination of wit and a
-          healthy pinch of luck — think{" "}
-          <strong>solitaire, but with numbers</strong>. Your goal is to play
-          every card from the deck onto four shared piles: two count{" "}
+          Lockpick is a solo card game that uses a combination of strategy, wit,
+          and a healthy pinch of luck —{" "}
+          <strong>think solitaire, but with numbers</strong>. Your goal is to
+          play every card from the deck onto four shared piles: two count{" "}
           <strong>up from 1</strong>, and two count{" "}
           <strong>down from 100</strong>. The deck contains every number from{" "}
           <strong>2 to 99</strong> (98 cards total). Play at least two cards per
@@ -34,6 +34,7 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
               <strong>Leaderboard</strong>
             </TextLink>
           </code>
+          .
         </p>
       </section>
 
@@ -96,6 +97,11 @@ const RulesContent = ({ className = "" }: RulesContentProps) => {
           You can backtrack multiple times in a single turn, on the same pile or
           different ones. Save them for when a pile is getting tight,
           that&apos;s where they matter most.
+        </p>
+        <p>
+          There may even be a <strong>secret cheat code</strong> you can enter
+          to make it easier to backtrack. If you find it, let us know! If you
+          don't, we still love you anyways.
         </p>
       </section>
 
