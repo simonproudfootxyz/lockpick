@@ -275,6 +275,39 @@
   }
 }
 
+.piles-row.backtrack-played {
+  animation: backtrack-played-flash 1280ms ease-out;
+}
+
+@keyframes backtrack-played-flash {
+  0% {
+    border: 2px dashed var(--grey-800);
+  }
+
+  10% {
+    border: 2px dashed var(--primary-color);
+  }
+  25% {
+    border: 2px dashed var(--grey-800);
+  }
+  40% {
+    border: 2px dashed var(--primary-color);
+  }
+  55% {
+    border: 2px dashed var(--grey-800);
+  }
+
+  70% {
+    border: 2px dashed var(--primary-color);
+  }
+  85% {
+    border: 2px dashed var(--grey-800);
+  }
+  100% {
+    border: 2px dashed var(--grey-800);
+  }
+}
+
 .players {
   display: flex;
   flex-direction: column;

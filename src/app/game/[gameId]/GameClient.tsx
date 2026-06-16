@@ -6,6 +6,7 @@ import {
   canPlayCard,
   getTotalCardCount,
   buildGameSummaryItems,
+  isBacktrackPlay,
 } from "@/lib/game/gameLogic";
 import { gameReducer } from "@/lib/game/gameReducer";
 import type { FinishGameResult, GameState } from "@/lib/game/gameTypes";
@@ -90,6 +91,10 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
   const [autoSortEnabled, setAutoSortEnabled] = useState(false);
   const [lastSortOrder, setLastSortOrder] = useState<"asc" | "desc">("asc");
   const [showKonamiToast, setShowKonamiToast] = useState(false);
+  const [backtrackPlayedRows, setBacktrackPlayedRows] = useState([
+    false,
+    false,
+  ]);
   const konamiToastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -248,6 +253,18 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       return;
     }
 
+    if (isBacktrackPlay(cardValue, pile, pileType, gameState.isKonamiMode)) {
+      const rowIndex = pileIndex < 2 ? 0 : 1;
+      setBacktrackPlayedRows((rows) =>
+        rows.map((isPlayed, index) => (index === rowIndex ? false : isPlayed)),
+      );
+      window.requestAnimationFrame(() => {
+        setBacktrackPlayedRows((rows) =>
+          rows.map((isPlayed, index) => (index === rowIndex ? true : isPlayed)),
+        );
+      });
+    }
+
     const nextState = gameReducer(gameState, {
       type: "PLAY_CARD",
       card: cardValue,
@@ -367,7 +384,12 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
                 <img src={BlockArrowUp.src} alt="Ascending Pile" />
                 Ascending
               </h3>
-              <div className="piles-row">
+              <div
+                className={`piles-row ${backtrackPlayedRows[0] ? "backtrack-played" : ""}`}
+                onAnimationEnd={() =>
+                  setBacktrackPlayedRows((rows) => [false, rows[1]])
+                }
+              >
                 {[0, 1].map((index) => (
                   <DiscardPile
                     key={index}
@@ -393,7 +415,12 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
                 <img src={BlockArrowDown.src} alt="Descending Pile" />
                 Descending
               </h3>
-              <div className="piles-row">
+              <div
+                className={`piles-row ${backtrackPlayedRows[1] ? "backtrack-played" : ""}`}
+                onAnimationEnd={() =>
+                  setBacktrackPlayedRows((rows) => [rows[0], false])
+                }
+              >
                 {[2, 3].map((index) => (
                   <DiscardPile
                     key={index}
