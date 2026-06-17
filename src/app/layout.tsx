@@ -18,9 +18,38 @@ const leagueGothic = League_Gothic({
   display: "swap",
 });
 
+const fallbackMetadataBase = "http://localhost:3000";
+const configuredMetadataBase =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  process.env.AUTH_URL ??
+  fallbackMetadataBase;
+const metadataBase = (() => {
+  try {
+    return new URL(configuredMetadataBase);
+  } catch {
+    return new URL(fallbackMetadataBase);
+  }
+})();
+
 export const metadata: Metadata = {
+  metadataBase,
   title: "Lockpick",
   description: "Lockpick card game",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "Lockpick",
+    description: "Lockpick card game",
+    siteName: "Lockpick",
+  },
+  twitter: {
+    card: "summary",
+    title: "Lockpick",
+    description: "Lockpick card game",
+  },
 };
 
 export default function RootLayout({

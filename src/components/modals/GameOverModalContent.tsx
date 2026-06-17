@@ -1,9 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { MouseEvent } from "react";
 import { startGame } from "@/actions/game";
-import Button, { PrimaryInvertButton } from "@/components/Button";
+import Button, { PrimaryInvertButton, TextButton } from "@/components/Button";
+import { buildCopyPayloads, buildShareIntentUrls } from "@/lib/share/shareLinks";
 import "./GameOverModalContent.css";
 import { PrimaryLink } from "../Link";
 
@@ -15,6 +16,9 @@ type SummaryItem = {
 type GameOverModalContentProps = {
   message?: ReactNode;
   summaryItems?: SummaryItem[];
+  shareUrl?: string;
+  shareText?: string;
+  shareTitle?: string;
   actionLabel?: string;
   onAction?: () => void;
   onLeaderboardAction?: () => void;
@@ -26,6 +30,9 @@ type GameOverModalContentProps = {
 const GameOverModalContent = ({
   message,
   summaryItems = [],
+  shareUrl,
+  shareText,
+  shareTitle,
   actionLabel = "Back to Home",
   onAction,
   onLeaderboardAction,
@@ -33,6 +40,46 @@ const GameOverModalContent = ({
   showLeaderboardLink = false,
   guestNameForm,
 }: GameOverModalContentProps) => {
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
+  const hasShareContent =
+    typeof shareUrl === "string" &&
+    shareUrl.length > 0 &&
+    typeof shareText === "string" &&
+    shareText.length > 0;
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const showCopyFeedback = (message: string) => {
+    setCopyFeedback(message);
+    if (feedbackTimeoutRef.current !== null) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = window.setTimeout(() => {
+      setCopyFeedback(null);
+      feedbackTimeoutRef.current = null;
+    }, 2000);
+  };
+
+  const openShareUrl = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleCopy = async (value: string, successMessage: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showCopyFeedback(successMessage);
+    } catch {
+      showCopyFeedback("Copy failed. Please try again.");
+    }
+  };
+
   const handleAction = () => {
     if (onAction) {
       onAction();
@@ -50,6 +97,28 @@ const GameOverModalContent = ({
     if (close) {
       close();
     }
+  };
+
+  const handleShareClick = (platform: "x" | "bluesky" | "facebook" | "reddit") => {
+    if (!hasShareContent || !shareText) return;
+    const intentUrls = buildShareIntentUrls({
+      title: shareTitle ?? "Lockpick Challenge",
+      text: shareText,
+      url: shareUrl,
+    });
+    openShareUrl(intentUrls[platform]);
+  };
+
+  const handleCopyLink = () => {
+    if (!hasShareContent) return;
+    const payloads = buildCopyPayloads({ text: shareText, url: shareUrl });
+    void handleCopy(payloads.link, "Link copied!");
+  };
+
+  const handleCopyText = () => {
+    if (!hasShareContent) return;
+    const payloads = buildCopyPayloads({ text: shareText, url: shareUrl });
+    void handleCopy(payloads.text, "Share text copied!");
   };
 
   return (
@@ -74,6 +143,36 @@ const GameOverModalContent = ({
         </div>
       )}
       {guestNameForm}
+      {hasShareContent && (
+        <div className="game-over-share" aria-live="polite">
+          <h3>Share your result</h3>
+          <div className="game-over-share__buttons">
+            <TextButton mini onClick={() => handleShareClick("x")}>
+              Share on X
+            </TextButton>
+            <TextButton mini onClick={() => handleShareClick("bluesky")}>
+              Share on Bluesky
+            </TextButton>
+            <TextButton mini onClick={() => handleShareClick("facebook")}>
+              Share on Facebook
+            </TextButton>
+            <TextButton mini onClick={() => handleShareClick("reddit")}>
+              Share on Reddit
+            </TextButton>
+            <TextButton mini onClick={handleCopyLink}>
+              Copy Link
+            </TextButton>
+            <TextButton mini onClick={handleCopyText}>
+              Copy Text
+            </TextButton>
+          </div>
+          {copyFeedback && (
+            <p className="game-over-share__feedback" role="status">
+              {copyFeedback}
+            </p>
+          )}
+        </div>
+      )}
       <div className="game-over-actions">
         {showLeaderboardLink && (
           <PrimaryLink href="/leaderboard" onClick={handleLeaderboardClick}>

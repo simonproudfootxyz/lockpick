@@ -80,7 +80,33 @@
   margin: 0;
 }
 
+.game-over-share {
+  margin: 1rem 0 1.25rem;
+}
+
+.game-over-share__buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.game-over-share__buttons .button {
+  min-width: 8.75rem;
+}
+
+.game-over-share__feedback {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #d1fae5;
+}
+
 @media (max-width: 480px) {
+  .game-over-share__buttons .button {
+    width: 100%;
+  }
+
   .game-over-actions {
     flex-direction: column;
   }

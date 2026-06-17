@@ -7,6 +7,7 @@ import {
   getTotalCardCount,
   buildGameSummaryItems,
   isBacktrackPlay,
+  calculateFinalScore,
 } from "@/lib/game/gameLogic";
 import { gameReducer } from "@/lib/game/gameReducer";
 import type { FinishGameResult, GameState } from "@/lib/game/gameTypes";
@@ -35,6 +36,11 @@ import {
   saveKonamiMode,
   submitGuestLeaderboardName,
 } from "@/actions/game";
+import {
+  buildShareText,
+  buildShareTitle,
+  getCanonicalShareUrl,
+} from "@/lib/share/shareLinks";
 
 type GameClientProps = {
   gameId: string;
@@ -184,38 +190,66 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       const message = gameState.gameWon
         ? `Congratulations, you won! All ${totalCards} cards have been played! Great job!`
         : "No more moves are available. Start a new game to try again!";
+      const totalCardsPlayed = gameState.discardPiles.reduce(
+        (sum, pile) => sum + pile.length,
+        0,
+      );
+      const finalScore = calculateFinalScore({
+        ...gameState,
+        totalCardsPlayed,
+      });
+      const shareUrl = getCanonicalShareUrl({
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+        fallbackOrigin:
+          typeof window !== "undefined" ? window.location.origin : undefined,
+        path: "/",
+      });
+      const shareTitle = buildShareTitle();
 
       const renderContent =
         (finishResult: FinishGameResult) =>
-        ({ close }: { close?: () => void }) => (
-          <GameOverModalContent
-            message={message}
-            summaryItems={buildGameSummaryItems(gameState)}
-            actionLabel="Back to Home"
-            close={close}
-            onAction={exitFinishedGame}
-            onLeaderboardAction={viewLeaderboardFromGameOver}
-            showLeaderboardLink={
-              finishResult.qualified && !finishResult.needsDisplayName
-            }
-            guestNameForm={
-              finishResult.needsDisplayName ? (
-                <GuestLeaderboardForm
-                  gameId={gameId}
-                  onComplete={(guestResult) => {
-                    finishResultRef.current = guestResult;
-                    openModal({
-                      title,
-                      size: "sm",
-                      onClose: resetGameOverModalState,
-                      content: renderContent(guestResult),
-                    });
-                  }}
-                />
-              ) : undefined
-            }
-          />
-        );
+        ({ close }: { close?: () => void }) => {
+          const shareText = buildShareText({
+            gameWon: gameState.gameWon,
+            finalScore,
+            totalTurns: gameState.totalTurns,
+            totalCardsPlayed,
+            rank: finishResult.rank,
+          });
+
+          return (
+            <GameOverModalContent
+              message={message}
+              summaryItems={buildGameSummaryItems(gameState)}
+              shareUrl={shareUrl}
+              shareText={shareText}
+              shareTitle={shareTitle}
+              actionLabel="Back to Home"
+              close={close}
+              onAction={exitFinishedGame}
+              onLeaderboardAction={viewLeaderboardFromGameOver}
+              showLeaderboardLink={
+                finishResult.qualified && !finishResult.needsDisplayName
+              }
+              guestNameForm={
+                finishResult.needsDisplayName ? (
+                  <GuestLeaderboardForm
+                    gameId={gameId}
+                    onComplete={(guestResult) => {
+                      finishResultRef.current = guestResult;
+                      openModal({
+                        title,
+                        size: "sm",
+                        onClose: resetGameOverModalState,
+                        content: renderContent(guestResult),
+                      });
+                    }}
+                  />
+                ) : undefined
+              }
+            />
+          );
+        };
 
       openModal({
         title,
