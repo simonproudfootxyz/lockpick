@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { MouseEvent } from "react";
 import { startGame } from "@/actions/game";
 import Button, { PrimaryInvertButton, TextButton } from "@/components/Button";
-import { buildCopyPayloads, buildShareIntentUrls } from "@/lib/share/shareLinks";
+import {
+  buildCopyPayloads,
+  buildShareIntentUrls,
+} from "@/lib/share/shareLinks";
 import "./GameOverModalContent.css";
 import { PrimaryLink } from "../Link";
 
@@ -99,7 +102,9 @@ const GameOverModalContent = ({
     }
   };
 
-  const handleShareClick = (platform: "x" | "bluesky" | "facebook" | "reddit") => {
+  const handleShareClick = (
+    platform: "x" | "bluesky" | "facebook" | "reddit",
+  ) => {
     if (!hasShareContent || !shareText) return;
     const intentUrls = buildShareIntentUrls({
       title: shareTitle ?? "Lockpick Challenge",
@@ -126,7 +131,9 @@ const GameOverModalContent = ({
       {message && <p className="game-over-content__message">{message}</p>}
       <div className="game-over-content__actions">
         <form action={startGame}>
-          <PrimaryInvertButton type="submit">Start New Game</PrimaryInvertButton>
+          <PrimaryInvertButton type="submit">
+            Start New Game
+          </PrimaryInvertButton>
         </form>
       </div>
       {Array.isArray(summaryItems) && summaryItems.length > 0 && (
@@ -143,6 +150,13 @@ const GameOverModalContent = ({
         </div>
       )}
       {guestNameForm}
+      {showLeaderboardLink && (
+        <div className="game-over-actions">
+          <PrimaryLink href="/leaderboard" onClick={handleLeaderboardClick}>
+            View Leaderboard
+          </PrimaryLink>
+        </div>
+      )}
       {hasShareContent && (
         <div className="game-over-share" aria-live="polite">
           <h3>Share your result</h3>
@@ -173,14 +187,6 @@ const GameOverModalContent = ({
           )}
         </div>
       )}
-      <div className="game-over-actions">
-        {showLeaderboardLink && (
-          <PrimaryLink href="/leaderboard" onClick={handleLeaderboardClick}>
-            View Leaderboard
-          </PrimaryLink>
-        )}
-        <Button onClick={handleAction}>{actionLabel}</Button>
-      </div>
     </div>
   );
 };

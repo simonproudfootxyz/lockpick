@@ -63,7 +63,7 @@
 
 .guest-leaderboard-form {
   text-align: left;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -81,14 +81,13 @@
 }
 
 .game-over-share {
-  margin: 1rem 0 1.25rem;
+  margin: 1rem 0 0;
 }
 
 .game-over-share__buttons {
   margin-top: 0.5rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
   justify-content: center;
 }
 
