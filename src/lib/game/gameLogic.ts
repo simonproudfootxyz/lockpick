@@ -105,23 +105,20 @@ export const getCardPlayPoints = (
     ? BACKTRACK_PLAY_POINTS
     : CARD_PLAY_POINTS;
 
+type FinalScoreInput = {
+  gameScore?: number;
+  totalCards?: number;
+  totalCardsPlayed?: number;
+  totalTurns?: number;
+};
+
 export const calculateFinalScore = ({
   gameScore = 0,
   totalCards = 98,
   totalCardsPlayed = 0,
   totalTurns = 0,
-  gameWon = false,
-  deck = [],
-}) => {
-  const gameCompleteBonus = gameWon ? 300 : 0;
-  const deckBonus = deck.length === 0 ? 100 : 0;
-  const bigPlayerBonus = gameWon && totalTurns < 25 ? 150 : 0;
-  return (
-    gameScore +
-    gameCompleteBonus +
-    deckBonus +
-    bigPlayerBonus * (totalCards + totalCardsPlayed - totalTurns)
-  );
+}: FinalScoreInput = {}) => {
+  return gameScore * (totalCards + totalCardsPlayed - totalTurns);
 };
 
 export const buildGameSummaryItems = (state: GameState | null) => {
@@ -134,7 +131,7 @@ export const buildGameSummaryItems = (state: GameState | null) => {
   const totalTurns = state.totalTurns ?? 0;
   const totalCards = state.totalCards ?? 98;
   const gameScore = state.gameScore ?? 0;
-  const finalScore = calculateFinalScore(state);
+  const finalScore = calculateFinalScore({ ...state, totalCardsPlayed });
 
   return [
     { label: "Total cards played", value: totalCardsPlayed },

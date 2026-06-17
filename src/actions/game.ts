@@ -11,10 +11,7 @@ import {
 } from "@/lib/auth/guestSession";
 import { db } from "@/lib/db";
 import { games, leaderboardEntries } from "@/lib/db/schema";
-import {
-  buildNewGameState,
-  calculateFinalScore,
-} from "@/lib/game/gameLogic";
+import { buildNewGameState, calculateFinalScore } from "@/lib/game/gameLogic";
 import {
   getQualifyingThreshold,
   getRankForScore,
@@ -128,12 +125,7 @@ function computeFinalMetrics(state: GameState) {
     (sum, pile) => sum + pile.length,
     0,
   );
-  const finalScore = calculateFinalScore(
-    state.gameScore,
-    state.totalCards,
-    totalCardsPlayed,
-    state.totalTurns,
-  );
+  const finalScore = calculateFinalScore({ ...state, totalCardsPlayed });
   const finishedAt = Date.now();
   const durationMs = finishedAt - state.startedAt;
 

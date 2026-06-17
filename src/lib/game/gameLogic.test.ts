@@ -17,8 +17,13 @@ describe("gameLogic", () => {
   });
 
   it("calculates final score from components", () => {
-    const score = calculateFinalScore(10, 98, 98, 5);
-    expect(score).toBeGreaterThan(0);
+    const score = calculateFinalScore({
+      gameScore: 10,
+      totalCards: 98,
+      totalCardsPlayed: 98,
+      totalTurns: 5,
+    });
+    expect(score).toBe(1910);
   });
 });
 

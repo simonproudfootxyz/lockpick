@@ -13,7 +13,11 @@ import type { FinishGameResult, GameState } from "@/lib/game/gameTypes";
 import DiscardPile from "@/components/DiscardPile";
 import PlayerHand from "@/components/PlayerHand";
 import "@/Game.css";
-import Button, { PrimaryButton, TextButton } from "@/components/Button";
+import Button, {
+  PrimaryButton,
+  PrimaryInvertButton,
+  TextButton,
+} from "@/components/Button";
 import { useModal } from "@/context/ModalContext";
 import GameOverModalContent from "@/components/modals/GameOverModalContent";
 import PileViewModalContent from "@/components/modals/PileViewModalContent";
@@ -75,9 +79,9 @@ function GuestLeaderboardForm({
         disabled={submitting}
       />
       {error && <p className="error">{error}</p>}
-      <Button type="submit" disabled={submitting || !name.trim()}>
+      <PrimaryInvertButton type="submit" disabled={submitting || !name.trim()}>
         {submitting ? "Submitting..." : "Save to leaderboard"}
-      </Button>
+      </PrimaryInvertButton>
     </form>
   );
 }
@@ -158,11 +162,20 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
     };
   }, [gameId]);
 
-  const exitFinishedGame = useCallback(() => {
+  const resetGameOverModalState = useCallback(() => {
     gameOverModalShownRef.current = false;
     finishResultRef.current = null;
+  }, []);
+
+  const exitFinishedGame = useCallback(() => {
+    resetGameOverModalState();
     router.push("/");
-  }, [router]);
+  }, [resetGameOverModalState, router]);
+
+  const viewLeaderboardFromGameOver = useCallback(() => {
+    resetGameOverModalState();
+    router.push("/leaderboard");
+  }, [resetGameOverModalState, router]);
 
   const showGameOverModal = useCallback(
     (result: FinishGameResult) => {
@@ -172,7 +185,8 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
         ? `Congratulations, you won! All ${totalCards} cards have been played! Great job!`
         : "No more moves are available. Start a new game to try again!";
 
-      const renderContent = (finishResult: FinishGameResult) =>
+      const renderContent =
+        (finishResult: FinishGameResult) =>
         ({ close }: { close?: () => void }) => (
           <GameOverModalContent
             message={message}
@@ -180,6 +194,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
             actionLabel="Back to Home"
             close={close}
             onAction={exitFinishedGame}
+            onLeaderboardAction={viewLeaderboardFromGameOver}
             showLeaderboardLink={
               finishResult.qualified && !finishResult.needsDisplayName
             }
@@ -192,7 +207,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
                     openModal({
                       title,
                       size: "sm",
-                      onClose: exitFinishedGame,
+                      onClose: resetGameOverModalState,
                       content: renderContent(guestResult),
                     });
                   }}
@@ -205,11 +220,18 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       openModal({
         title,
         size: "sm",
-        onClose: exitFinishedGame,
+        onClose: resetGameOverModalState,
         content: renderContent(result),
       });
     },
-    [gameState, exitFinishedGame, gameId, openModal],
+    [
+      gameState,
+      exitFinishedGame,
+      gameId,
+      openModal,
+      resetGameOverModalState,
+      viewLeaderboardFromGameOver,
+    ],
   );
 
   useEffect(() => {
@@ -238,7 +260,10 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
     }
   };
 
-  const handlePlayCard = async (pileIndex: number, cardValue = selectedCard) => {
+  const handlePlayCard = async (
+    pileIndex: number,
+    cardValue = selectedCard,
+  ) => {
     if (cardValue === null || cardValue === undefined) return;
 
     const pile = gameState.discardPiles[pileIndex];

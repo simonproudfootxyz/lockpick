@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
-import Button from "@/components/Button";
+import type { MouseEvent } from "react";
+import { startGame } from "@/actions/game";
+import Button, { PrimaryInvertButton } from "@/components/Button";
 import "./GameOverModalContent.css";
+import { PrimaryLink } from "../Link";
 
 type SummaryItem = {
   label: string;
@@ -15,6 +17,7 @@ type GameOverModalContentProps = {
   summaryItems?: SummaryItem[];
   actionLabel?: string;
   onAction?: () => void;
+  onLeaderboardAction?: () => void;
   close?: () => void;
   showLeaderboardLink?: boolean;
   guestNameForm?: ReactNode;
@@ -25,6 +28,7 @@ const GameOverModalContent = ({
   summaryItems = [],
   actionLabel = "Back to Home",
   onAction,
+  onLeaderboardAction,
   close,
   showLeaderboardLink = false,
   guestNameForm,
@@ -38,9 +42,24 @@ const GameOverModalContent = ({
     }
   };
 
+  const handleLeaderboardClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (onLeaderboardAction) {
+      onLeaderboardAction();
+    }
+    if (close) {
+      close();
+    }
+  };
+
   return (
     <div className="game-over-content">
       {message && <p className="game-over-content__message">{message}</p>}
+      <div className="game-over-content__actions">
+        <form action={startGame}>
+          <PrimaryInvertButton type="submit">Start New Game</PrimaryInvertButton>
+        </form>
+      </div>
       {Array.isArray(summaryItems) && summaryItems.length > 0 && (
         <div className="game-over-summary">
           <h3>Game Summary</h3>
@@ -57,9 +76,9 @@ const GameOverModalContent = ({
       {guestNameForm}
       <div className="game-over-actions">
         {showLeaderboardLink && (
-          <Link href="/leaderboard" className="leaderboard-link">
+          <PrimaryLink href="/leaderboard" onClick={handleLeaderboardClick}>
             View Leaderboard
-          </Link>
+          </PrimaryLink>
         )}
         <Button onClick={handleAction}>{actionLabel}</Button>
       </div>
