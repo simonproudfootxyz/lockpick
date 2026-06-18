@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { MouseEvent } from "react";
 import { startGame } from "@/actions/game";
 import Button, { PrimaryInvertButton, TextButton } from "@/components/Button";
+import StartGameSubmitButton from "@/components/StartGameSubmitButton";
 import {
   buildCopyPayloads,
   buildShareIntentUrls,
@@ -131,9 +132,11 @@ const GameOverModalContent = ({
       {message && <p className="game-over-content__message">{message}</p>}
       <div className="game-over-content__actions">
         <form action={startGame}>
-          <PrimaryInvertButton type="submit">
-            Start New Game
-          </PrimaryInvertButton>
+          <StartGameSubmitButton
+            variant="primaryInvert"
+            idleLabel="Start New Game"
+            pendingLabel="Starting New Game..."
+          />
         </form>
       </div>
       {Array.isArray(summaryItems) && summaryItems.length > 0 && (

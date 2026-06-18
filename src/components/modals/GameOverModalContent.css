@@ -7,6 +7,11 @@
   margin: 1rem 0;
 }
 
+.game-over-content__actions form {
+  display: flex;
+  justify-content: center;
+}
+
 .game-over-summary {
   text-align: left;
   margin-bottom: 1rem;

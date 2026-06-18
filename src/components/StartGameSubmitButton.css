@@ -1,0 +1,24 @@
+.start-game-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.start-game-submit-btn--pending {
+  gap: 0.5rem;
+}
+
+.start-game-submit-btn__spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: start-game-submit-btn-spin 0.7s linear infinite;
+}
+
+@keyframes start-game-submit-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

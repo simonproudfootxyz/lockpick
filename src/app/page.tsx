@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth/auth";
 import { startGame } from "@/actions/game";
-import Button from "@/components/Button";
+import StartGameSubmitButton from "@/components/StartGameSubmitButton";
 import RulesContent from "@/components/RulesContent";
 import LockpickLogo from "@/assets/LockpickLogo.svg";
 import "@/GameSetup.css";
@@ -19,7 +19,10 @@ export default async function HomePage() {
         </h1>
         <div className="setup-options">
           <form action={startGame}>
-            <Button type="submit">Start Game</Button>
+            <StartGameSubmitButton
+              idleLabel="Start Game"
+              pendingLabel="Starting Game..."
+            />
           </form>
           <div className="setup-auth-links">
             {session?.user ? (
