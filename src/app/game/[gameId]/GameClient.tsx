@@ -32,6 +32,7 @@ import ThinArrowUp from "@/assets/ThinArrowUp.svg";
 import ThinArrowDown from "@/assets/ThinArrowDown.svg";
 import {
   finishGame,
+  getGameStatus,
   saveGameState,
   saveKonamiMode,
   submitGuestLeaderboardName,
@@ -118,6 +119,32 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
     },
     [gameId],
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const validateGameStatus = async () => {
+      try {
+        const status = await getGameStatus(gameId);
+        if (!isMounted) return;
+        if (status.status === "finished") {
+          router.replace("/");
+        }
+      } catch {}
+    };
+
+    void validateGameStatus();
+
+    const handlePageShow = () => {
+      void validateGameStatus();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [gameId, router]);
 
   useEffect(() => {
     const konamiSequence = [
@@ -283,6 +310,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
 
   useEffect(() => {
     const isGameOver = !!(gameState.gameWon || gameState.gameFinished);
+
     if (!isGameOver) {
       gameOverModalShownRef.current = false;
       return;

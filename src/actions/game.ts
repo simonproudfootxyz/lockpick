@@ -76,6 +76,24 @@ export async function loadGame(gameId: string): Promise<GameState | null> {
   return parseGameState(game.state);
 }
 
+export async function getGameStatus(gameId: string): Promise<{
+  status: string;
+  gameFinished: boolean;
+  gameWon: boolean;
+}> {
+  const context = await getAccessContext();
+  const game = await getGameOrThrow(gameId);
+  assertGameAccess(game, context);
+  const state = parseGameState(game.state);
+  if (!state) throw new Error("Invalid game state");
+
+  return {
+    status: game.status,
+    gameFinished: state.gameFinished,
+    gameWon: state.gameWon,
+  };
+}
+
 export async function saveGameState(gameId: string, state: GameState) {
   const context = await getAccessContext();
   const game = await getGameOrThrow(gameId);
