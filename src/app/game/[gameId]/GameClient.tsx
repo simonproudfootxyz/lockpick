@@ -32,6 +32,7 @@ import ThinArrowUp from "@/assets/ThinArrowUp.svg";
 import ThinArrowDown from "@/assets/ThinArrowDown.svg";
 import {
   finishGame,
+  loadGame,
   getGameStatus,
   saveGameState,
   saveKonamiMode,
@@ -112,6 +113,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
   const gameOverModalShownRef = useRef(false);
   const finishResultRef = useRef<FinishGameResult | null>(null);
   const suppressNextGameOverCloseNavigationRef = useRef(false);
+  const latestGameStateRef = useRef(gameState);
 
   const persistState = useCallback(
     async (state: GameState) => {
@@ -121,22 +123,54 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
   );
 
   useEffect(() => {
+    latestGameStateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(() => {
     let isMounted = true;
 
-    const validateGameStatus = async () => {
+    const buildSnapshot = (state: GameState) => ({
+      totalTurns: state.totalTurns,
+      gameScore: state.gameScore,
+      handSize: state.playerHand.length,
+      deckSize: state.deck.length,
+      discardSizes: state.discardPiles.map((pile) => pile.length),
+      gameFinished: state.gameFinished,
+      gameWon: state.gameWon,
+    });
+
+    const snapshotsMatch = (a: GameState, b: GameState) =>
+      JSON.stringify(buildSnapshot(a)) === JSON.stringify(buildSnapshot(b));
+
+    const validateGameStatus = async (
+      _source: "mount" | "pageshow",
+      _persisted?: boolean,
+    ) => {
       try {
-        const status = await getGameStatus(gameId);
+        const [status, serverState] = await Promise.all([
+          getGameStatus(gameId),
+          loadGame(gameId),
+        ]);
         if (!isMounted) return;
+
         if (status.status === "finished") {
           router.replace("/");
+          return;
+        }
+
+        if (serverState) {
+          const currentClientState = latestGameStateRef.current;
+          if (!snapshotsMatch(currentClientState, serverState)) {
+            dispatch({ type: "HYDRATE", state: serverState });
+          }
         }
       } catch {}
     };
 
-    void validateGameStatus();
+    void validateGameStatus("mount");
 
-    const handlePageShow = () => {
-      void validateGameStatus();
+    const handlePageShow = (event: PageTransitionEvent) => {
+      void validateGameStatus("pageshow", event.persisted);
     };
 
     window.addEventListener("pageshow", handlePageShow);
@@ -144,7 +178,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       isMounted = false;
       window.removeEventListener("pageshow", handlePageShow);
     };
-  }, [gameId, router]);
+  }, [gameId, initialState, router]);
 
   useEffect(() => {
     const konamiSequence = [
