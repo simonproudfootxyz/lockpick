@@ -110,6 +110,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
   );
   const gameOverModalShownRef = useRef(false);
   const finishResultRef = useRef<FinishGameResult | null>(null);
+  const suppressNextGameOverCloseNavigationRef = useRef(false);
 
   const persistState = useCallback(
     async (state: GameState) => {
@@ -172,6 +173,17 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
     gameOverModalShownRef.current = false;
     finishResultRef.current = null;
   }, []);
+
+  const handleGameOverModalClose = useCallback(() => {
+    const shouldSuppressNavigation =
+      suppressNextGameOverCloseNavigationRef.current;
+    suppressNextGameOverCloseNavigationRef.current = false;
+    resetGameOverModalState();
+    if (shouldSuppressNavigation) {
+      return;
+    }
+    router.push("/");
+  }, [resetGameOverModalState, router]);
 
   const exitFinishedGame = useCallback(() => {
     resetGameOverModalState();
@@ -237,10 +249,11 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
                     gameId={gameId}
                     onComplete={(guestResult) => {
                       finishResultRef.current = guestResult;
+                      suppressNextGameOverCloseNavigationRef.current = true;
                       openModal({
                         title,
                         size: "sm",
-                        onClose: resetGameOverModalState,
+                        onClose: handleGameOverModalClose,
                         content: renderContent(guestResult),
                       });
                     }}
@@ -254,7 +267,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       openModal({
         title,
         size: "sm",
-        onClose: resetGameOverModalState,
+        onClose: handleGameOverModalClose,
         content: renderContent(result),
       });
     },
@@ -262,8 +275,8 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
       gameState,
       exitFinishedGame,
       gameId,
+      handleGameOverModalClose,
       openModal,
-      resetGameOverModalState,
       viewLeaderboardFromGameOver,
     ],
   );
