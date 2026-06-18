@@ -243,7 +243,6 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
     if (shouldSuppressNavigation) {
       return;
     }
-    router.push("/");
   }, [resetGameOverModalState, router]);
 
   const exitFinishedGame = useCallback(() => {
