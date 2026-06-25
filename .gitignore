@@ -36,5 +36,8 @@ next-env.d.ts
 # drizzle
 drizzle/meta
 
+#  cursor
+/.cursor/
+
 # legacy build artifacts
 legacy/**/node_modules

@@ -1,6 +1,6 @@
 # Lockpick
 
-Cooperative card game built with React.
+Solo card game built with React.
 
 ## Development
 
