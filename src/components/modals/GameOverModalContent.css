@@ -3,6 +3,16 @@
   color: var(--white);
 }
 
+.game-over-content__message {
+  margin-bottom: 0.5rem;
+}
+
+.game-over-content__placement {
+  margin: 0.5rem 0;
+  font-weight: 700;
+  color: var(--primary-yellow);
+}
+
 .game-over-content__actions {
   margin: 1rem 0;
 }
@@ -94,6 +104,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 0.5rem;
 }
 
 .game-over-share__buttons .button {

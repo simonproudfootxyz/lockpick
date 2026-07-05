@@ -1,4 +1,4 @@
-import { and, asc, desc, gte, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lte, lt, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { leaderboardEntries } from "@/lib/db/schema";
 import {
@@ -65,14 +65,33 @@ export async function getTopWeeklyLeaderboard(limit = LEADERBOARD_SIZE) {
   return getTopLeaderboardInDateRange(startDate, endDate, limit);
 }
 
-export async function getQualifyingThreshold(): Promise<number | null> {
-  const rows = await getTopLeaderboard(LEADERBOARD_SIZE);
-  if (rows.length < LEADERBOARD_SIZE) return null;
-  return rows[rows.length - 1]?.finalScore ?? null;
-}
+export async function getOverallRankForEntry({
+  id,
+  finalScore,
+  submittedAt,
+}: {
+  id: string;
+  finalScore: number;
+  submittedAt: Date;
+}) {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(leaderboardEntries)
+    .where(
+      or(
+        gt(leaderboardEntries.finalScore, finalScore),
+        and(
+          eq(leaderboardEntries.finalScore, finalScore),
+          or(
+            lt(leaderboardEntries.submittedAt, submittedAt),
+            and(
+              eq(leaderboardEntries.submittedAt, submittedAt),
+              lte(leaderboardEntries.id, id),
+            ),
+          ),
+        ),
+      ),
+    );
 
-export async function getRankForScore(finalScore: number): Promise<number> {
-  const rows = await getTopLeaderboard(LEADERBOARD_SIZE);
-  const higherCount = rows.filter((r) => r.finalScore > finalScore).length;
-  return higherCount + 1;
+  return result?.count ?? 1;
 }

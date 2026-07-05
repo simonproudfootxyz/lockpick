@@ -19,6 +19,7 @@ type SummaryItem = {
 
 type GameOverModalContentProps = {
   message?: ReactNode;
+  leaderboardPlacement?: number;
   summaryItems?: SummaryItem[];
   shareUrl?: string;
   shareText?: string;
@@ -33,6 +34,7 @@ type GameOverModalContentProps = {
 
 const GameOverModalContent = ({
   message,
+  leaderboardPlacement,
   summaryItems = [],
   shareUrl,
   shareText,
@@ -163,25 +165,41 @@ const GameOverModalContent = ({
       {hasShareContent && (
         <div className="game-over-share" aria-live="polite">
           <h3>Share your result</h3>
+          {typeof leaderboardPlacement === "number" &&
+            leaderboardPlacement > 0 && (
+              <p
+                className="game-over-content__placement"
+                role="status"
+                aria-live="polite"
+              >
+                You placed #{leaderboardPlacement} on the leaderboard!
+              </p>
+            )}
           <div className="game-over-share__buttons">
-            <TextButton mini onClick={() => handleShareClick("x")}>
+            <PrimaryInvertButton mini onClick={() => handleShareClick("x")}>
               Share on X
-            </TextButton>
-            <TextButton mini onClick={() => handleShareClick("bluesky")}>
+            </PrimaryInvertButton>
+            <PrimaryInvertButton
+              mini
+              onClick={() => handleShareClick("bluesky")}
+            >
               Share on Bluesky
-            </TextButton>
-            <TextButton mini onClick={() => handleShareClick("facebook")}>
+            </PrimaryInvertButton>
+            <PrimaryInvertButton
+              mini
+              onClick={() => handleShareClick("facebook")}
+            >
               Share on Facebook
-            </TextButton>
-            <TextButton mini onClick={() => handleShareClick("reddit")}>
+            </PrimaryInvertButton>
+            <PrimaryInvertButton
+              mini
+              onClick={() => handleShareClick("reddit")}
+            >
               Share on Reddit
-            </TextButton>
-            <TextButton mini onClick={handleCopyLink}>
-              Copy Link
-            </TextButton>
-            <TextButton mini onClick={handleCopyText}>
-              Copy Text
-            </TextButton>
+            </PrimaryInvertButton>
+            <PrimaryInvertButton mini onClick={handleCopyText}>
+              Share Result
+            </PrimaryInvertButton>
           </div>
           {copyFeedback && (
             <p className="game-over-share__feedback" role="status">

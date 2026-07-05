@@ -76,7 +76,7 @@ function GuestLeaderboardForm({
 
   return (
     <form onSubmit={handleSubmit} className="guest-leaderboard-form">
-      <p>You made the top 100! Enter a display name for the leaderboard.</p>
+      <p>Enter a display name to submit your score to the leaderboard.</p>
       <label htmlFor="display-name">Display name</label>
       <input
         id="display-name"
@@ -277,10 +277,12 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
         path: "/",
       });
       const shareTitle = buildShareTitle();
-
       const renderContent =
         (finishResult: FinishGameResult) =>
         ({ close }: { close?: () => void }) => {
+          const leaderboardPlacement = finishResult.submitted
+            ? finishResult.rank
+            : undefined;
           const shareText = buildShareText({
             gameWon: gameState.gameWon,
             finalScore,
@@ -292,6 +294,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
           return (
             <GameOverModalContent
               message={message}
+              leaderboardPlacement={leaderboardPlacement}
               summaryItems={buildGameSummaryItems(gameState)}
               shareUrl={shareUrl}
               shareText={shareText}
@@ -300,9 +303,7 @@ export default function GameClient({ gameId, initialState }: GameClientProps) {
               close={close}
               onAction={exitFinishedGame}
               onLeaderboardAction={viewLeaderboardFromGameOver}
-              showLeaderboardLink={
-                finishResult.qualified && !finishResult.needsDisplayName
-              }
+              showLeaderboardLink={finishResult.submitted}
               guestNameForm={
                 finishResult.needsDisplayName ? (
                   <GuestLeaderboardForm

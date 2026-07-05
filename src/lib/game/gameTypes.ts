@@ -32,8 +32,8 @@ export type GameAction =
 
 export type FinishGameResult = {
   ok: true;
-  qualified: boolean;
   needsDisplayName: boolean;
+  submitted: boolean;
   rank?: number;
   displayName?: string;
 };

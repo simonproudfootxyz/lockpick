@@ -12,11 +12,7 @@ import {
 import { db } from "@/lib/db";
 import { games, leaderboardEntries } from "@/lib/db/schema";
 import { buildNewGameState, calculateFinalScore } from "@/lib/game/gameLogic";
-import {
-  getQualifyingThreshold,
-  getRankForScore,
-  scoreQualifiesForLeaderboard,
-} from "@/lib/game/leaderboard";
+import { getOverallRankForEntry } from "@/lib/game/leaderboard";
 import type { FinishGameResult, GameState } from "@/lib/game/gameTypes";
 import {
   parseGameState,
@@ -169,14 +165,28 @@ async function insertLeaderboardEntry(
   durationMs: number,
   totalTurns: number,
 ) {
-  await db.insert(leaderboardEntries).values({
-    gameId,
-    userId,
-    displayName,
-    finalScore,
-    durationMs,
-    totalTurns,
-  });
+  const [entry] = await db
+    .insert(leaderboardEntries)
+    .values({
+      gameId,
+      userId,
+      displayName,
+      finalScore,
+      durationMs,
+      totalTurns,
+    })
+    .returning({
+      id: leaderboardEntries.id,
+      finalScore: leaderboardEntries.finalScore,
+      submittedAt: leaderboardEntries.submittedAt,
+      displayName: leaderboardEntries.displayName,
+    });
+
+  if (!entry) {
+    throw new Error("Failed to create leaderboard entry");
+  }
+
+  return entry;
 }
 
 async function buildFinishResult(
@@ -184,13 +194,6 @@ async function buildFinishResult(
   finalScore: number,
   context: Awaited<ReturnType<typeof getAccessContext>>,
 ): Promise<FinishGameResult> {
-  const threshold = await getQualifyingThreshold();
-  const qualified = scoreQualifiesForLeaderboard(finalScore, threshold);
-
-  if (!qualified) {
-    return { ok: true, qualified: false, needsDisplayName: false };
-  }
-
   const [existing] = await db
     .select()
     .from(leaderboardEntries)
@@ -198,27 +201,35 @@ async function buildFinishResult(
     .limit(1);
 
   if (existing) {
-    const rank = await getRankForScore(finalScore);
+    const rank = await getOverallRankForEntry({
+      id: existing.id,
+      finalScore: existing.finalScore,
+      submittedAt: existing.submittedAt,
+    });
     return {
       ok: true,
-      qualified: true,
       needsDisplayName: false,
+      submitted: true,
       rank,
       displayName: existing.displayName,
     };
   }
 
-  if (context.userId && context.username) {
+  const username = context.username ?? undefined;
+  if (context.userId && !username) {
+    throw new Error("Authenticated user is missing username");
+  }
+
+  if (context.userId) {
     return {
       ok: true,
-      qualified: true,
       needsDisplayName: false,
-      rank: await getRankForScore(finalScore),
-      displayName: context.username,
+      displayName: username,
+      submitted: false,
     };
   }
 
-  return { ok: true, qualified: true, needsDisplayName: true };
+  return { ok: true, needsDisplayName: true, submitted: false };
 }
 
 export async function finishGame(
@@ -260,8 +271,8 @@ export async function finishGame(
   const result = await buildFinishResult(gameId, finalScore, context);
 
   if (
-    result.qualified &&
     !result.needsDisplayName &&
+    !result.submitted &&
     context.userId &&
     context.username
   ) {
@@ -271,7 +282,7 @@ export async function finishGame(
       .where(eq(leaderboardEntries.gameId, gameId))
       .limit(1);
     if (!existing) {
-      await insertLeaderboardEntry(
+      const createdEntry = await insertLeaderboardEntry(
         gameId,
         context.userId,
         context.username,
@@ -279,9 +290,26 @@ export async function finishGame(
         durationMs,
         state.totalTurns,
       );
-      const rank = await getRankForScore(finalScore);
-      return { ...result, rank, displayName: context.username };
+      const rank = await getOverallRankForEntry(createdEntry);
+      return {
+        ...result,
+        submitted: true,
+        rank,
+        displayName: createdEntry.displayName,
+      };
     }
+
+    const rank = await getOverallRankForEntry({
+      id: existing.id,
+      finalScore: existing.finalScore,
+      submittedAt: existing.submittedAt,
+    });
+    return {
+      ...result,
+      submitted: true,
+      rank,
+      displayName: existing.displayName,
+    };
   }
 
   return result;
@@ -308,28 +336,27 @@ export async function submitGuestLeaderboardName(
     throw new Error("Game must be finished before leaderboard submission");
   }
 
-  const threshold = await getQualifyingThreshold();
-  if (!scoreQualifiesForLeaderboard(game.finalScore, threshold)) {
-    throw new Error("Score does not qualify for leaderboard");
-  }
-
   const [existing] = await db
     .select()
     .from(leaderboardEntries)
     .where(eq(leaderboardEntries.gameId, gameId))
     .limit(1);
   if (existing) {
-    const rank = await getRankForScore(game.finalScore);
+    const rank = await getOverallRankForEntry({
+      id: existing.id,
+      finalScore: existing.finalScore,
+      submittedAt: existing.submittedAt,
+    });
     return {
       ok: true,
-      qualified: true,
       needsDisplayName: false,
+      submitted: true,
       rank,
       displayName: existing.displayName,
     };
   }
 
-  await insertLeaderboardEntry(
+  const createdEntry = await insertLeaderboardEntry(
     gameId,
     null,
     parsed.data,
@@ -338,12 +365,12 @@ export async function submitGuestLeaderboardName(
     game.totalTurns,
   );
 
-  const rank = await getRankForScore(game.finalScore);
+  const rank = await getOverallRankForEntry(createdEntry);
   return {
     ok: true,
-    qualified: true,
     needsDisplayName: false,
+    submitted: true,
     rank,
-    displayName: parsed.data,
+    displayName: createdEntry.displayName,
   };
 }

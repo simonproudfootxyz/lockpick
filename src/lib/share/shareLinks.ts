@@ -58,7 +58,7 @@ export const buildShareText = ({
   rank,
 }: ShareTextInput) => {
   const outcome = gameWon ? "won" : "finished";
-  const rankSuffix = rank ? ` (Top #${rank})` : "";
+  const rankSuffix = rank ? ` (Rank #${rank})` : "";
   return `I ${outcome} Lockpick with a final score of ${finalScore}${rankSuffix}. ${totalCardsPlayed} cards played in ${totalTurns} turns. Can you beat me?`;
 };
 
