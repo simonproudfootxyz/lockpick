@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { auth } from "@/lib/auth/auth";
 import { startGame } from "@/actions/game";
 import StartGameSubmitButton from "@/components/StartGameSubmitButton";
 import RulesContent from "@/components/RulesContent";
 import LockpickLogo from "@/assets/LockpickLogo.svg";
 import "@/GameSetup.css";
+import { PrimaryInvertLink } from "@/components/Link";
 
 export const dynamic = "force-dynamic";
 
@@ -25,18 +25,9 @@ export default async function HomePage() {
             />
           </form>
           <div className="setup-auth-links">
-            {session?.user ? (
-              <>
-                <p>Signed in as {session.user.username}</p>
-                <Link href="/account">Account</Link>
-              </>
-            ) : (
-              <>
-                <Link href="/sign-in">Sign in</Link>
-                <Link href="/sign-up">Create account</Link>
-              </>
-            )}
-            <Link href="/leaderboard">Leaderboard</Link>
+            <PrimaryInvertLink mini href="/leaderboard">
+              Leaderboard
+            </PrimaryInvertLink>
           </div>
         </div>
         <div className="rules-summary">

@@ -77,6 +77,10 @@
   color: var(--grey-950);
   border: none;
 
+  &.link {
+    color: var(--grey-950);
+  }
+
   &:not(.disabled, [disabled]):hover,
   &:not(.disabled, [disabled]):focus {
     background: var(--primary-color--hover);

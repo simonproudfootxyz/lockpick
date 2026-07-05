@@ -1,19 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { MouseEvent } from "react";
 import { startGame } from "@/actions/game";
-import Button, {
-  PrimaryButton,
-  PrimaryInvertButton,
-  TextButton,
-} from "@/components/Button";
+import Button, { PrimaryInvertButton, TextButton } from "@/components/Button";
 import StartGameSubmitButton from "@/components/StartGameSubmitButton";
 import {
   buildCopyPayloads,
   buildShareIntentUrls,
 } from "@/lib/share/shareLinks";
 import "./GameOverModalContent.css";
-import { useRouter } from "next/navigation";
+import { PrimaryLink } from "../Link";
 
 type SummaryItem = {
   label: string;
@@ -54,7 +51,6 @@ const GameOverModalContent = ({
     shareUrl.length > 0 &&
     typeof shareText === "string" &&
     shareText.length > 0;
-  const router = useRouter();
 
   useEffect(() => {
     return () => {
@@ -97,10 +93,14 @@ const GameOverModalContent = ({
     }
   };
 
-  const handleLeaderboardClick = (close: () => void) => {
-    close?.();
-
-    router.push("/leaderboard");
+  const handleLeaderboardClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (onLeaderboardAction) {
+      onLeaderboardAction();
+    }
+    if (close) {
+      close();
+    }
   };
 
   const handleShareClick = (
@@ -155,9 +155,9 @@ const GameOverModalContent = ({
       {guestNameForm}
       {showLeaderboardLink && (
         <div className="game-over-actions">
-          <PrimaryButton onClick={handleLeaderboardClick}>
-            View Leaderboardfdsafdsafsa
-          </PrimaryButton>
+          <PrimaryLink href="/leaderboard" onClick={handleLeaderboardClick}>
+            View Leaderboard
+          </PrimaryLink>
         </div>
       )}
       {hasShareContent && (

@@ -81,7 +81,7 @@ export const PrimaryLink = ({
 }: StyledLinkProps) => {
   return (
     <Link
-      className={`button button--primary ${className}`}
+      className={`button link button--primary ${className}`}
       mini={mini}
       fullWidth={fullWidth}
       {...props}
