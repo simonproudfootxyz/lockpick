@@ -30,11 +30,6 @@ export default function LeaderboardPageContent({
         <h1>{title}</h1>
 
         <p className="leaderboard-subtitle">{subtitle}</p>
-        <p className="leaderboard-subtitle">
-          <Link href="/leaderboard">All-time</Link> |{" "}
-          <Link href="/leaderboard/daily">Daily</Link> |{" "}
-          <Link href="/leaderboard/weekly">Weekly</Link>
-        </p>
         <div className="leaderboard-table-wrap">
           <table className="leaderboard-table">
             <thead>

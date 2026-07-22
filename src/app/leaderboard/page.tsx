@@ -9,7 +9,7 @@ export default async function LeaderboardPage() {
   return (
     <LeaderboardPageContent
       title="Leaderboard"
-      subtitle="Top 100 all-time scores by final score"
+      subtitle="Top 100 all-time scores"
       entries={entries}
     />
   );
